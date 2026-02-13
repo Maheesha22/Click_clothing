@@ -1,0 +1,7 @@
+CREATE TABLE Customer(
+    UserId VARCHAR (30) PRIMARY KEY,
+    Name Varchar(100),
+    Address VARCHAR(250),
+    ContactNo VARCHAR(20),
+    FOREIGN KEY(UserId) REFERENCES User(UserId)
+);
