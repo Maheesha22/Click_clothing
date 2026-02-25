@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;600&display=swap');
+
+/* No background here — index.css handles it globally */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+  padding: 20px;
+}
+
+.logo-container {
+  width: 130px;
+  height: 90px;
+  background: #d4d4d4;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.logo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-placeholder {
+  color: #888;
+  font-size: 11px;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.card {
+  border: 1.5px solid #fff;
+  padding: 48px 52px 40px;
+  width: 100%;
+  max-width: 400px;
+  background: transparent;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 4px;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 36px;
+  text-transform: uppercase;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-field {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #999;
+  color: #ccc;
+  padding: 14px 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-field::placeholder { color: #888; letter-spacing: 1px; }
+.input-field:focus { border-color: #fff; color: #fff; }
+
+.login-btn {
+  width: 100%;
+  background: #d4d4d4;
+  color: #111;
+  border: 2px solid #fff;
+  padding: 15px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, color 0.2s;
+  text-transform: uppercase;
+}
+
+.login-btn:hover {
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.register-text {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #777;
+  text-transform: uppercase;
+}
+
+.register-text a {
+  color: #ccc;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.register-text a:hover { color: #fff; }
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .page {
+    padding: 40px 24px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .logo-container { display: none; }
+
+  .card {
+    border: none;
+    background: transparent;
+    padding: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .title {
+    font-size: 26px;
+    letter-spacing: 4px;
+    text-align: left;
+    margin-bottom: 50px;
+  }
+
+  .input-group { margin-bottom: 26px; }
+
+  .input-field { padding: 14px 16px; font-size: 13px; }
+
+  .login-btn { padding: 15px; font-size: 15px; margin-top: 20px; }
+
+  .register-text {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    margin-top: 24px;
+    text-align: center;
+  }
+}
