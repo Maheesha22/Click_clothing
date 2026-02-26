@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Header.css';
 
+
 const Header = () => {
   const [cartCount] = useState(0);
 
@@ -47,7 +48,7 @@ const Header = () => {
           </button>
 
           {/* Cart Icon */}
-          <button className="icon-btn cart-btn" aria-label="Cart">
+          <button className="icon-btn cart-btn" aria-label="Cart" onClick={() => window.location.href = '/cart'}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
