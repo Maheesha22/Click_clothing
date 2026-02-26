@@ -1,14 +1,21 @@
 import { useState } from "react";
-import "./Login.css";
+import "./login.css";
 import logo from "../assets/Logo.jpg";
 
-export default function LoginPage() {
+export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
-    alert(`Logging in with: ${email}`);
+
+    if (email === "admin1" && password === "1234") {
+      setError("");
+      onLogin(); // ✅ redirect to dashboard
+    } else {
+      setError("Invalid username or password. Please try again.");
+    }
   };
 
   return (
@@ -26,8 +33,8 @@ export default function LoginPage() {
         <div className="input-group">
           <input
             className="input-field"
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="Username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -42,6 +49,13 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
+
+        {/* ✅ Show error message if wrong credentials */}
+        {error && (
+          <p style={{ color: 'red', fontSize: 13, marginBottom: 8, textAlign: 'center' }}>
+            {error}
+          </p>
+        )}
 
         <button className="login-btn" onClick={handleLogin}>
           Login
