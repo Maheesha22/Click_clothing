@@ -7,8 +7,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const handleLogin = (e) => {
-    e.preventDefault();
-    alert(`Logging in with: ${email}`);
+    //e.preventDefault();
+    
+    //alert(`Logging in with: ${email}`);
   };
 
   return (
