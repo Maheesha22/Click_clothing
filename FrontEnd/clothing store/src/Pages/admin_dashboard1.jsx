@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Chart, registerables } from "chart.js";
 import "./admin_dashboard1.css";
-//import logo from "./logo.png";
 
 Chart.register(...registerables);
 
@@ -189,93 +188,136 @@ function DashboardPage() {
   );
 }
 
+// ── SALES DATA ─────────────────────────────────────────
+const salesMonthlyLabels = ['Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const salesData    = [800, 900, 1050, 1350, 980, 1100, 1250];
+const returnsData  = [20,  25,  18,   30,   22,  20,   18];
+
+const topProducts = [
+  { name:"Classic White Shirt", units:312, revenue:"Rs. 24,960", pct:72 },
+  { name:"Slim Fit Jeans",      units:278, revenue:"Rs. 33,360", pct:62 },
+  { name:"Floral Summer Dress", units:245, revenue:"Rs. 36,750", pct:55 },
+  { name:"Leather Jacket",      units:189, revenue:"Rs. 56,700", pct:42 },
+];
+
+const recentSales = [
+  { id:"#ORD-0041", customer:"Amara Silva",     product:"White Shirt",    qty:2, amount:"Rs. 1,598", status:"Completed",  date:"14 Mar, 2026" },
+  { id:"#ORD-0040", customer:"Rajan Perera",    product:"Slim Fit Jeans", qty:1, amount:"Rs. 2,400", status:"Processing", date:"13 Mar, 2026" },
+  { id:"#ORD-0039", customer:"Nisha Fernando",  product:"Summer Dress",   qty:3, amount:"Rs. 4,500", status:"Completed",  date:"12 Mar, 2026" },
+  { id:"#ORD-0038", customer:"Kamal Bandara",   product:"Leather Jacket", qty:1, amount:"Rs. 5,670", status:"Completed",  date:"11 Mar, 2026" },
+  { id:"#ORD-0037", customer:"Dilini Rajapaksa",product:"Hoodie",         qty:2, amount:"Rs. 3,200", status:"Cancelled",  date:"10 Mar, 2026" },
+];
+
 // ── SALES PAGE ─────────────────────────────────────────
 function SalesPage() {
+  const salesChartRef = useRef();
+  const salesChart    = useRef(null);
+
+  useEffect(() => {
+    if (salesChart.current) salesChart.current.destroy();
+    salesChart.current = new Chart(salesChartRef.current, {
+      type: "bar",
+      data: {
+        labels: salesMonthlyLabels,
+        datasets: [
+          { label:"Sales",   data:salesData,   backgroundColor:"rgba(34,211,238,0.15)", borderColor:"#22d3ee", borderWidth:2, borderRadius:4, barPercentage:0.5 },
+          { label:"Returns", data:returnsData, backgroundColor:"rgba(167,139,250,0.3)", borderColor:"#a78bfa", borderWidth:2, borderRadius:4, barPercentage:0.5 },
+        ],
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: { legend:{ display:true, position:"top", labels:{ color:"#9ca3af", font:{size:12}, boxWidth:32, padding:16 } } },
+        scales: {
+          x: { ticks:{color:"#9ca3af"}, grid:{color:"rgba(255,255,255,0.05)"} },
+          y: { ticks:{color:"#9ca3af"}, grid:{color:"rgba(255,255,255,0.05)"} },
+        },
+      },
+    });
+    return () => { if (salesChart.current) salesChart.current.destroy(); };
+  }, []);
+
   return (
-    <div className="page-content">
-      <div className="section">
-        <div className="sales-summary-card">
-          <div className="sales-summary-title">
-            Click Clothing Store – Product Sales Summary
-          </div>
+    <div className="page-content sales-page">
+      <div className="sales-page-header">
+        <h2 className="sales-page-title">Sales Overview</h2>
+      </div>
 
-          <div className="sales-summary-kpis">
-            <div className="s-kpi orange">
-              <div className="s-kpi-icon">🌟</div>
-              <div>
-                <div className="s-kpi-label">Total Products</div>
-                <div className="s-kpi-value">665</div>
-              </div>
-            </div>
-            <div className="s-kpi green">
-              <div className="s-kpi-icon">🛒</div>
-              <div>
-                <div className="s-kpi-label">Sold Products</div>
-                <div className="s-kpi-value">488</div>
-              </div>
-            </div>
-            <div className="s-kpi blue">
-              <div className="s-kpi-icon">📦</div>
-              <div>
-                <div className="s-kpi-label">Remaining Stock</div>
-                <div className="s-kpi-value">177</div>
-              </div>
-            </div>
-            <div className="s-kpi purple">
-              <div className="s-kpi-icon">💰</div>
-              <div>
-                <div className="s-kpi-label">Total Revenue</div>
-                <div className="s-kpi-value">Rs. 5,54,150</div>
-              </div>
-            </div>
-          </div>
+      {/* KPI Cards */}
+      <div className="sales-kpi-row">
+        <div className="sales-kpi-card">
+          <div className="sales-kpi-label">TOTAL SALES</div>
+          <div className="sales-kpi-value">1,284</div>
+          <div className="sales-kpi-change positive">▲ 12% vs last month</div>
+        </div>
+        <div className="sales-kpi-card">
+          <div className="sales-kpi-label">REVENUE</div>
+          <div className="sales-kpi-value">Rs. 98,400</div>
+          <div className="sales-kpi-change positive">▲ 8.3% vs last month</div>
+        </div>
+        <div className="sales-kpi-card">
+          <div className="sales-kpi-label">RETURNS</div>
+          <div className="sales-kpi-value">43</div>
+          <div className="sales-kpi-change negative">▼ 3.1% vs last month</div>
+        </div>
+        <div className="sales-kpi-card">
+          <div className="sales-kpi-label">AVG. ORDER VALUE</div>
+          <div className="sales-kpi-value">Rs. 766</div>
+          <div className="sales-kpi-change positive">▲ 5% vs last month</div>
+        </div>
+      </div>
 
-          <div className="sales-table-wrap">
-            <table className="sales-table">
-              <thead>
-                <tr>
-                  <th>Product ID</th>
-                  <th>Product Name</th>
-                  <th>Total Products</th>
-                  <th>Sold Products</th>
-                  <th>Remaining Stock (Ithiriya)</th>
-                  <th>💰 Total Revenue (Rs)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((p) => (
-                  <tr key={p.id}>
-                    <td className="pid">{p.id}</td>
-                    <td className="pname">{p.name}</td>
-                    <td><span className="qty-badge orange-bg">{p.total}</span></td>
-                    <td>
-                      <span className="bar-cell">
-                        <span className="mini-bar green-bar" style={{width: p.soldW}} />
-                        <span className="bar-num green-num">{p.sold}</span>
-                      </span>
-                    </td>
-                    <td>
-                      <span className="bar-cell">
-                        <span className="mini-bar blue-bar" style={{width: p.remW}} />
-                        <span className="bar-num blue-num">{p.remaining}</span>
-                      </span>
-                    </td>
-                    <td className="rev-cell">💚 {p.revenue}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="total-row">
-                  <td colSpan={2} className="total-label">TOTAL</td>
-                  <td><span className="qty-badge yellow-bg">665</span></td>
-                  <td><span className="qty-badge teal-bg">488</span></td>
-                  <td><span className="qty-badge yellow-bg">177 📈</span></td>
-                  <td className="total-rev">Rs. 5,54,150</td>
-                </tr>
-              </tfoot>
-            </table>
+      {/* Charts Row */}
+      <div className="sales-charts-row">
+        <div className="sales-dark-card sales-chart-card">
+          <div className="sales-card-title">Monthly Sales Trend</div>
+          <div style={{height:280}}><canvas ref={salesChartRef} /></div>
+        </div>
+        <div className="sales-dark-card sales-top-card">
+          <div className="sales-card-title">Top Selling Products</div>
+          <div className="top-products-list">
+            {topProducts.map((p, i) => (
+              <div key={i} className="top-product-item">
+                <div className="top-product-info">
+                  <div className="top-product-name">{p.name}</div>
+                  <div className="top-product-units">{p.units} units sold</div>
+                  <div className="top-product-bar-track">
+                    <div className="top-product-bar-fill" style={{width:`${p.pct}%`}} />
+                  </div>
+                </div>
+                <div className="top-product-revenue">{p.revenue}</div>
+              </div>
+            ))}
           </div>
         </div>
+      </div>
+
+      {/* Recent Sales Table */}
+      <div className="sales-dark-card sales-table-section">
+        <div className="sales-table-head">
+          <span className="sales-card-title">Recent Sales</span>
+          <button className="sales-see-all">See all →</button>
+        </div>
+        <table className="recent-sales-table">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Customer</th><th>Product</th>
+              <th>Qty</th><th>Amount</th><th>Status</th><th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentSales.map((s, i) => (
+              <tr key={i}>
+                <td className="order-id">{s.id}</td>
+                <td className="customer-name">{s.customer}</td>
+                <td>{s.product}</td>
+                <td>{s.qty}</td>
+                <td className="sale-amount">{s.amount}</td>
+                <td><span className={`sale-badge sale-badge-${s.status.toLowerCase()}`}>{s.status}</span></td>
+                <td className="sale-date">{s.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -312,9 +354,12 @@ export default function Dashboard() {
     <div className="dashboard-root">
       {/* Sidebar */}
       <aside className="sidebar">
+
         <div className="logo">
-          <img src={logo} alt="CLiCK Logo" />
+          <img src="" alt="" style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 8 }} />
+          <span style={{ fontWeight: 800, color: '#1e3a8a', fontSize: 18 }}>CLiCK</span>
         </div>
+
         <nav>
           {navItems.map((item) => (
             <div
@@ -333,7 +378,7 @@ export default function Dashboard() {
       <div className="main">
         <header className="topbar">
           <div className="greeting">
-            Hi NIthya <span className="online-dot" />
+            Hi Nithya <span className="online-dot" />
           </div>
           <div className="avatar">👤</div>
         </header>
