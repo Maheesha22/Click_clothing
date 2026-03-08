@@ -25,9 +25,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/"         element={<HomePage onNavigate={setPage} />} />
-        <Route path="/cart"     element={<Cart onNavigate={setPage} />} />
-        <Route path="/checkout" element={<CheckoutPage onNavigate={setPage} />} />
+        <Route path="/"         element={<HomePage />} />
+        <Route path="/cart"     element={<Cart />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
       </Routes>
     </BrowserRouter>
   );
