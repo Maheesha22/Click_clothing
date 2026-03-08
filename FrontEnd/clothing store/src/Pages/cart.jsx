@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./cart.css";
 
 const ProductSVG = () => (
@@ -21,6 +22,7 @@ const initialItems = [
 export default function Cart() {
   const [items, setItems]       = useState(initialItems);
   const [selected, setSelected] = useState(new Set());
+  const navigate                = useNavigate();
 
   const toggleSelect = (id) => {
     setSelected((prev) => {
@@ -59,9 +61,32 @@ export default function Cart() {
     });
   };
 
-  const subtotal = items
+  const selectedItems = items.filter((item) => selected.has(item.id));
+
+  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  /*const subtotal = items
     .filter((item) => selected.has(item.id))
-    .reduce((sum, item) => sum + item.price * item.qty, 0);
+    .reduce((sum, item) => sum + item.price * item.qty, 0);*/
+
+  const selectedTotalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
+
+  const handleProceedToCheckout = () => {
+    // ✅ CHANGE 3 — alert if nothing selected, then pass selectedItems + subtotal to checkout
+    if (selectedItems.length === 0) {
+      alert("Please select at least one item to proceed.");
+      return;
+    }
+    navigate("/checkout", {
+      state: { selectedItems, subtotal },
+    });
+  };
+
+
+  const handleProceedToHome = () => {
+    navigate("/");
+  };
+
 
   return (
     <div className="cart-page-wrapper">
@@ -76,7 +101,7 @@ export default function Cart() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          <span className="cart-icon-badge">+</span>
+          <span className="cart-icon-badge">{selectedTotalQty > 0 ? selectedTotalQty : "+"}</span>
         </div>
       </header>
 
@@ -167,8 +192,10 @@ export default function Cart() {
             </div>
             <div className="summary-divider" />
             <p className="shipping-note">Shipping calculated at checkout</p>
-            <button className="btn-checkout">Proceed to Checkout</button>
-            <button className="btn-continue">Continue Shopping</button>
+            <button className="btn-checkout" onClick={handleProceedToCheckout}>
+              Proceed to Checkout
+            </button>
+            <button className="btn-continue" onClick={handleProceedToHome}>Continue Shopping</button>
           </aside>
 
         </div>
