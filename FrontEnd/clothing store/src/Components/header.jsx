@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Header.css';
 
-const Header = () => {
+const Header = ({ onNavigate }) => {
   const [cartCount] = useState(0);
+  const navigate = useNavigate();
 
   return (
     <header className="header">
@@ -23,16 +25,20 @@ const Header = () => {
 
         {/* Navigation */}
         <nav className="nav">
-          <a href="/" className="nav-link active">Home</a>
-          <a href="/category" className="nav-link">Category</a>
-          <a href="/contact" className="nav-link">Contact Us</a>
-          <a href="/about" className="nav-link">About us</a>
+          <Link to="/"         className="nav-link active">Home</Link>
+          <Link to="/category" className="nav-link">Category</Link>
+          <Link to="/contact"  className="nav-link">Contact Us</Link>
+          <Link to="/about"    className="nav-link">About us</Link>
         </nav>
 
         {/* Icons */}
         <div className="header-icons">
-          {/* User Icon */}
-          <button className="icon-btn" aria-label="Account">
+          {/* User Icon — clicking opens login page */}
+          <button
+            className="icon-btn"
+            aria-label="Account"
+            onClick={() => onNavigate && onNavigate("login")}
+          >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="12" cy="8" r="4" />
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
@@ -47,7 +53,7 @@ const Header = () => {
           </button>
 
           {/* Cart Icon */}
-          <button className="icon-btn cart-btn" aria-label="Cart">
+          <button className="icon-btn cart-btn" aria-label="Cart" onClick={() => navigate('/cart')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
