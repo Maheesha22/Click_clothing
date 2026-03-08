@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; // ✅ CHANGE 1 — added Link and useNavigate imports
 import './Header.css';
 
 const Header = () => {
   const [cartCount] = useState(0);
+  const navigate = useNavigate(); // ✅ CHANGE 2 — initialized navigate hook
 
   return (
     <header className="header">
@@ -22,11 +24,12 @@ const Header = () => {
         </div>
 
         {/* Navigation */}
+        {/* ✅ CHANGE 3 — replaced <a href> tags with React Router <Link> to avoid page reloads */}
         <nav className="nav">
-          <a href="/" className="nav-link active">Home</a>
-          <a href="/category" className="nav-link">Category</a>
-          <a href="/contact" className="nav-link">Contact Us</a>
-          <a href="/about" className="nav-link">About us</a>
+          <Link to="/"         className="nav-link active">Home</Link>
+          <Link to="/category" className="nav-link">Category</Link>
+          <Link to="/contact"  className="nav-link">Contact Us</Link>
+          <Link to="/about"    className="nav-link">About us</Link>
         </nav>
 
         {/* Icons */}
@@ -47,7 +50,8 @@ const Header = () => {
           </button>
 
           {/* Cart Icon */}
-          <button className="icon-btn cart-btn" aria-label="Cart">
+          {/* ✅ CHANGE 4 — replaced window.location.href with navigate('/cart') */}
+          <button className="icon-btn cart-btn" aria-label="Cart" onClick={() => navigate('/cart')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
