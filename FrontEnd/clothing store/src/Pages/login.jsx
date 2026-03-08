@@ -8,9 +8,14 @@ export default function LoginPage({ onLogin, onNavigate, recoveryMsg }) {
   const [error, setError] = useState("");
 
   const handleLogin = (e) => {
-    //e.preventDefault();
-    
-    //alert(`Logging in with: ${email}`);
+    e.preventDefault();
+
+    if (email === "admin1" && password === "1234") {
+      setError("");
+      onLogin();
+    } else {
+      setError("Invalid username or password. Please try again.");
+    }
   };
 
   return (
