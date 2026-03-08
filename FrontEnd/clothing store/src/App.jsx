@@ -1,11 +1,15 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import HomePage from "./Pages/home";
+import Cart from "./Pages/cart";
+import CheckoutPage from "./Pages/checkout";
 import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/admin_dashboard1";
 
 function App() {
-  const [page, setPage] = useState("login");
+  const [page, setPage] = useState("home");
   const [recoveryMsg, setRecoveryMsg] = useState("");
 
   const handleForgotSuccess = () => {
@@ -16,7 +20,17 @@ function App() {
   if (page === "dashboard") return <Dashboard />;
   if (page === "register")  return <RegisterPage onNavigate={setPage} />;
   if (page === "forgot")    return <ForgotPage onNavigate={setPage} onSuccess={handleForgotSuccess} />;
-  return <LoginPage onLogin={() => setPage("dashboard")} onNavigate={setPage} recoveryMsg={recoveryMsg} />;
+  if (page === "login")     return <LoginPage onLogin={() => setPage("dashboard")} onNavigate={setPage} recoveryMsg={recoveryMsg} />;
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/"         element={<HomePage onNavigate={setPage} />} />
+        <Route path="/cart"     element={<Cart onNavigate={setPage} />} />
+        <Route path="/checkout" element={<CheckoutPage onNavigate={setPage} />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
