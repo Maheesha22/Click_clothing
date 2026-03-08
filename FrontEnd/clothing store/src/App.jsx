@@ -9,7 +9,7 @@ import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/admin_dashboard1";
 
 function App() {
-  const [page, setPage] = useState("login");
+  const [page, setPage] = useState("home");
   const [recoveryMsg, setRecoveryMsg] = useState("");
 
   const handleForgotSuccess = () => {
