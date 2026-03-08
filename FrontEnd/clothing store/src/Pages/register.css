@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500&display=swap');
 
-/* No background here — index.css handles it globally */
-
-.page {
+/* ── LAYOUT ── */
+.register-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -12,28 +11,12 @@
   padding: 20px;
 }
 
-/* ── LOGO ── */
-.logo-container {
-  width: 130px;
-  height: 90px;
-  margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.logo-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
 /* ── CARD ── */
-.card {
+.register-card {
   width: 100%;
   max-width: 400px;
-  background: transparent;
+  display: flex;
+  flex-direction: column;
   animation: fadeIn 0.6s ease forwards;
 }
 
@@ -43,7 +26,7 @@
 }
 
 /* ── TITLE ── */
-.title {
+.register-title {
   font-family: 'Cormorant Garamond', serif;
   font-size: 38px;
   font-weight: 600;
@@ -54,26 +37,25 @@
 }
 
 /* ── INPUT GROUP ── */
-.input-group {
-  margin-bottom: 16px;
+.register-input-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-bottom: 16px;
 }
 
 /* ── LABEL ── */
-.input-label {
+.register-label {
   font-family: 'Jost', sans-serif;
   font-size: 10px;
   font-weight: 500;
   color: rgba(17, 17, 17, 0.6);
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  display: block;
 }
 
 /* ── INPUT ── */
-.input-field {
+.register-input {
   width: 100%;
   padding: 14px 16px;
   background: #f9f9f9;
@@ -88,19 +70,19 @@
   box-sizing: border-box;
 }
 
-.input-field::placeholder {
+.register-input::placeholder {
   color: #9ca3af;
   font-family: 'Jost', sans-serif;
   font-weight: 300;
 }
 
-.input-field:focus {
+.register-input:focus {
   border-color: #111;
   background: #fff;
 }
 
 /* ── ERROR ── */
-.login-error {
+.register-error {
   color: #ef4444;
   font-family: 'Jost', sans-serif;
   font-size: 12.5px;
@@ -109,7 +91,7 @@
 }
 
 /* ── BUTTON ── */
-.login-btn {
+.register-btn {
   width: 100%;
   padding: 15px;
   margin-top: 6px;
@@ -125,36 +107,17 @@
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
-.login-btn:hover {
+.register-btn:hover {
   background: #333;
   transform: translateY(-1px);
 }
 
-.login-btn:active {
+.register-btn:active {
   transform: translateY(0);
 }
 
-/* ── FORGOT PASSWORD ── */
-.forgot-password {
-  text-align: center;
-  margin-top: 14px;
-  font-family: 'Jost', sans-serif;
-  font-size: 11px;
-  letter-spacing: 1px;
-}
-
-.forgot-password a {
-  color: #6b7280;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-transform: uppercase;
-  transition: color 0.2s;
-}
-
-.forgot-password a:hover { color: #111; }
-
-/* ── REGISTER LINK ── */
-.register-text {
+/* ── SIGN IN LINK ── */
+.register-signin-text {
   font-family: 'Jost', sans-serif;
   font-size: 13px;
   font-weight: 400;
@@ -163,34 +126,19 @@
   margin-top: 18px;
 }
 
-.register-text a {
+.register-signin-text a {
   color: #111;
   font-weight: 600;
   text-decoration: none;
   transition: opacity 0.2s;
 }
 
-.register-text a:hover { opacity: 0.65; }
+.register-signin-text a:hover { opacity: 0.65; }
 
-/* ── RECOVERY MESSAGE ── */
-.recovery-msg {
-  background: rgba(34, 197, 94, 0.08);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #16a34a;
-  font-family: 'Jost', sans-serif;
-  font-size: 12.5px;
-  padding: 12px 16px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-/* ── Mobile ── */
+/* ── RESPONSIVE ── */
 @media (max-width: 480px) {
-  .page { padding: 40px 24px; }
-  .logo-container { display: none; }
-  .title { font-size: 32px; margin-bottom: 28px; }
-  .input-group { margin-bottom: 14px; }
-  .login-btn { padding: 15px; font-size: 16px; margin-top: 10px; }
-  .register-text { font-size: 12px; margin-top: 20px; }
+  .register-page { padding: 40px 24px; }
+  .register-title { font-size: 32px; margin-bottom: 20px; }
+  .register-btn { padding: 15px; font-size: 16px; margin-top: 10px; }
+  .register-signin-text { font-size: 12px; margin-top: 20px; }
 }
