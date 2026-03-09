@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from "./Pages/home";
 import Cart from "./Pages/cart";
@@ -11,6 +11,13 @@ import Dashboard from "./Pages/admin_dashboard1";
 function App() {
   const [page, setPage] = useState("home");
   const [recoveryMsg, setRecoveryMsg] = useState("");
+
+  // ✅ Listen for navigation events from Header (works from any page)
+  useEffect(() => {
+    const handler = (e) => setPage(e.detail);
+    window.addEventListener("navigate", handler);
+    return () => window.removeEventListener("navigate", handler);
+  }, []);
 
   const handleForgotSuccess = () => {
     setRecoveryMsg("We've sent you an email with a link to update your password.");
