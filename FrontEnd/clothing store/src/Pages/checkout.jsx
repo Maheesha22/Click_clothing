@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import Footer from "../components/Footer";
 import "./checkout.css";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -410,6 +411,7 @@ export default function CheckoutPage() {
       <div className={`toast ${toast ? "show" : ""}`}>
         ✓ Order confirmed! We'll be in touch soon.
       </div>
+      <Footer />
     </>
   );
 }
