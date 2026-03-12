@@ -1,6 +1,5 @@
  CREATE DATABASE Clothing_store;
-
-  use Clothing_store;
+   use Clothing_store;
 
    CREATE TABLE Admin
     (AdminID VARCHAR (30)PRIMARY KEY,
