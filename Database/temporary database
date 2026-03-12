@@ -1,0 +1,98 @@
+ CREATE DATABASE Clothing_store;
+
+  use Clothing_store;
+
+   CREATE TABLE Admin
+    (AdminID VARCHAR (30)PRIMARY KEY,
+    Name VARCHAR(100),
+    Password VARCHAR(255),
+    Email VARCHAR(100),
+    Role VARCHAR(50),
+    ContactNo VARCHAR(20)
+     );
+
+    CREATE TABLE User(
+    UserId VARCHAR (30) PRIMARY KEY,
+    FullName VARCHAR (255),
+    Email VARCHAR(100),
+    Password VARCHAR(255)
+    );
+
+    CREATE TABLE Customer(
+     UserId VARCHAR (30) ,
+     Name Varchar(100),
+     Address VARCHAR(250),
+     ContactNo VARCHAR(20),
+     PRIMARY KEY ( UserId,Address)
+);
+   
+
+CREATE TABLE orders(
+    orderId VARCHAR(30) NOT NULL,
+    UserId VARCHAR(30) NOT NULL,
+    ProductID VARCHAR(30) NOT NULL,
+    order_date DATE,
+    size VARCHAR(10),
+    color VARCHAR(20),
+    quantity INT DEFAULT 1,
+    status VARCHAR(20) DEFAULT 'pending',
+    PRIMARY KEY (orderid, UserId, ProductID,size,color)
+);
+
+CREATE TABLE Product (
+    ProductID VARCHAR(30) ,
+    ProductName VARCHAR(100),
+    ProductDescription TEXT,
+    Size VARCHAR(50),
+    Color VARCHAR(50),
+    Price DECIMAL(10,2),
+    ImageURL VARCHAR(255),
+    Quantity INT,
+    Category VARCHAR(100),
+    AvailableStatus VARCHAR(100),
+    PRIMARY KEY (ProductID,Size,Color)
+);
+
+CREATE TABLE reviews (
+   UserId VARCHAR(30),
+    ProductID VARCHAR(30),
+    review TEXT NOT NULL,
+    PRIMARY KEY (ProductID,UserId)
+    );
+
+CREATE TABLE feedback (
+    UserId VARCHAR(30) PRIMARY KEY,
+    userName VARCHAR(100),
+    feedback TEXT NOT NULL
+);
+
+CREATE TABLE Inquiries (
+    UserName VARCHAR(100),
+    Email VARCHAR(100),
+    Problem TEXT  ,
+    PRIMARY KEY (UserName,Email)
+);
+
+CREATE TABLE Sales (
+    ProductID VARCHAR(30), 
+    P_Quantity INT,
+    O_Quantity INT
+);
+
+CREATE TABLE Sold (
+    orderId VARCHAR(30) PRIMARY KEY,
+    TrackingNo VARCHAR(100)
+);
+
+CREATE TABLE Cart (
+    UserId VARCHAR(30) PRIMARY KEY,
+    ProductID VARCHAR(30),
+    Color VARCHAR(50),
+    Size VARCHAR(50),
+    Quantity INT
+);
+
+
+
+
+
