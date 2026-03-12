@@ -93,7 +93,6 @@ function DashboardPage() {
 
   return (
     <div className="page-content">
-      {/* KPI Cards */}
       <div className="kpi-row">
         <div className="kpi-card">
           <div className="kpi-head">
@@ -130,11 +129,9 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Transactions Section */}
       <div className="section">
         <div className="sec-title">Transaction</div>
         <div className="tx-grid">
-
           <div className="white-card">
             <div className="white-card-head">
               <span className="white-card-title">Recent Transactions</span>
@@ -181,7 +178,6 @@ function DashboardPage() {
               <div><em className="dot gray-dot" />Expense <strong>42%</strong></div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
