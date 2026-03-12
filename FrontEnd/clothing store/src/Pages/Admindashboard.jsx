@@ -5,7 +5,7 @@ import logo from "../assets/Logo.jpg";
 
 Chart.register(...registerables);
 
-// ── DATA ──────────────────────────────────────────────
+// ── DATA ────────────────────────────────────────────
 const revenueLabels = ['1','3','5','7','9','11'];
 const incomeData    = [30000,45000,35000,60000,50000,72500];
 const expenseLineData = [20000,30000,25000,40000,35000,45000];
