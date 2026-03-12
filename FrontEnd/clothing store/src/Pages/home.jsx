@@ -24,6 +24,8 @@ const SIDEBAR_LINKS = [
   "New Arrivals",
 ];
 
+
+
 // ── Slideshow Data ──────────────────────────────────────────────
 const SLIDES = [
   {
