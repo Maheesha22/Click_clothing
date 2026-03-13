@@ -3,15 +3,28 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Home.css";
 
+// ── Men's Dropdown Menu Data ────────────────────────────────────
+const MEN_MENU = [
+  { label: "Sarong" },
+  { label: "Trousers" },
+  { label: "Shirts" },
+  { label: "T-Shirts" },
+  { label: "Shorts" },
+  {
+    label: "Accessories",
+    sub: ["Caps", "Perfume", "Deodorant"],
+  },
+];
+
 // ── Tab & Sidebar Data ──────────────────────────────────────────
 const NAV_TABS = [
-  "New Arrivals",
-  "Top Sales",
-  "Men",
-  "Women",
-  "Kids",
-  "Recently Viewed",
-  "Search History",
+  { label: "New Arrivals" },
+  { label: "Top Sales" },
+  { label: "Men", menu: MEN_MENU },
+  { label: "Women" },
+  { label: "Kids" },
+  { label: "Recently Viewed" },
+  { label: "Search History" },
 ];
 
 const SIDEBAR_LINKS = [
@@ -187,13 +200,37 @@ export default function Home() {
         {/* ── TAB BAR ── */}
         <div className="home-tab-bar">
           {NAV_TABS.map((tab) => (
-            <button
-              key={tab}
-              className={`home-tab-btn ${activeTab === tab ? "home-tab-active" : ""}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
+            <div className="home-tab-item" key={tab.label}>
+              <button
+                className={`home-tab-btn ${activeTab === tab.label ? "home-tab-active" : ""}`}
+                onClick={() => setActiveTab(tab.label)}
+              >
+                {tab.label}{tab.menu ? " ▾" : ""}
+              </button>
+
+              {/* First-level dropdown */}
+              {tab.menu && (
+                <div className="home-dropdown">
+                  {tab.menu.map((item) => (
+                    <div className="home-dropdown-item" key={item.label}>
+                      {item.label}
+                      {item.sub && <span className="home-dropdown-arrow">▶</span>}
+
+                      {/* Second-level sub-dropdown */}
+                      {item.sub && (
+                        <div className="home-sub-dropdown">
+                          {item.sub.map((subItem) => (
+                            <div className="home-sub-item" key={subItem}>
+                              {subItem}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
