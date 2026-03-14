@@ -89,6 +89,46 @@ const BEST_SELLERS = [
   { id: 8, img: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=400&q=80", name: "Knit Sweater",   price: "$52.99",  tag: "Hot" },
 ];
 
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+// ✅ NEW CODE — ADD AFTER THE LAST LINE OF BEST_SELLERS ARRAY
+//
+// 📌 IMAGE NOTES — all URLs are reused from your existing code:
+//    CATEGORY_SECTIONS[0].img  →  SLIDES[3].img   (Men's Collection)
+//    CATEGORY_SECTIONS[1].img  →  SLIDES[0].img   (New Collection)
+//    ACCESSORIES_IMAGES[0]     →  NEW_ARRIVALS[3] (Striped Shirt)
+//    ACCESSORIES_IMAGES[1]     →  BEST_SELLERS[3] (Denim Jacket)
+//    ACCESSORIES_IMAGES[2]     →  BEST_SELLERS[0] (Classic Trench)
+//
+//    If you want to replace any image with your own photo,
+//    just swap the URL string in the array below.
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+
+const CATEGORY_SECTIONS = [
+  {
+    id: "mens",
+    img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1400&q=85", // 📌 MENS card image — replace URL here for your own photo
+    label: "MENS",
+    route: "/mens",
+  },
+  {
+    id: "gifts",
+    img: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1400&q=85",    // 📌 GIFTS card image — replace URL here for your own photo
+    label: "GIFTS",
+    route: "/gifts",
+  },
+];
+
+const ACCESSORIES_IMAGES = [
+  "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80", // 📌 Accessories panel LEFT image — replace URL here
+  "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80", // 📌 Accessories panel MIDDLE image — replace URL here
+  "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&q=80", // 📌 Accessories panel RIGHT image — replace URL here
+];
+
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+// ✅ END NEW CODE — data constants (added after BEST_SELLERS)
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+
 // ── Slideshow Component ─────────────────────────────────────────
 function Slideshow() {
   const [current, setCurrent] = useState(0);
@@ -184,6 +224,59 @@ function ProductRow({ items }) {
   );
 }
 
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+// ✅ NEW CODE — ADD THIS ENTIRE FUNCTION AFTER ProductRow()
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+
+function ShopByCategory() {
+  return (
+    <div className="home-sbc-wrap">
+      <p className="home-sbc-label">Shopping By Category</p>
+
+      {/* ── TOP ROW: MENS card (left) + GIFTS card (right) ── */}
+      <div className="home-sbc-top-row">
+        {CATEGORY_SECTIONS.map((cat) => (
+          <div
+            key={cat.id}
+            className="home-sbc-card"
+            onClick={() => (window.location.href = cat.route)}
+            title={`Go to ${cat.label}`}
+          >
+            <img src={cat.img} alt={cat.label} className="home-sbc-img" />
+            <div className="home-sbc-card-overlay" />
+            <div className="home-sbc-card-label">
+              <span className="home-sbc-card-text">{cat.label}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── BOTTOM ROW: 3 images with MEN'S / ACCESSORIES gold watermark ── */}
+      <div
+        className="home-sbc-bottom-row"
+        onClick={() => (window.location.href = "/mens-accessories")}
+        title="Go to Men's Accessories"
+      >
+        {ACCESSORIES_IMAGES.map((src, i) => (
+          <div key={i} className="home-sbc-bottom-img">
+            <img src={src} alt={`Men Accessories ${i + 1}`} />
+          </div>
+        ))}
+        <div className="home-sbc-bottom-overlay" />
+        <div className="home-sbc-bottom-label">
+          <span className="home-sbc-text-white">MEN'S</span>
+          <span className="home-sbc-text-gold">ACCESSORIES</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+// ✅ END NEW CODE — ShopByCategory function
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+
 // ── Home Page ───────────────────────────────────────────────────
 export default function Home() {
   const [activeTab, setActiveTab] = useState("New Arrivals");
@@ -273,6 +366,16 @@ export default function Home() {
 
           </div>
         </div>
+
+        {/* ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ */}
+        {/* ✅ NEW LINE — ADD THIS AFTER </div> OF             */}
+        {/*    home-content-area AND JUST ABOVE </main>        */}
+        {/* ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ */}
+        <ShopByCategory />
+        {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+        {/* ✅ END NEW LINE                                   */}
+        {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+
       </main>
 
       {/* Your existing Footer — untouched */}
