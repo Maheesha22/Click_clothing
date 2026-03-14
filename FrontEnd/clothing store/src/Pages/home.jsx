@@ -19,10 +19,10 @@ const MEN_MENU = [
 // ── Tab & Sidebar Data ──────────────────────────────────────────
 const NAV_TABS = [
   { label: "New Arrivals" },
-  { label: "Top Sales" },
+  { label: "Best Sellers" },
   { label: "Men", menu: MEN_MENU },
-  { label: "Women" },
-  { label: "Kids" },
+  { label:"Gifts" },
+  { label: "Men Accessories" },
   { label: "Recently Viewed" },
   { label: "Search History" },
 ];
@@ -30,11 +30,10 @@ const NAV_TABS = [
 const SIDEBAR_LINKS = [
   "categories",
   "New Arrivals",
-  "Top Sales",
+  "Best Sellers",
   "Men",
-  "Women",
-  "Kids",
-  "New Arrivals",
+  "Accessories",
+  "Gifts",
 ];
 
 
