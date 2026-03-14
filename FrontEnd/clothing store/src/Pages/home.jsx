@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Home.css";
+import { useNavigate } from "react-router-dom";
 
 // ── Men's Dropdown Menu Data ────────────────────────────────────
 const MEN_MENU = [
@@ -187,7 +188,7 @@ function ProductRow({ items }) {
 // ── Home Page ───────────────────────────────────────────────────
 export default function Home() {
   const [activeTab, setActiveTab] = useState("New Arrivals");
-
+  const navigate = useNavigate();
   return (
     <div className="home-page">
 
@@ -274,6 +275,89 @@ export default function Home() {
           </div>
         </div>
       </main>
+      
+
+
+
+    {/* ── SHOP BY CATEGORY ── */}
+<div className="home-shop-category">
+  <p className="home-shop-category-label">Shopping By Category</p>
+ 
+  {/* TOP ROW */}
+  <div className="home-cat-top-row">
+ 
+    {/* MENS — tall left card */}
+    <div
+      className="home-cat-card home-cat-mens"
+      onClick={() => navigate("/mens")}
+    >
+      <img
+       src="/mens.jpg"
+       alt="Mens"
+       className="home-cat-img"
+      />
+      <div className="home-cat-overlay" />
+      <div className="home-cat-label-wrap">
+        <span className="home-cat-text home-cat-text-white">MENS</span>
+      </div>
+    </div>
+ 
+    {/* GIFTS — right card */}
+    <div
+      className="home-cat-card home-cat-gifts"
+      onClick={() => navigate("/gifts")}
+    >
+      <img
+        src="/gift7.jpg"
+        alt="Gifts"
+        className="home-cat-img"
+      />
+      <div className="home-cat-overlay" />
+      <div className="home-cat-label-wrap">
+        <span className="home-cat-text home-cat-text-white">GIFTS</span>
+      </div>
+    </div>
+ 
+  </div>
+ 
+  {/* BOTTOM ROW — 3 images with MEN'S ACCESSORIES watermark */}
+  <div
+    className="home-cat-bottom-row"
+    onClick={() => navigate("/mens-accessories")}
+  >
+    <div className="home-cat-bottom-img-wrap">
+      <img
+        src="/men-accessories-1.jpg"
+        alt="Men Accessories 1"
+        className="home-cat-img"
+      />
+    </div>
+    <div className="home-cat-bottom-img-wrap">
+      <img
+        src="/acc1.jpg"
+        alt="Men Accessories 2"
+        className="home-cat-img"
+      />
+    </div>
+    <div className="home-cat-bottom-img-wrap">
+      <img
+        src="/menacc2.jpg"
+        alt="Men Accessories 3"
+        className="home-cat-img"
+      />
+    </div>
+ 
+    {/* Watermark overlay across all 3 images */}
+    <div className="home-cat-bottom-overlay" />
+    <div className="home-cat-bottom-label">
+      <span className="home-cat-text home-cat-text-white">MEN'S</span>
+      <span className="home-cat-text home-cat-text-gold">ACCESSORIES</span>
+    </div>
+  </div>
+ 
+</div>
+
+
 
       {/* Your existing Footer — untouched */}
       <Footer />
