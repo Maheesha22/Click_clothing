@@ -39,8 +39,6 @@
 
 /* =============================================
    TAB BAR
-   — changed overflow-x: auto → overflow: visible
-     so dropdowns are not clipped
    ============================================= */
 
 .home-tab-bar {
@@ -48,18 +46,17 @@
   align-items: stretch;
   padding-left: var(--home-sidebar-w);
   background: var(--home-bg);
-  overflow: visible;           /* was overflow-x: auto */
+  overflow: visible;
   scrollbar-width: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  position: relative;          /* new — needed for z-index stacking */
-  z-index: 200;                /* new — keeps bar above content */
+  position: relative;
+  z-index: 200;
 }
 
 .home-tab-bar::-webkit-scrollbar {
   display: none;
 }
 
-/* ── NEW: wrapper div for each tab item ── */
 .home-tab-item {
   position: relative;
 }
@@ -91,7 +88,7 @@
 }
 
 /* =============================================
-   DROPDOWN  — new
+   DROPDOWN
    ============================================= */
 
 .home-dropdown {
@@ -141,8 +138,7 @@
 }
 
 /* =============================================
-   SUB-DROPDOWN (Accessories → Caps, Perfume…)
-   — new
+   SUB-DROPDOWN
    ============================================= */
 
 .home-sub-dropdown {
@@ -636,5 +632,192 @@
 
   .home-product-img {
     height: 190px;
+  }
+}
+
+/* =============================================
+   SHOP BY CATEGORY
+   ============================================= */
+
+.home-shop-category {
+  padding: 10px 20px 40px 20px;
+  background: var(--home-bg);
+}
+
+.home-shop-category-label {
+  font-family: var(--home-font-body);
+  font-size: 0.78rem;
+  color: var(--home-muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* ── TOP ROW — EQUAL WIDTHS ── */
+.home-cat-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+/* ── SHARED CARD STYLES ── */
+.home-cat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+  cursor: pointer;
+  height: 340px;
+}
+
+.home-cat-card:hover .home-cat-img {
+  transform: scale(1.05);
+}
+
+.home-cat-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: transform 0.45s ease;
+}
+
+.home-cat-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.1) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.home-cat-label-wrap {
+  position: absolute;
+  bottom: 22px;
+  left: 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── BOTTOM ROW ── */
+.home-cat-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  height: 360px;
+  position: relative;
+  cursor: pointer;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.home-cat-bottom-img-wrap {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.home-cat-bottom-row:hover .home-cat-img {
+  transform: scale(1.05);
+}
+
+/* Dark overlay spanning the full bottom row */
+.home-cat-bottom-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Centered MEN'S ACCESSORIES label */
+.home-cat-bottom-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  gap: 2px;
+}
+
+/* ── TEXT STYLES ── */
+.home-cat-text {
+  display: block;
+  font-family: var(--home-font-body);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  line-height: 1;
+}
+
+.home-cat-text-white {
+  color: #ffffff;
+  font-size: 2.6rem;
+  text-shadow:
+    2px 2px 0 rgba(0,0,0,0.55),
+    0 0 20px rgba(0,0,0,0.4);
+}
+
+/* For the top card labels — smaller */
+.home-cat-label-wrap .home-cat-text-white {
+  font-size: 1.9rem;
+  letter-spacing: 4px;
+}
+
+.home-cat-text-gold {
+  color: #e8c97e;
+  font-size: 2.6rem;
+  text-shadow:
+    2px 2px 0 rgba(0,0,0,0.55),
+    0 0 24px rgba(232,201,126,0.35);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .home-cat-top-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .home-cat-card {
+    height: 260px;
+  }
+
+  .home-cat-bottom-row {
+    height: 280px;
+  }
+
+  .home-cat-text-white,
+  .home-cat-text-gold {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-cat-top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .home-cat-card {
+    height: 220px;
+  }
+
+  .home-cat-bottom-row {
+    grid-template-columns: 1fr 1fr;
+    height: 240px;
+  }
+
+  .home-cat-bottom-img-wrap:last-child {
+    display: none;
+  }
+
+  .home-cat-text-white,
+  .home-cat-text-gold {
+    font-size: 1.4rem;
   }
 }
