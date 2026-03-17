@@ -54,6 +54,7 @@ function App() {
           <Route path="/"         element={<HomePage />} />
           <Route path="/cart"     element={<Cart />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/trousers" element={<Trousers />} />
         </Routes>
       }
     </BrowserRouter>
