@@ -17,6 +17,8 @@ const MEN_MENU = [
   },
 ];
 
+
+
 // ── Tab & Sidebar Data ──────────────────────────────────────────
 const NAV_TABS = [
   { label: "New Arrivals" },
@@ -27,6 +29,9 @@ const NAV_TABS = [
   { label: "Recently Viewed" },
   { label: "Search History" },
 ];
+
+
+
 
 const SIDEBAR_LINKS = [
   "categories",
