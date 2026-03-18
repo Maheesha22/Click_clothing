@@ -4,20 +4,19 @@ import Footer from "../components/Footer";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-// ── Men's Dropdown Menu Data ────────────────────────────────────
+// ── CHANGE 1: Added "page" key to Men sub-items that have a page ─
+// Trousers now has page: "trousers" so clicking it fires navigateTo()
 const MEN_MENU = [
-  { label: "Sarong" },
-  { label: "Trousers" },
-  { label: "Shirts" },
-  { label: "T-Shirts" },
-  { label: "Shorts" },
+  { label: "Sarong"    },
+  { label: "Trousers", page: "trousers" },   // ← ADDED page: "trousers"
+  { label: "Shirts"    },
+  { label: "T-Shirts"  },
+  { label: "Shorts"    },
   {
     label: "Accessories",
     sub: ["Caps", "Perfume", "Deodorant"],
   },
 ];
-
-
 
 // ── Tab & Sidebar Data ──────────────────────────────────────────
 const NAV_TABS = [
@@ -30,9 +29,6 @@ const NAV_TABS = [
   { label: "Search History" },
 ];
 
-
-
-
 const SIDEBAR_LINKS = [
   "categories",
   "New Arrivals",
@@ -41,6 +37,13 @@ const SIDEBAR_LINKS = [
   "Accessories",
   "Gifts",
 ];
+
+// ── CHANGE 2: Added navigateTo helper ──────────────────────────
+// This fires the same "navigate" window event that App.jsx listens to
+// via its useEffect → handler → setPage(e.detail)
+function navigateTo(page) {
+  window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
+}
 
 // ── Slideshow Data ──────────────────────────────────────────────
 const SLIDES = [
@@ -196,7 +199,6 @@ export default function Home() {
   return (
     <div className="home-page">
 
-      {/* Your existing Header — untouched */}
       <Header />
 
       <main className="home-main">
@@ -216,7 +218,14 @@ export default function Home() {
               {tab.menu && (
                 <div className="home-dropdown">
                   {tab.menu.map((item) => (
-                    <div className="home-dropdown-item" key={item.label}>
+                    // CHANGE 3: onClick on each dropdown item — if item.page exists,
+                    // call navigateTo(item.page) to switch the page in App.jsx
+                    <div
+                      className="home-dropdown-item"
+                      key={item.label}
+                      onClick={() => item.page && navigateTo(item.page)}
+                      style={item.page ? { cursor: "pointer" } : {}}
+                    >
                       {item.label}
                       {item.sub && <span className="home-dropdown-arrow">▶</span>}
 
@@ -284,7 +293,7 @@ export default function Home() {
       <div className="home-shop-category">
         <p className="home-shop-category-label">Shopping By Category</p>
 
-        {/* TOP ROW — equal 1fr 1fr */}
+        {/* TOP ROW */}
         <div className="home-cat-top-row">
 
           {/* MENS */}
@@ -292,11 +301,7 @@ export default function Home() {
             className="home-cat-card home-cat-mens"
             onClick={() => navigate("/mens")}
           >
-            <img
-              src="/mens.jpg"
-              alt="Mens"
-              className="home-cat-img"
-            />
+            <img src="/mens.jpg" alt="Mens" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">
               <span className="home-cat-text home-cat-text-white">MENS</span>
@@ -321,34 +326,20 @@ export default function Home() {
 
         </div>
 
-        {/* BOTTOM ROW — 3 images with MEN'S ACCESSORIES watermark */}
+        {/* BOTTOM ROW */}
         <div
           className="home-cat-bottom-row"
           onClick={() => navigate("/mens-accessories")}
         >
           <div className="home-cat-bottom-img-wrap">
-            <img
-              src="/men-accessories.jpg"
-              alt="Men Accessories 1"
-              className="home-cat-img"
-            />
+            <img src="/men-accessories.jpg" alt="Men Accessories 1" className="home-cat-img" />
           </div>
           <div className="home-cat-bottom-img-wrap">
-            <img
-              src="/acc1.jpg"
-              alt="Men Accessories 2"
-              className="home-cat-img"
-            />
+            <img src="/acc1.jpg" alt="Men Accessories 2" className="home-cat-img" />
           </div>
           <div className="home-cat-bottom-img-wrap">
-            <img
-              src="/menacc2.jpg"
-              alt="Men Accessories 3"
-              className="home-cat-img"
-            />
+            <img src="/menacc2.jpg" alt="Men Accessories 3" className="home-cat-img" />
           </div>
-
-          {/* Watermark overlay across all 3 images */}
           <div className="home-cat-bottom-overlay" />
           <div className="home-cat-bottom-label">
             <span className="home-cat-text home-cat-text-white">MEN'S</span>
@@ -358,7 +349,6 @@ export default function Home() {
 
       </div>
 
-      {/* Your existing Footer — untouched */}
       <Footer />
 
     </div>

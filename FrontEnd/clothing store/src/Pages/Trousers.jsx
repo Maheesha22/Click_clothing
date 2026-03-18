@@ -30,15 +30,19 @@ const ALL_PRODUCTS = [
 
 const ALL_SIZES = [28, 30, 32, 34, 36, 38, 40];
 
-// ── Nav tabs (matches Home.jsx) ─────────────────────────────────
+// ── CHANGE 1: Added "page" key to Men sub-items that have a page ─
+// When a dropdown item has a "page" key, clicking it will call
+// navigateTo(item.page) which fires the window "navigate" event
+// that App.jsx listens to via useEffect → setPage(item.page)
 const MEN_MENU = [
-  { label: "Sarong" },
-  { label: "Trousers" },
-  { label: "Shirts" },
-  { label: "T-Shirts" },
-  { label: "Shorts" },
+  { label: "Sarong"    },                          // add page: "sarong" later
+  { label: "Trousers", page: "trousers" },         // ← NAVIGATES TO TROUSERS PAGE
+  { label: "Shirts"    },                          // add page: "shirts" later
+  { label: "T-Shirts"  },                          // add page: "tshirts" later
+  { label: "Shorts"    },                          // add page: "shorts" later
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
+
 const NAV_TABS = [
   { label: "New Arrivals" },
   { label: "Best Sellers" },
@@ -48,6 +52,14 @@ const NAV_TABS = [
   { label: "Recently Viewed" },
   { label: "Search History" },
 ];
+
+// ── CHANGE 2: Helper that fires the same window event App.jsx uses ─
+// App.jsx already has: window.addEventListener("navigate", handler)
+// where handler calls setPage(e.detail). So dispatching this event
+// from any page will switch the page in App.jsx.
+function navigateTo(page) {
+  window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
+}
 
 // ── Icons ───────────────────────────────────────────────────────
 const HeartIcon = () => (
@@ -60,45 +72,9 @@ const EyeIcon = () => (
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
   </svg>
 );
-const SearchIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-  </svg>
-);
-const CartIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-    <line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
-  </svg>
-);
-const UserIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
-// ── Header ──────────────────────────────────────────────────────
-function SiteHeader() {
-  return (
-    <header className="tr-site-header">
-      <div className="tr-hdr-logo">CLICK SUPER MALL</div>
-      <div className="tr-hdr-search">
-        <input type="text" placeholder="Search for products, brands..." />
-        <span className="tr-hdr-search-icon"><SearchIcon /></span>
-      </div>
-      <div className="tr-hdr-icons">
-        <button title="Wishlist"><HeartIcon /></button>
-        <button title="Account"><UserIcon /></button>
-        <div className="tr-cart-wrap">
-          <button title="Cart"><CartIcon /></button>
-          <span className="tr-cart-badge">3</span>
-        </div>
-      </div>
-    </header>
-  );
-}
 
 // ── Tab Bar ─────────────────────────────────────────────────────
+// CHANGE 3: Dropdown items now call navigateTo(item.page) on click
 function TabBar({ activeTab, setActiveTab }) {
   return (
     <div className="tr-tab-bar">
@@ -110,10 +86,17 @@ function TabBar({ activeTab, setActiveTab }) {
           >
             {tab.label}{tab.menu ? " ▾" : ""}
           </button>
+
           {tab.menu && (
             <div className="tr-tab-dropdown">
               {tab.menu.map((item) => (
-                <div className="tr-tab-dd-item" key={item.label}>
+                <div
+                  className="tr-tab-dd-item"
+                  key={item.label}
+                  // CHANGE 3: onClick fires navigateTo only when item.page exists
+                  onClick={() => item.page && navigateTo(item.page)}
+                  style={item.page ? { cursor: "pointer" } : {}}
+                >
                   {item.label}
                   {item.sub && <span>▶</span>}
                   {item.sub && (
@@ -272,47 +255,6 @@ function ProductCard({ product, prices, onPriceUpdate }) {
   );
 }
 
-// ── Footer ──────────────────────────────────────────────────────
-function SiteFooter() {
-  return (
-    <footer className="tr-site-footer">
-      <div className="tr-footer-grid">
-        <div>
-          <div className="tr-footer-logo">CLICK SUPER MALL</div>
-          <p className="tr-footer-tagline">Your one-stop destination for fashion, gifts, and accessories — curated for every lifestyle.</p>
-          <div className="tr-footer-social">
-            <a href="#">f</a><a href="#">in</a><a href="#">tw</a><a href="#">ig</a>
-          </div>
-        </div>
-        <div>
-          <div className="tr-footer-col-title">Shop</div>
-          <div className="tr-footer-links">
-            {["New Arrivals","Best Sellers","Men","Gifts","Accessories"].map((l) => <a key={l} href="#">{l}</a>)}
-          </div>
-        </div>
-        <div>
-          <div className="tr-footer-col-title">Help</div>
-          <div className="tr-footer-links">
-            {["Track Order","Returns","Size Guide","FAQs","Contact Us"].map((l) => <a key={l} href="#">{l}</a>)}
-          </div>
-        </div>
-        <div>
-          <div className="tr-footer-col-title">Company</div>
-          <div className="tr-footer-links">
-            {["About Us","Careers","Press","Privacy Policy","Terms"].map((l) => <a key={l} href="#">{l}</a>)}
-          </div>
-        </div>
-      </div>
-      <div className="tr-footer-bottom">
-        <div className="tr-footer-copy">© 2026 <span>Click Super Mall</span>. All rights reserved.</div>
-        <div className="tr-footer-btm-links">
-          <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Cookies</a>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 // ── Main Trousers Page ───────────────────────────────────────────
 export default function Trousers() {
   const navigate = useNavigate();
@@ -363,7 +305,10 @@ export default function Trousers() {
 
   return (
     <div className="tr-page">
-      <SiteHeader />
+
+      {/* Shared Header — same as Home.jsx */}
+      <Header />
+
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <div className="tr-page-wrap">
@@ -425,7 +370,9 @@ export default function Trousers() {
         </main>
       </div>
 
-      <SiteFooter />
+      {/* Shared Footer — same as Home.jsx */}
+      <Footer />
+
     </div>
   );
 }
