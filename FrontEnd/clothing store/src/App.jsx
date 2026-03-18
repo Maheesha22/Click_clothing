@@ -7,7 +7,8 @@ import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/admin_dashboard1";
-
+import Trousers from './Pages/Trousers';  /*edit by G*/
+ 
 function App() {
   const [page, setPage] = useState("home");
   const [recoveryMsg, setRecoveryMsg] = useState("");
@@ -49,12 +50,12 @@ function App() {
       {page === "register"  && <RegisterPage onNavigate={navigate} />}
       {page === "forgot"    && <ForgotPage onNavigate={navigate} onSuccess={handleForgotSuccess} />}
       {page === "login"     && <LoginPage onLogin={() => navigate("dashboard")} onNavigate={navigate} recoveryMsg={recoveryMsg} />}
+      {page === "trousers" && <Trousers />} {/*edit by G*/}
       {page === "home"      &&
         <Routes>
           <Route path="/"         element={<HomePage />} />
           <Route path="/cart"     element={<Cart />} />
           <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/trousers" element={<Trousers />} />
         </Routes>
       }
     </BrowserRouter>
