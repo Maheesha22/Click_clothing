@@ -5,9 +5,10 @@ import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
 // ── Men sub-menu — shared by BOTH the top-nav dropdown AND the left sidebar ─
+// ✅ FIXED: Sarong now has page: "sarong" so clicking it navigates correctly
 const MEN_MENU = [
-  { label: "Sarong"    },
-  { label: "Trousers", page: "trousers" },
+  { label: "Sarong",       page: "sarong"    },  // ← ADDED page: "sarong"
+  { label: "Trousers",     page: "trousers"  },
   { label: "Shirts"    },
   { label: "T-Shirts"  },
   { label: "Shorts"    },
@@ -173,16 +174,12 @@ function ProductRow({ items }) {
 }
 
 // ── Left Sidebar ────────────────────────────────────────────────
-// • "Men" toggles open/close showing the exact same MEN_MENU items as the top-nav dropdown
-// • Trousers → navigateTo("trousers")
-// • Accessories → hover reveals fly-out panel (Caps / Perfume / Deodorant)
 function HomeSidebar() {
   const [menOpen, setMenOpen] = useState(false);
 
   return (
     <aside className="home-sidebar">
 
-      {/* Non-clickable "categories" label */}
       <button className="home-sidebar-btn home-sidebar-cat-label" disabled>
         categories
       </button>
@@ -199,7 +196,7 @@ function HomeSidebar() {
         <span className={`home-sidebar-chevron ${menOpen ? "open" : ""}`}>›</span>
       </button>
 
-      {/* Expanded Men sub-menu */}
+      {/* Expanded Men sub-menu — uses same MEN_MENU so Sarong now navigates too */}
       {menOpen && (
         <div className="home-sidebar-submenu">
           {MEN_MENU.map((item) => (
@@ -216,8 +213,6 @@ function HomeSidebar() {
               {(item.page || item.sub) && (
                 <span className="home-sidebar-sub-arrow">›</span>
               )}
-
-              {/* Accessories hover fly-out — mirrors top-nav second-level sub-dropdown */}
               {item.sub && (
                 <div className="home-sidebar-acc-panel">
                   {item.sub.map((s) => (
@@ -289,10 +284,8 @@ export default function Home() {
         {/* ── CONTENT AREA ── */}
         <div className="home-content-area">
 
-          {/* LEFT SIDEBAR */}
           <HomeSidebar />
 
-          {/* RIGHT SIDE */}
           <div className="home-right">
             <div className="home-slideshow-area">
               <Slideshow />
