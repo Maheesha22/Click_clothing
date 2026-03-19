@@ -4,21 +4,17 @@ import Footer from "../components/Footer";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-// ── CHANGE 1: Added "page" key to Men sub-items that have a page ─
-// Trousers now has page: "trousers" so clicking it fires navigateTo()
+// ── Men sub-menu — shared by BOTH the top-nav dropdown AND the left sidebar ─
 const MEN_MENU = [
   { label: "Sarong"    },
-  { label: "Trousers", page: "trousers" },   // ← ADDED page: "trousers"
+  { label: "Trousers", page: "trousers" },
   { label: "Shirts"    },
   { label: "T-Shirts"  },
   { label: "Shorts"    },
-  {
-    label: "Accessories",
-    sub: ["Caps", "Perfume", "Deodorant"],
-  },
+  { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
 
-// ── Tab & Sidebar Data ──────────────────────────────────────────
+// ── Top nav tabs ────────────────────────────────────────────────
 const NAV_TABS = [
   { label: "New Arrivals" },
   { label: "Best Sellers" },
@@ -29,18 +25,7 @@ const NAV_TABS = [
   { label: "Search History" },
 ];
 
-const SIDEBAR_LINKS = [
-  "categories",
-  "New Arrivals",
-  "Best Sellers",
-  "Men",
-  "Accessories",
-  "Gifts",
-];
-
-// ── CHANGE 2: Added navigateTo helper ──────────────────────────
-// This fires the same "navigate" window event that App.jsx listens to
-// via its useEffect → handler → setPage(e.detail)
+// ── Fires the window event that App.jsx listens to ─────────────
 function navigateTo(page) {
   window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
 }
@@ -96,14 +81,12 @@ const BEST_SELLERS = [
   { id: 8, img: "https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=400&q=80", name: "Knit Sweater",   price: "$52.99",  tag: "Hot" },
 ];
 
-// ── Slideshow Component ─────────────────────────────────────────
+// ── Slideshow ───────────────────────────────────────────────────
 function Slideshow() {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((p) => (p + 1) % SLIDES.length);
-    }, 4500);
+    const timer = setInterval(() => setCurrent((p) => (p + 1) % SLIDES.length), 4500);
     return () => clearInterval(timer);
   }, []);
 
@@ -146,12 +129,10 @@ function Slideshow() {
   );
 }
 
-// ── Product Row Component ───────────────────────────────────────
+// ── Product Row ─────────────────────────────────────────────────
 function ProductRow({ items }) {
   const rowRef = useRef(null);
-  const scroll = (dir) => {
-    rowRef.current.scrollBy({ left: dir * 440, behavior: "smooth" });
-  };
+  const scroll = (dir) => rowRef.current.scrollBy({ left: dir * 440, behavior: "smooth" });
 
   return (
     <div className="home-row-wrapper">
@@ -191,6 +172,71 @@ function ProductRow({ items }) {
   );
 }
 
+// ── Left Sidebar ────────────────────────────────────────────────
+// • "Men" toggles open/close showing the exact same MEN_MENU items as the top-nav dropdown
+// • Trousers → navigateTo("trousers")
+// • Accessories → hover reveals fly-out panel (Caps / Perfume / Deodorant)
+function HomeSidebar() {
+  const [menOpen, setMenOpen] = useState(false);
+
+  return (
+    <aside className="home-sidebar">
+
+      {/* Non-clickable "categories" label */}
+      <button className="home-sidebar-btn home-sidebar-cat-label" disabled>
+        categories
+      </button>
+
+      <button className="home-sidebar-btn">New Arrivals</button>
+      <button className="home-sidebar-btn">Best Sellers</button>
+
+      {/* Men — click to expand/collapse */}
+      <button
+        className={`home-sidebar-btn home-sidebar-men-btn ${menOpen ? "home-sidebar-men-active" : ""}`}
+        onClick={() => setMenOpen((v) => !v)}
+      >
+        <span>Men</span>
+        <span className={`home-sidebar-chevron ${menOpen ? "open" : ""}`}>›</span>
+      </button>
+
+      {/* Expanded Men sub-menu */}
+      {menOpen && (
+        <div className="home-sidebar-submenu">
+          {MEN_MENU.map((item) => (
+            <div
+              key={item.label}
+              className={[
+                "home-sidebar-sub-item",
+                item.page ? "home-sidebar-sub-nav" : "",
+                item.sub  ? "home-sidebar-sub-has-acc" : "",
+              ].join(" ").trim()}
+              onClick={() => item.page && navigateTo(item.page)}
+            >
+              <span>{item.label}</span>
+              {(item.page || item.sub) && (
+                <span className="home-sidebar-sub-arrow">›</span>
+              )}
+
+              {/* Accessories hover fly-out — mirrors top-nav second-level sub-dropdown */}
+              {item.sub && (
+                <div className="home-sidebar-acc-panel">
+                  {item.sub.map((s) => (
+                    <div key={s} className="home-sidebar-acc-item">{s}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <button className="home-sidebar-btn">Accessories</button>
+      <button className="home-sidebar-btn">Gifts</button>
+
+    </aside>
+  );
+}
+
 // ── Home Page ───────────────────────────────────────────────────
 export default function Home() {
   const [activeTab, setActiveTab] = useState("New Arrivals");
@@ -203,7 +249,7 @@ export default function Home() {
 
       <main className="home-main">
 
-        {/* ── TAB BAR ── */}
+        {/* ── TOP NAV TAB BAR ── */}
         <div className="home-tab-bar">
           {NAV_TABS.map((tab) => (
             <div className="home-tab-item" key={tab.label}>
@@ -214,12 +260,9 @@ export default function Home() {
                 {tab.label}{tab.menu ? " ▾" : ""}
               </button>
 
-              {/* First-level dropdown */}
               {tab.menu && (
                 <div className="home-dropdown">
                   {tab.menu.map((item) => (
-                    // CHANGE 3: onClick on each dropdown item — if item.page exists,
-                    // call navigateTo(item.page) to switch the page in App.jsx
                     <div
                       className="home-dropdown-item"
                       key={item.label}
@@ -228,14 +271,10 @@ export default function Home() {
                     >
                       {item.label}
                       {item.sub && <span className="home-dropdown-arrow">▶</span>}
-
-                      {/* Second-level sub-dropdown */}
                       {item.sub && (
                         <div className="home-sub-dropdown">
                           {item.sub.map((subItem) => (
-                            <div className="home-sub-item" key={subItem}>
-                              {subItem}
-                            </div>
+                            <div className="home-sub-item" key={subItem}>{subItem}</div>
                           ))}
                         </div>
                       )}
@@ -250,22 +289,15 @@ export default function Home() {
         {/* ── CONTENT AREA ── */}
         <div className="home-content-area">
 
-          {/* SIDEBAR */}
-          <aside className="home-sidebar">
-            {SIDEBAR_LINKS.map((link, i) => (
-              <button key={i} className="home-sidebar-btn">{link}</button>
-            ))}
-          </aside>
+          {/* LEFT SIDEBAR */}
+          <HomeSidebar />
 
           {/* RIGHT SIDE */}
           <div className="home-right">
-
-            {/* SLIDESHOW */}
             <div className="home-slideshow-area">
               <Slideshow />
             </div>
 
-            {/* NEW ARRIVALS */}
             <div className="home-section">
               <div className="home-section-header">
                 <h2 className="home-section-title">New <span>Arrivals</span></h2>
@@ -276,7 +308,6 @@ export default function Home() {
 
             <div className="home-divider" />
 
-            {/* BEST SELLERS */}
             <div className="home-section">
               <div className="home-section-header">
                 <h2 className="home-section-title">Best <span>Sellers</span></h2>
@@ -284,7 +315,6 @@ export default function Home() {
               </div>
               <ProductRow items={BEST_SELLERS} />
             </div>
-
           </div>
         </div>
       </main>
@@ -293,26 +323,15 @@ export default function Home() {
       <div className="home-shop-category">
         <p className="home-shop-category-label">Shopping By Category</p>
 
-        {/* TOP ROW */}
         <div className="home-cat-top-row">
-
-          {/* MENS */}
-          <div
-            className="home-cat-card home-cat-mens"
-            onClick={() => navigate("/mens")}
-          >
+          <div className="home-cat-card home-cat-mens" onClick={() => navigate("/mens")}>
             <img src="/mens.jpg" alt="Mens" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">
               <span className="home-cat-text home-cat-text-white">MENS</span>
             </div>
           </div>
-
-          {/* GIFTS */}
-          <div
-            className="home-cat-card home-cat-gifts"
-            onClick={() => navigate("/gifts")}
-          >
+          <div className="home-cat-card home-cat-gifts" onClick={() => navigate("/gifts")}>
             <img
               src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&q=85"
               alt="Gifts"
@@ -323,14 +342,9 @@ export default function Home() {
               <span className="home-cat-text home-cat-text-white">GIFTS</span>
             </div>
           </div>
-
         </div>
 
-        {/* BOTTOM ROW */}
-        <div
-          className="home-cat-bottom-row"
-          onClick={() => navigate("/mens-accessories")}
-        >
+        <div className="home-cat-bottom-row" onClick={() => navigate("/mens-accessories")}>
           <div className="home-cat-bottom-img-wrap">
             <img src="/men-accessories.jpg" alt="Men Accessories 1" className="home-cat-img" />
           </div>
@@ -346,11 +360,9 @@ export default function Home() {
             <span className="home-cat-text home-cat-text-gold">ACCESSORIES</span>
           </div>
         </div>
-
       </div>
 
       <Footer />
-
     </div>
   );
 }
