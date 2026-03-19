@@ -190,7 +190,7 @@
 }
 
 /* =============================================
-   SIDEBAR
+   SIDEBAR — base styles
    ============================================= */
 
 .home-sidebar {
@@ -220,6 +220,146 @@
   background: rgba(255, 255, 255, 0.08);
   color: var(--home-white);
   border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* =============================================
+   SIDEBAR — "categories" label
+   ============================================= */
+
+.home-sidebar-cat-label {
+  font-size: 0.72rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--home-muted) !important;
+  opacity: 0.6;
+  cursor: default !important;
+  pointer-events: none;
+}
+
+/* =============================================
+   SIDEBAR — Men expandable button
+   ============================================= */
+
+.home-sidebar-men-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Gold highlight when sub-menu is open */
+.home-sidebar-men-active {
+  border-color: var(--home-accent) !important;
+  color: var(--home-accent) !important;
+}
+
+/* Rotating chevron */
+.home-sidebar-chevron {
+  font-size: 14px;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  line-height: 1;
+}
+
+.home-sidebar-chevron.open {
+  transform: rotate(90deg);
+}
+
+/* =============================================
+   SIDEBAR — Men sub-menu
+   ============================================= */
+
+.home-sidebar-submenu {
+  border: 1px solid var(--home-border);
+  border-radius: 2px;
+  overflow: visible;      /* allows Accessories fly-out to escape */
+  margin-top: -6px;       /* tucks under Men button */
+  background: var(--home-surface);
+}
+
+/* Individual sub-menu row */
+.home-sidebar-sub-item {
+  position: relative;
+  padding: 10px 14px 10px 18px;
+  font-size: 0.8rem;
+  color: var(--home-muted);
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+
+.home-sidebar-sub-item:last-child {
+  border-bottom: none;
+}
+
+.home-sidebar-sub-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--home-white);
+}
+
+/* Navigable rows (e.g. Trousers) — gold accent + pointer */
+.home-sidebar-sub-nav {
+  color: var(--home-accent) !important;
+  cursor: pointer !important;
+}
+
+.home-sidebar-sub-nav:hover {
+  background: rgba(232, 201, 126, 0.08) !important;
+}
+
+/* › arrow on right side of sub-item */
+.home-sidebar-sub-arrow {
+  font-size: 13px;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   SIDEBAR — Accessories hover fly-out
+   Mirrors the top-nav .home-sub-dropdown
+   ============================================= */
+
+.home-sidebar-sub-has-acc {
+  cursor: default !important;
+  color: var(--home-muted) !important;
+}
+
+.home-sidebar-acc-panel {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  background: var(--home-white);
+  min-width: 160px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 0 4px 4px 0;
+  border-top: 2px solid var(--home-accent);
+  z-index: 500;
+}
+
+.home-sidebar-sub-has-acc:hover .home-sidebar-acc-panel {
+  display: block;
+}
+
+.home-sidebar-acc-item {
+  padding: 12px 16px;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #111111;
+  border-bottom: 1px solid #eeeeee;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.home-sidebar-acc-item:last-child {
+  border-bottom: none;
+}
+
+.home-sidebar-acc-item:hover {
+  background: #f5f5f5;
 }
 
 /* =============================================
