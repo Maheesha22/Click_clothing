@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import "./Sarong.css";
 import { useNavigate } from "react-router-dom";
 
+
 // ── Product Data ────────────────────────────────────────────────
 const ALL_PRODUCTS = [
   { id:1,  name:"Classic Batik Sarong – Navy",       basePrice:1890, sizes:[28,30,32,34,36],    inStock:true,  img:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=600&q=82" },
@@ -39,6 +40,8 @@ const MEN_MENU = [
   { label: "Shorts"     },
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
+
+
 
 const NAV_TABS = [
   { label: "New Arrivals" },

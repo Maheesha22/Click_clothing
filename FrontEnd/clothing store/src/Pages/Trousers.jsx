@@ -4,6 +4,8 @@ import Footer from "../components/Footer";
 import "./Trousers.css";
 import { useNavigate } from "react-router-dom";
 
+
+
 // ── Product Data ────────────────────────────────────────────────
 const ALL_PRODUCTS = [
   { id:1,  name:"Tito Men's Chino Pant",        basePrice:2295, sizes:[28,30,32,34,36],    inStock:true,  img:"https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600&q=82" },
@@ -27,6 +29,7 @@ const ALL_PRODUCTS = [
   { id:19, name:"Corduroy Trouser – Burgundy",   basePrice:4100, sizes:[32,34,36,38],       inStock:true,  img:"https://images.unsplash.com/photo-1617196034779-5e0f1e7f5a0b?w=600&q=82" },
   { id:20, name:"Chino Shorts – Khaki",          basePrice:1890, sizes:[30,32,34,36],       inStock:true,  img:"https://images.unsplash.com/photo-1547496502-affa22d38842?w=600&q=82" },
 ];
+
 
 const ALL_SIZES = [28, 30, 32, 34, 36, 38, 40];
 

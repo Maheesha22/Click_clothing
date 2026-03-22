@@ -15,6 +15,7 @@ const MEN_MENU = [
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
 
+
 // ── Top nav tabs ────────────────────────────────────────────────
 const NAV_TABS = [
   { label: "New Arrivals" },
