@@ -31,6 +31,7 @@ const ALL_PRODUCTS = [
 ];
 
 
+
 const ALL_SIZES = [28, 30, 32, 34, 36, 38, 40];
 
 // ── CHANGE 1: Added "page" key to Men sub-items that have a page ─
@@ -46,6 +47,7 @@ const MEN_MENU = [
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
 
+
 const NAV_TABS = [
   { label: "New Arrivals" },
   { label: "Best Sellers" },
@@ -55,6 +57,7 @@ const NAV_TABS = [
   { label: "Recently Viewed" },
   { label: "Search History" },
 ];
+
 
 // ── CHANGE 2: Helper that fires the same window event App.jsx uses ─
 // App.jsx already has: window.addEventListener("navigate", handler)
@@ -119,6 +122,7 @@ function TabBar({ activeTab, setActiveTab }) {
   );
 }
 
+
 // ── Sidebar ─────────────────────────────────────────────────────
 function Sidebar({ selSize, setSelSize, pMin, setPMin, pMax, setPMax, showIn, setShowIn, showOut, setShowOut, onApply }) {
   return (
@@ -167,6 +171,7 @@ function Sidebar({ selSize, setSelSize, pMin, setPMin, pMax, setPMax, showIn, se
     </aside>
   );
 }
+
 
 // ── EMI helper ──────────────────────────────────────────────────
 function EmiRow({ price }) {
