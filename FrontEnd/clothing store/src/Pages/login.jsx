@@ -79,7 +79,6 @@ export default function LoginPage({ onLogin, onNavigate, recoveryMsg }) {
           </p>
         </div>
       </div>
-
       <Footer />
     </>
   );
