@@ -57,6 +57,7 @@ function navigateTo(page) {
   window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
 }
 
+
 // ── Icons ───────────────────────────────────────────────────────
 const HeartIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -68,6 +69,8 @@ const EyeIcon = () => (
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
   </svg>
 );
+
+
 
 // ── Tab Bar ─────────────────────────────────────────────────────
 function TabBar({ activeTab, setActiveTab }) {
@@ -109,6 +112,8 @@ function TabBar({ activeTab, setActiveTab }) {
     </div>
   );
 }
+
+
 
 // ── Filters Sidebar ──────────────────────────────────────────────
 function Sidebar({ selSize, setSelSize, pMin, setPMin, pMax, setPMax, showIn, setShowIn, showOut, setShowOut, onApply }) {
@@ -248,6 +253,7 @@ function ProductCard({ product, prices, onPriceUpdate }) {
     </div>
   );
 }
+
 
 // ── Main Sarong Page ─────────────────────────────────────────────
 export default function Sarong() {
