@@ -1,35 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import HomePage from "./Pages/home";
+import Cart from "./Pages/cart";
+import CheckoutPage from "./Pages/checkout";
+import LoginPage from "./Pages/login";
+import RegisterPage from "./Pages/register";
+import ForgotPage from "./Pages/forgot";
+import Dashboard from "./Pages/admin_dashboard1";
+import Trousers from './Pages/Trousers';
+import Sarong from "./Pages/sarong"; /*edit by G*/
+ 
 function App() {
-  const [count, setCount] = useState(0)
+  const [page, setPage] = useState("home");
+  const [recoveryMsg, setRecoveryMsg] = useState("");
+
+  // ✅ Navigate with history support
+  const navigate = (newPage) => {
+    window.history.pushState({ page: newPage }, "", window.location.pathname);
+    setPage(newPage);
+  };
+
+  // ✅ Listen for profile icon window event
+  useEffect(() => {
+    const handler = (e) => navigate(e.detail);
+    window.addEventListener("navigate", handler);
+    return () => window.removeEventListener("navigate", handler);
+  }, []);
+
+  // ✅ Listen for browser back/forward button
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (e.state && e.state.page) {
+        setPage(e.state.page);
+      } else {
+        setPage("home");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleForgotSuccess = () => {
+    setRecoveryMsg("We've sent you an email with a link to update your password.");
+    navigate("login");
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <BrowserRouter>
+      {page === "dashboard" && <Dashboard />}
+      {page === "register"  && <RegisterPage onNavigate={navigate} />}
+      {page === "forgot"    && <ForgotPage onNavigate={navigate} onSuccess={handleForgotSuccess} />}
+      {page === "login"     && <LoginPage onLogin={() => navigate("dashboard")} onNavigate={navigate} recoveryMsg={recoveryMsg} />}
+      {page === "trousers" && <Trousers />} 
+      {page === "sarong" && <Sarong />} 
+      {/*edit by G*/}
+      {page === "home"      &&
+        <Routes>
+          <Route path="/"         element={<HomePage />} />
+          <Route path="/cart"     element={<Cart />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+        </Routes>
+      }
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
