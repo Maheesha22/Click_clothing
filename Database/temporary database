@@ -25,7 +25,6 @@
      PRIMARY KEY ( UserId,Address)
 );
    
-
 CREATE TABLE orders(
     orderId VARCHAR(30) NOT NULL,
     UserId VARCHAR(30) NOT NULL,
