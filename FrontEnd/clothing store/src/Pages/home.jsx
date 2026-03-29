@@ -131,6 +131,7 @@ function Slideshow() {
   );
 }
 
+
 // ── Product Row ─────────────────────────────────────────────────
 function ProductRow({ items }) {
   const rowRef = useRef(null);
