@@ -263,6 +263,7 @@ function ProductCard({ product, prices, onPriceUpdate }) {
   );
 }
 
+
 // ── Main Trousers Page ───────────────────────────────────────────
 export default function Trousers() {
   const navigate = useNavigate();

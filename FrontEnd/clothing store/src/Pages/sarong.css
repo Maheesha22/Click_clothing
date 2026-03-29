@@ -5,6 +5,8 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+
+
 :root {
   --sr-bg:         #ffffff;
   --sr-bg-sec:     #f8f8f8;
@@ -25,6 +27,8 @@
   --sr-font-body:  'DM Sans', sans-serif;
   --sr-font-disp:  'Playfair Display', serif;
 }
+
+
 
 /* ── PAGE ── */
 .sr-page {
