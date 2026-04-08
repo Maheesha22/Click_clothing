@@ -89,6 +89,7 @@ CREATE TABLE Cart (
     Size VARCHAR(50),
     Quantity INT
 );
+.
 
 
 
