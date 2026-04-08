@@ -4,17 +4,15 @@ import Footer from "../components/Footer";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-// ── Men sub-menu — shared by BOTH the top-nav dropdown AND the left sidebar ─
-// ✅ FIXED: Sarong now has page: "sarong" so clicking it navigates correctly
+// ── Men sub-menu — ALL sub-categories now have page keys ─────────
 const MEN_MENU = [
-  { label: "Sarong",       page: "sarong"    },  // ← ADDED page: "sarong"
+  { label: "Sarong",       page: "sarong"    },
   { label: "Trousers",     page: "trousers"  },
-  { label: "Shirts"    },
-  { label: "T-Shirts"  },
-  { label: "Shorts"    },
+  { label: "Shirts",       page: "shirts"    },  // ← NEW
+  { label: "T-Shirts",     page: "tshirts"   },  // ← NEW
+  { label: "Shorts",       page: "shorts"    },  // ← NEW
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
-
 
 // ── Top nav tabs ────────────────────────────────────────────────
 const NAV_TABS = [
@@ -131,7 +129,6 @@ function Slideshow() {
   );
 }
 
-
 // ── Product Row ─────────────────────────────────────────────────
 function ProductRow({ items }) {
   const rowRef = useRef(null);
@@ -198,7 +195,7 @@ function HomeSidebar() {
         <span className={`home-sidebar-chevron ${menOpen ? "open" : ""}`}>›</span>
       </button>
 
-      {/* Expanded Men sub-menu — uses same MEN_MENU so Sarong now navigates too */}
+      {/* Expanded Men sub-menu — ALL items now navigate */}
       {menOpen && (
         <div className="home-sidebar-submenu">
           {MEN_MENU.map((item) => (
