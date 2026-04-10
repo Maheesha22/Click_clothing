@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // ✅ CHANGE 1 — added Link and useNavigate imports
+import { Link, useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header = () => {
   const [cartCount] = useState(0);
-  const navigate = useNavigate(); // ✅ CHANGE 2 — initialized navigate hook
+  const navigate = useNavigate();
 
   return (
     <header className="header">
@@ -24,7 +24,6 @@ const Header = () => {
         </div>
 
         {/* Navigation */}
-        {/* ✅ CHANGE 3 — replaced <a href> tags with React Router <Link> to avoid page reloads */}
         <nav className="nav">
           <Link to="/"         className="nav-link active">Home</Link>
           <Link to="/category" className="nav-link">Category</Link>
@@ -34,8 +33,12 @@ const Header = () => {
 
         {/* Icons */}
         <div className="header-icons">
-          {/* User Icon */}
-          <button className="icon-btn" aria-label="Account">
+          {/* User Icon — fires window event, works from ANY page */}
+          <button
+            className="icon-btn"
+            aria-label="Account"
+            onClick={() => window.dispatchEvent(new CustomEvent("navigate", { detail: "login" }))}
+          >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="12" cy="8" r="4" />
               <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
@@ -50,7 +53,6 @@ const Header = () => {
           </button>
 
           {/* Cart Icon */}
-          {/* ✅ CHANGE 4 — replaced window.location.href with navigate('/cart') */}
           <button className="icon-btn cart-btn" aria-label="Cart" onClick={() => navigate('/cart')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <circle cx="9" cy="21" r="1" />

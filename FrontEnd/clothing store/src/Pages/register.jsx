@@ -1,5 +1,7 @@
 import { useState } from "react";
 import "./register.css";
+import Header from "../Components/Header";
+import Footer from "../Components/Footer";
 
 export default function RegisterPage({ onNavigate }) {
   const [firstName, setFirstName] = useState("");
@@ -24,56 +26,62 @@ export default function RegisterPage({ onNavigate }) {
   };
 
   return (
-    <div className="register-page">
-      <div className="register-card">
-        <h1 className="register-title">WELCOME !</h1>
+    <>
+      <Header />
 
-        <div className="register-input-group">
-          <label className="register-label">FIRST NAME*</label>
-          <input className="register-input" type="text" placeholder="Enter your first name"
-            value={firstName} onChange={(e) => setFirstName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
+      <div className="register-page">
+        <div className="register-card">
+          <h1 className="register-title">WELCOME !</h1>
+
+          <div className="register-input-group">
+            <label className="register-label">FIRST NAME*</label>
+            <input className="register-input" type="text" placeholder="Enter your first name"
+              value={firstName} onChange={(e) => setFirstName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
+          </div>
+
+          <div className="register-input-group">
+            <label className="register-label">LAST NAME*</label>
+            <input className="register-input" type="text" placeholder="Enter your last name"
+              value={lastName} onChange={(e) => setLastName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
+          </div>
+
+          <div className="register-input-group">
+            <label className="register-label">EMAIL*</label>
+            <input className="register-input" type="email" placeholder="Enter your email"
+              value={email} onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
+          </div>
+
+          <div className="register-input-group">
+            <label className="register-label">PASSWORD*</label>
+            <input className="register-input" type="password" placeholder="Enter your password"
+              value={password} onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
+          </div>
+
+          <div className="register-input-group">
+            <label className="register-label">CONFIRM PASSWORD*</label>
+            <input className="register-input" type="password" placeholder="Confirm your password"
+              value={confirm} onChange={(e) => setConfirm(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
+          </div>
+
+          {error && <p className="register-error">{error}</p>}
+
+          <button className="register-btn" onClick={handleSignUp}>CREATE ACCOUNT</button>
+
+          <p className="register-signin-text">
+            Already have an account ?{" "}
+            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("login"); }}>
+              Sign In
+            </a>
+          </p>
         </div>
-
-        <div className="register-input-group">
-          <label className="register-label">LAST NAME*</label>
-          <input className="register-input" type="text" placeholder="Enter your last name"
-            value={lastName} onChange={(e) => setLastName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
-        </div>
-
-        <div className="register-input-group">
-          <label className="register-label">EMAIL*</label>
-          <input className="register-input" type="email" placeholder="Enter your email"
-            value={email} onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
-        </div>
-
-        <div className="register-input-group">
-          <label className="register-label">PASSWORD*</label>
-          <input className="register-input" type="password" placeholder="Enter your password"
-            value={password} onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
-        </div>
-
-        <div className="register-input-group">
-          <label className="register-label">CONFIRM PASSWORD*</label>
-          <input className="register-input" type="password" placeholder="Confirm your password"
-            value={confirm} onChange={(e) => setConfirm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSignUp(e)} />
-        </div>
-
-        {error && <p className="register-error">{error}</p>}
-
-        <button className="register-btn" onClick={handleSignUp}>CREATE ACCOUNT</button>
-
-        <p className="register-signin-text">
-          Already have an account ?{" "}
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("login"); }}>
-            Sign In
-          </a>
-        </p>
       </div>
-    </div>
+
+      <Footer />
+    </>
   );
 }
