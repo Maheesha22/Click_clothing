@@ -25,7 +25,7 @@
 /* ── Cart Header ── */
 .cart-header {
   width: 100%;
-  background: var(--bg-cart-header);
+  background: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -73,7 +73,7 @@
 }
 
 .cart-page-title {
-  color: var(--text-dark);
+  color: var(--text-black);
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 20px;
