@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import Footer from "../components/Footer";
+import Footer from "../Components/footer";
 import "./checkout.css";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
