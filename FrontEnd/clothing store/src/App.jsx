@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from "./Pages/home";
 import Cart from "./Pages/cart";
 import CheckoutPage from "./Pages/checkout";
+import ContactUs from "./Pages/Contactus";
 import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
@@ -59,6 +60,7 @@ function App() {
           <Route path="/"         element={<HomePage />} />
           <Route path="/cart"     element={<Cart />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/Contactus" element={<ContactUs />} />
         </Routes>
       }
     </BrowserRouter>
