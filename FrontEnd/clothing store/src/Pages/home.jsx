@@ -4,13 +4,13 @@ import Footer from "../components/Footer";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-// ── Men sub-menu — ALL sub-categories now have page keys ─────────
+// ── Men sub-menu — ALL navigable items have page keys ────────────
 const MEN_MENU = [
-  { label: "Sarong",       page: "sarong"    },
-  { label: "Trousers",     page: "trousers"  },
-  { label: "Shirts",       page: "shirts"    },  // ← NEW
-  { label: "T-Shirts",     page: "tshirts"   },  // ← NEW
-  { label: "Shorts",       page: "shorts"    },  // ← NEW
+  { label: "Sarong",      page: "sarong"   },
+  { label: "Trousers",    page: "trousers" },
+  { label: "Shirts",      page: "shirts"   },
+  { label: "T-Shirts",    page: "tshirts"  },
+  { label: "Shorts",      page: "shorts"   },
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
 
@@ -118,11 +118,7 @@ function Slideshow() {
       </button>
       <div className="home-slide-dots">
         {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            className={`home-dot ${i === current ? "active" : ""}`}
-            onClick={() => setCurrent(i)}
-          />
+          <button key={i} className={`home-dot ${i === current ? "active" : ""}`} onClick={() => setCurrent(i)} />
         ))}
       </div>
     </div>
@@ -178,11 +174,9 @@ function HomeSidebar() {
 
   return (
     <aside className="home-sidebar">
-
       <button className="home-sidebar-btn home-sidebar-cat-label" disabled>
         categories
       </button>
-
       <button className="home-sidebar-btn">New Arrivals</button>
       <button className="home-sidebar-btn">Best Sellers</button>
 
@@ -195,7 +189,7 @@ function HomeSidebar() {
         <span className={`home-sidebar-chevron ${menOpen ? "open" : ""}`}>›</span>
       </button>
 
-      {/* Expanded Men sub-menu — ALL items now navigate */}
+      {/* Expanded Men sub-menu */}
       {menOpen && (
         <div className="home-sidebar-submenu">
           {MEN_MENU.map((item) => (
@@ -226,8 +220,47 @@ function HomeSidebar() {
 
       <button className="home-sidebar-btn">Accessories</button>
       <button className="home-sidebar-btn">Gifts</button>
-
     </aside>
+  );
+}
+
+// ── Tab Bar — used in Home page top nav ─────────────────────────
+function HomeTabBar({ activeTab, setActiveTab }) {
+  return (
+    <div className="home-tab-bar">
+      {NAV_TABS.map((tab) => (
+        <div className="home-tab-item" key={tab.label}>
+          <button
+            className={`home-tab-btn ${activeTab === tab.label ? "home-tab-active" : ""}`}
+            onClick={() => setActiveTab(tab.label)}
+          >
+            {tab.label}{tab.menu ? " ▾" : ""}
+          </button>
+
+          {tab.menu && (
+            <div className="home-dropdown">
+              {tab.menu.map((item) => (
+                <div
+                  className={`home-dropdown-item${item.page ? " home-dropdown-nav" : ""}`}
+                  key={item.label}
+                  onClick={() => item.page && navigateTo(item.page)}
+                >
+                  {item.label}
+                  {item.sub && <span className="home-dropdown-arrow">▶</span>}
+                  {item.sub && (
+                    <div className="home-sub-dropdown">
+                      {item.sub.map((subItem) => (
+                        <div className="home-sub-item" key={subItem}>{subItem}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -238,51 +271,12 @@ export default function Home() {
 
   return (
     <div className="home-page">
-
       <Header />
 
       <main className="home-main">
+        <HomeTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {/* ── TOP NAV TAB BAR ── */}
-        <div className="home-tab-bar">
-          {NAV_TABS.map((tab) => (
-            <div className="home-tab-item" key={tab.label}>
-              <button
-                className={`home-tab-btn ${activeTab === tab.label ? "home-tab-active" : ""}`}
-                onClick={() => setActiveTab(tab.label)}
-              >
-                {tab.label}{tab.menu ? " ▾" : ""}
-              </button>
-
-              {tab.menu && (
-                <div className="home-dropdown">
-                  {tab.menu.map((item) => (
-                    <div
-                      className="home-dropdown-item"
-                      key={item.label}
-                      onClick={() => item.page && navigateTo(item.page)}
-                      style={item.page ? { cursor: "pointer" } : {}}
-                    >
-                      {item.label}
-                      {item.sub && <span className="home-dropdown-arrow">▶</span>}
-                      {item.sub && (
-                        <div className="home-sub-dropdown">
-                          {item.sub.map((subItem) => (
-                            <div className="home-sub-item" key={subItem}>{subItem}</div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* ── CONTENT AREA ── */}
         <div className="home-content-area">
-
           <HomeSidebar />
 
           <div className="home-right">
@@ -316,7 +310,7 @@ export default function Home() {
         <p className="home-shop-category-label">Shopping By Category</p>
 
         <div className="home-cat-top-row">
-          <div className="home-cat-card home-cat-mens" onClick={() => navigate("/mens")}>
+          <div className="home-cat-card home-cat-mens" onClick={() => navigateTo("sarong")}>
             <img src="/mens.jpg" alt="Mens" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">

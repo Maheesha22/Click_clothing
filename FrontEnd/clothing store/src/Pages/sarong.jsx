@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Sarong.css";
@@ -41,8 +41,6 @@ const MEN_MENU = [
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
 ];
 
-
-
 const NAV_TABS = [
   { label: "New Arrivals" },
   { label: "Best Sellers" },
@@ -69,7 +67,102 @@ const EyeIcon = () => (
     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
   </svg>
 );
+const ZoomInIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+  </svg>
+);
+const ZoomOutIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    <line x1="8" y1="11" x2="14" y2="11"/>
+  </svg>
+);
+const CloseIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
 
+
+// ── Product Modal (Lightbox with zoom) ───────────────────────────
+function ProductModal({ product, price, onClose }) {
+  const [zoom, setZoom] = useState(1);
+  const ZOOM_STEP = 0.25;
+  const MAX_ZOOM = 3;
+  const MIN_ZOOM = 1;
+
+  const handleZoomIn  = (e) => { e.stopPropagation(); setZoom((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM)); };
+  const handleZoomOut = (e) => { e.stopPropagation(); setZoom((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM)); };
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return (
+    <div className="sr-modal-overlay" onClick={onClose}>
+      <div className="sr-modal-box" onClick={(e) => e.stopPropagation()}>
+
+        {/* Close */}
+        <button className="sr-modal-close" onClick={onClose}><CloseIcon /></button>
+
+        {/* Image pane */}
+        <div className="sr-modal-imgpane">
+          <div className="sr-modal-imgscroll">
+            <img
+              src={product.img}
+              alt={product.name}
+              style={{ transform: `scale(${zoom})`, transition: "transform .25s ease" }}
+              onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=800&q=80"; }}
+            />
+          </div>
+          {/* Zoom controls */}
+          <div className="sr-modal-zoom">
+            <button onClick={handleZoomOut} disabled={zoom <= MIN_ZOOM} title="Zoom out"><ZoomOutIcon /></button>
+            <span className="sr-modal-zoomlvl">{Math.round(zoom * 100)}%</span>
+            <button onClick={handleZoomIn}  disabled={zoom >= MAX_ZOOM} title="Zoom in"><ZoomInIcon /></button>
+          </div>
+        </div>
+
+        {/* Info pane */}
+        <div className="sr-modal-info">
+          <span className={`sr-modal-badge ${product.inStock ? "in" : "out"}`}>
+            {product.inStock ? "In Stock" : "Out of Stock"}
+          </span>
+          <h2 className="sr-modal-name">{product.name}</h2>
+          <div className="sr-modal-price">Rs {price.toLocaleString()}.00</div>
+
+          <div className="sr-modal-sizelbl">Available Sizes</div>
+          <div className="sr-modal-sizes">
+            {ALL_SIZES.map((s) => {
+              const has = product.sizes.includes(s);
+              return (
+                <span key={s} className={`sr-modal-sz ${has ? "avail" : "na"}`}>{s}</span>
+              );
+            })}
+          </div>
+
+          <div className="sr-modal-emi">
+            or pay in 3 x <strong>Rs {Math.round(price / 3).toLocaleString()}</strong> with <span className="sr-koko">KOKO</span><br />
+            3 x <strong>Rs {Math.round(price / 3).toLocaleString()}</strong> or 3% Cashback with <span className="sr-mint">mintpay</span><br />
+            up to 4 x <strong>Rs {Math.round(price / 4).toLocaleString()}</strong> with <span className="sr-payzy">PayZy</span>
+          </div>
+
+          <button className="sr-modal-atc" disabled={!product.inStock}>
+            {product.inStock ? "Add to Cart" : "Out of Stock"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 // ── Tab Bar ─────────────────────────────────────────────────────
@@ -112,7 +205,6 @@ function TabBar({ activeTab, setActiveTab }) {
     </div>
   );
 }
-
 
 
 // ── Filters Sidebar ──────────────────────────────────────────────
@@ -178,7 +270,7 @@ function EmiRow({ price }) {
 }
 
 // ── Product Card ─────────────────────────────────────────────────
-function ProductCard({ product, prices, onPriceUpdate }) {
+function ProductCard({ product, prices, onPriceUpdate, onOpenModal }) {
   const [selSize, setSelSize] = useState(null);
   const [wished, setWished] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -191,7 +283,7 @@ function ProductCard({ product, prices, onPriceUpdate }) {
   }
 
   return (
-    <div className="sr-pcard">
+    <div className="sr-pcard" onClick={() => onOpenModal(product)}>
       <div className="sr-imgw">
         <img
           src={product.img}
@@ -203,22 +295,30 @@ function ProductCard({ product, prices, onPriceUpdate }) {
           {product.inStock ? "In Stock" : "Out of Stock"}
         </span>
         <div className="sr-hicons">
-          <button className={`sr-hico ${wished ? "liked" : ""}`} onClick={() => setWished(!wished)}>
+          <button
+            className={`sr-hico ${wished ? "liked" : ""}`}
+            onClick={(e) => { e.stopPropagation(); setWished(!wished); }}
+          >
             <HeartIcon />
           </button>
-          <button className="sr-hico"><EyeIcon /></button>
+          <button className="sr-hico" onClick={(e) => e.stopPropagation()}><EyeIcon /></button>
         </div>
-        <div className="sr-qadd">QUICK ADD</div>
+        <div className="sr-qadd" onClick={(e) => e.stopPropagation()}>QUICK ADD</div>
       </div>
 
       <div className="sr-pbody">
         <div className="sr-pname">{product.name}</div>
         <div className="sr-pprow">
           <span className="sr-pprice">Rs {price.toLocaleString()}.00</span>
-          <button className="sr-pedit-btn" onClick={() => setEditing(!editing)}>Edit price</button>
+          <button
+            className="sr-pedit-btn"
+            onClick={(e) => { e.stopPropagation(); setEditing(!editing); }}
+          >
+            Edit price
+          </button>
         </div>
         {editing && (
-          <div className="sr-pedit-wrap">
+          <div className="sr-pedit-wrap" onClick={(e) => e.stopPropagation()}>
             <input
               type="number"
               value={editVal}
@@ -229,20 +329,23 @@ function ProductCard({ product, prices, onPriceUpdate }) {
           </div>
         )}
         <EmiRow price={price} />
+
+        {/* ── Size grid: available = highlighted dark, unavailable = struck-through ── */}
         <div className="sr-psizes">
           {ALL_SIZES.map((s) => {
             const has = product.sizes.includes(s);
             return (
               <button
                 key={s}
-                className={`sr-psz ${!has ? "na" : ""} ${selSize === s && has ? "picked" : ""}`}
-                onClick={() => has && setSelSize(selSize === s ? null : s)}
+                className={`sr-psz ${has ? "avail" : "na"} ${selSize === s && has ? "picked" : ""}`}
+                onClick={(e) => { e.stopPropagation(); has && setSelSize(selSize === s ? null : s); }}
               >
                 {s}
               </button>
             );
           })}
         </div>
+
         <div className="sr-pavrow">
           <div className="sr-pavdot" style={{ background: product.inStock ? "#27ae60" : "#e03b3b" }} />
           <span className="sr-pavtxt" style={{ color: product.inStock ? "#27ae60" : "#e03b3b" }}>
@@ -269,6 +372,7 @@ export default function Sarong() {
   const [sortMode, setSortMode] = useState("new");
   const [perPage, setPerPage] = useState(10);
   const [loaded, setLoaded] = useState(10);
+  const [modalProduct, setModalProduct] = useState(null);
   const [prices, setPrices] = useState(() => {
     const p = {};
     ALL_PRODUCTS.forEach((prod) => (p[prod.id] = prod.basePrice));
@@ -352,7 +456,13 @@ export default function Sarong() {
           ) : (
             <div className="sr-pgrid">
               {visible.map((p) => (
-                <ProductCard key={p.id} product={p} prices={prices} onPriceUpdate={handlePriceUpdate} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  prices={prices}
+                  onPriceUpdate={handlePriceUpdate}
+                  onOpenModal={setModalProduct}
+                />
               ))}
             </div>
           )}
@@ -370,6 +480,15 @@ export default function Sarong() {
       </div>
 
       <Footer />
+
+      {/* Product Modal */}
+      {modalProduct && (
+        <ProductModal
+          product={modalProduct}
+          price={prices[modalProduct.id]}
+          onClose={() => setModalProduct(null)}
+        />
+      )}
 
     </div>
   );
