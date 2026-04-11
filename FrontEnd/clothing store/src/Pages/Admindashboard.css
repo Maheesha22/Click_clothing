@@ -797,5 +797,4 @@ input, select, textarea { font-family: inherit; }
 @media (max-width: 480px) {
   .stat-grid  { grid-template-columns: 1fr; }
   .mini-grid  { grid-template-columns: 1fr 1fr; }
-  
 }
