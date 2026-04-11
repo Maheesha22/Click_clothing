@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
 import HomePage from "./Pages/home";
 import Cart from "./Pages/cart";
 import CheckoutPage from "./Pages/checkout";
@@ -12,57 +13,36 @@ import Trousers from './Pages/Trousers';
 import Sarong from "./Pages/sarong"; /*edit by G*/
  
 function App() {
-  const [page, setPage] = useState("home");
-  const [recoveryMsg, setRecoveryMsg] = useState("");
-
-  // ✅ Navigate with history support
-  const navigate = (newPage) => {
-    window.history.pushState({ page: newPage }, "", window.location.pathname);
-    setPage(newPage);
-  };
-
-  // ✅ Listen for profile icon window event
-  useEffect(() => {
-    const handler = (e) => navigate(e.detail);
-    window.addEventListener("navigate", handler);
-    return () => window.removeEventListener("navigate", handler);
-  }, []);
-
-  // ✅ Listen for browser back/forward button
-  useEffect(() => {
-    const handlePopState = (e) => {
-      if (e.state && e.state.page) {
-        setPage(e.state.page);
-      } else {
-        setPage("home");
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
 
   const handleForgotSuccess = () => {
-    setRecoveryMsg("We've sent you an email with a link to update your password.");
-    navigate("login");
+    // optional: you can add message logic later
   };
 
   return (
     <BrowserRouter>
-      {page === "dashboard" && <Dashboard />}
-      {page === "register"  && <RegisterPage onNavigate={navigate} />}
-      {page === "forgot"    && <ForgotPage onNavigate={navigate} onSuccess={handleForgotSuccess} />}
-      {page === "login"     && <LoginPage onLogin={() => navigate("dashboard")} onNavigate={navigate} recoveryMsg={recoveryMsg} />}
-      {page === "trousers" && <Trousers />} 
-      {page === "sarong" && <Sarong />} 
-      {/*edit by G*/}
-      {page === "home"      &&
-        <Routes>
-          <Route path="/"         element={<HomePage />} />
-          <Route path="/cart"     element={<Cart />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/Contactus" element={<ContactUs />} />
-        </Routes>
-      }
+
+      <Routes>
+
+        {/* 🌐 MAIN PAGES */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/Contactus" element={<ContactUs />} />
+
+        {/* 🔐 AUTH PAGES (FIXED) */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
+
+        {/* 🧑‍💼 DASHBOARD */}
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* 👕 PRODUCT PAGES */}
+        <Route path="/trousers" element={<Trousers />} />
+        <Route path="/sarong" element={<Sarong />} />
+
+      </Routes>
+
     </BrowserRouter>
   );
 }
