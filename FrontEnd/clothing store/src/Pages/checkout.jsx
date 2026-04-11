@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Footer from "../Components/footer";
 import "./checkout.css";
+import OrderConfirmationPopup from "./OrderConfirmationPopup";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const DISTRICTS = [
@@ -79,6 +80,8 @@ export default function CheckoutPage() {
   const [phoneState, setPhoneState] = useState({ error: "", status: "" }); // status: '' | 'error' | 'success'
   const [slipFile,   setSlipFile]   = useState(null);
   const [toast,      setToast]      = useState(false);
+   const [showPopup,  setShowPopup]  = useState(false);
+  const [orderData,  setOrderData]  = useState(null);
 
   const phoneRef    = useRef(null);
   const slipInputRef = useRef(null);
@@ -152,9 +155,51 @@ export default function CheckoutPage() {
       phoneRef.current?.focus();
       return;
     }
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const orderDetails = {
+      // Product information
+      items: selectedItems,
+      productName: selectedItems.length === 1 
+        ? selectedItems[0].name 
+        : `${selectedItems.length} items`,
+      quantity: totalItemCount,
+      price: total,
+      
+      // Payment information
+      paymentMethod: form.payment === "cod" ? "Cash on Delivery" : "Bank Deposit",
+      confirmed: true,
+      paidDate: currentDate,
+      paidAmount: total,
+      
+      // Customer information
+      customerName: `${form.firstName} ${form.lastName}`,
+      email: form.email,
+      phone: form.phone,
+      address: form.address,
+      city: form.city,
+      district: form.district,
+      province: form.province,
+      
+      // Additional details
+      subtotal: cartSubtotal,
+      shipping: SHIPPING,
+      slip: slipFile,
+    };
+ 
+    setOrderData(orderDetails);
+    setShowPopup(true);
+
     setToast(true);
     setTimeout(() => setToast(false), 3500);
   };
+
+  
 
   // ── Keyboard Enter support ──────────────────────────────────────────────────
   useEffect(() => {
@@ -406,6 +451,14 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+       {/*── ORDER CONFIRMATION POPUP ──*/}
+      {showPopup && orderData && (
+        <OrderConfirmationPopup 
+          orderDetails={orderData}
+          onClose={() => setShowPopup(false)}
+        />
+      )} 
 
       {/* ── TOAST ── */}
       <div className={`toast ${toast ? "show" : ""}`}>
