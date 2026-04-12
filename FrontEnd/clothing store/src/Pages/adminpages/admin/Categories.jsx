@@ -76,4 +76,5 @@ export default function Categories({ toast }) {
       </Modal>
     </div>
   );
+  
 }
