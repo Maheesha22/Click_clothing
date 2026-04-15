@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import Footer from "../Components/footer";
 import "./checkout.css";
+import OrderConfirmationPopup from "./OrderConfirmationPopup";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const DISTRICTS = [
@@ -22,12 +24,6 @@ const BANK_DETAILS = [
   { label: "Account Number",  value: "1234 5678 9012" },
   { label: "Branch",          value: "Colombo 03"     },
 ];
-
-/*const ORDER = {
-  name: "Long Sleeve", size: "28", color: "#c9876b",
-  price: 2500, qty: 1,
-  img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=200&q=80",
-};*/
 
 const SHIPPING = 400;
 
@@ -67,6 +63,7 @@ export default function CheckoutPage() {
   const totalItemCount = selectedItems.reduce((sum, item) => sum + item.qty, 0);
 
   const total = cartSubtotal + SHIPPING;
+  const [formError, setFormError] = useState("");
 
   const [form, setForm] = useState({
     email: "", offers: false, ship: false,
@@ -78,6 +75,8 @@ export default function CheckoutPage() {
   const [phoneState, setPhoneState] = useState({ error: "", status: "" }); // status: '' | 'error' | 'success'
   const [slipFile,   setSlipFile]   = useState(null);
   const [toast,      setToast]      = useState(false);
+   const [showPopup,  setShowPopup]  = useState(false);
+  const [orderData,  setOrderData]  = useState(null);
 
   const phoneRef    = useRef(null);
   const slipInputRef = useRef(null);
@@ -142,18 +141,87 @@ export default function CheckoutPage() {
 
   // ── Confirm order ───────────────────────────────────────────────────────────
   const confirmOrder = () => {
-    if (!form.email || !form.firstName || !form.lastName || !form.address) {
-      alert("Please fill in Email, First Name, Last Name, and Address.");
-      return;
-    }
-    if (form.phone.length > 0 && form.phone.length < 10) {
-      phoneError(`Phone number must be exactly 10 digits. Please enter ${10 - form.phone.length} more digit${10 - form.phone.length > 1 ? "s" : ""}.`);
-      phoneRef.current?.focus();
-      return;
-    }
+    setFormError("");
+
+  if (!form.email || !form.firstName || !form.lastName || !form.address) {
+    setFormError("Please fill in all required fields!!!");
+    return;
+  }
+
+  if (form.phone.length > 0 && form.phone.length < 10) {
+    setFormError("Phone number must be exactly 10 digits.");
+    phoneError(`Phone number must be exactly 10 digits.`);
+    phoneRef.current?.focus();
+    return;
+  }
+
+  if (form.payment === "bank" && !slipFile) {
+    setFormError("Please upload your bank deposit slip before confirming the order.");
+    slipInputRef.current?.click();
+    return;
+  }
+
+  // clear error if everything is OK
+  setFormError("");
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const orderDetails = {
+      // Product information
+      items: selectedItems,
+      productName: selectedItems.length === 1 
+        ? selectedItems[0].name 
+        : `${selectedItems.length} items`,
+      quantity: totalItemCount,
+      price: total,
+      
+      // Payment information
+      paymentMethod: form.payment === "cod" ? "Cash on Delivery" : "Bank Deposit",
+      confirmed: true,
+      paidDate: currentDate,
+      paidAmount: total,
+      
+      // Customer information
+      customerName: `${form.firstName} ${form.lastName}`,
+      email: form.email,
+      phone: form.phone,
+      address: form.address,
+      city: form.city,
+      district: form.district,
+      province: form.province,
+      
+      // Additional details
+      subtotal: cartSubtotal,
+      shipping: SHIPPING,
+      slip: slipFile,
+    };
+ 
+    setOrderData(orderDetails);
+    setShowPopup(true);
+
+    setForm({
+  email: "",
+  offers: false,
+  ship: false,
+  firstName: "",
+  lastName: "",
+  address: "",
+  city: "",
+  district: "",
+  province: "",
+  phone: "",
+  payment: "cod",
+});
+
     setToast(true);
     setTimeout(() => setToast(false), 3500);
   };
+
+  
 
   // ── Keyboard Enter support ──────────────────────────────────────────────────
   useEffect(() => {
@@ -188,8 +256,6 @@ export default function CheckoutPage() {
     onBlur:  (e) => Object.assign(e.target.style, blurStyle),
   };
 
- /*const subtotal = ORDER.price * ORDER.qty;
-  const total    = subtotal + SHIPPING;*/
 
   return (
     <>
@@ -207,6 +273,11 @@ export default function CheckoutPage() {
 
         {/* ── LEFT PANEL ── */}
         <div className="panel">
+          {formError && (
+            <div className="form-error">
+              {formError}
+            </div>
+        )}
 
           {/* Email */}
           <div className="field-full">
@@ -406,10 +477,19 @@ export default function CheckoutPage() {
         </div>
       </div>
 
+       {/*── ORDER CONFIRMATION POPUP ──*/}
+      {showPopup && orderData && (
+        <OrderConfirmationPopup 
+          orderDetails={orderData}
+          onClose={() => setShowPopup(false)}
+        />
+      )} 
+
       {/* ── TOAST ── */}
       <div className={`toast ${toast ? "show" : ""}`}>
         ✓ Order confirmed! We'll be in touch soon.
       </div>
+      <Footer />
     </>
   );
 }
