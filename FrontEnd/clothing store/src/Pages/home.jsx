@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const MEN_MENU = [
   { label: "Sarong",      page: "sarong"   },
   { label: "Trousers",    page: "trousers" },
-  { label: "Shirts",      page: "shirts"   },
+  { label: "Shirts",      page: "shirts"   },   // ← navigates to /shirts
   { label: "T-Shirts",    page: "tshirts"  },
   { label: "Shorts",      page: "shorts"   },
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },

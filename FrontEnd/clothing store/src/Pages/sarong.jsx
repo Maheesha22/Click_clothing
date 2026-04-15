@@ -35,7 +35,7 @@ const ALL_SIZES = [28, 30, 32, 34, 36, 38, 40];
 const MEN_MENU = [
   { label: "Sarong",    page: "sarong"    },
   { label: "Trousers",  page: "trousers"  },
-  { label: "Shirts"     },
+  { label: "Shirts"   , page: "shirts"    },
   { label: "T-Shirts"   },
   { label: "Shorts"     },
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
