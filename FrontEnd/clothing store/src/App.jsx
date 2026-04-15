@@ -8,8 +8,8 @@ import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/admin_dashboard1";
 import Trousers from './Pages/Trousers';
-import Sarong from "./Pages/sarong"; 
-import Shirts from "./Pages/Shirts";/*edit by G*/
+import Sarong from "./Pages/sarong"; /*edit by G*/
+import Shirts from './Pages/Shirts';
  
 function App() {
   const [page, setPage] = useState("home");
@@ -53,8 +53,8 @@ function App() {
       {page === "forgot"    && <ForgotPage onNavigate={navigate} onSuccess={handleForgotSuccess} />}
       {page === "login"     && <LoginPage onLogin={() => navigate("dashboard")} onNavigate={navigate} recoveryMsg={recoveryMsg} />}
       {page === "trousers" && <Trousers />} 
-      {page === "sarong" && <Sarong />} 
       {page === "shirts" && <Shirts />} 
+      {page === "sarong" && <Sarong />} 
       {/*edit by G*/}
       {page === "home"      &&
         <Routes>
