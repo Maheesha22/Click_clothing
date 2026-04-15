@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "./register.css";
-import Header from "../Components/Header";
-import Footer from "../Components/Footer";
+import logo from "../assets/Logo.jpg";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
 
-export default function RegisterPage({ onNavigate }) {
+export default function RegisterPage() {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName]   = useState("");
   const [email, setEmail]         = useState("");
@@ -22,14 +25,16 @@ export default function RegisterPage({ onNavigate }) {
       return;
     }
     setError("");
-    alert("Account created successfully!");
+    navigate("/login");
   };
 
   return (
     <>
       <Header />
-
       <div className="register-page">
+        <div className="register-logo-container">
+          <img src={logo} alt="Logo" />
+        </div>
         <div className="register-card">
           <h1 className="register-title">WELCOME !</h1>
 
@@ -74,13 +79,10 @@ export default function RegisterPage({ onNavigate }) {
 
           <p className="register-signin-text">
             Already have an account ?{" "}
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("login"); }}>
-              Sign In
-            </a>
+            <Link to="/login">Sign In</Link>
           </p>
         </div>
       </div>
-
       <Footer />
     </>
   );

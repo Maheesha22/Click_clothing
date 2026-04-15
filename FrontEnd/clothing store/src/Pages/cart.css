@@ -1,9 +1,10 @@
 /* ── Import Font ── */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500&display=swap');
+
 
 /* ── CSS Variables (scoped to cart page only) ── */
 .cart-page-wrapper {
-  --bg-cart-header: #f0ede8;
+  --bg-cart-header: #ffffff;
   --bg-card: #ffffff;
   --bg-table-header: #1e1e1e;
   --text-dark: #1e1e1e;
@@ -17,22 +18,19 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    to bottom,
-    #080808 0%,
-    #080808 65%,
-    #3a3a3a 80%,
-    #7a7a7a 92%,
-    #a0a0a0 100%
-  );
-  font-family: 'Montserrat', sans-serif;
+  background: #ffffff;
+  font-family: 'Jost', sans-serif;
   box-sizing: border-box;
+}
+
+body {
+  font-family: 'Jost', sans-serif;
 }
 
 /* ── Cart Header ── */
 .cart-header {
   width: 100%;
-  background: var(--bg-cart-header);
+  background: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -80,10 +78,11 @@
 }
 
 .cart-page-title {
-  color: var(--text-white);
+  color: var(--text-black);
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 20px;
+  font-family: 'Cormorant Garamond', serif;
 }
 
 /* ── Outer Layout ── */
@@ -129,8 +128,9 @@
   padding: 20px;
   gap: 0;
   margin-top: 10px;
+  border: 1px solid #e0e0e0;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   box-sizing: border-box;
 }
 
@@ -313,12 +313,14 @@
   background: var(--bg-card);
   border-radius: 10px;
   padding: 22px 20px;
+  border: 1px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .summary-title {
   font-size: 1rem;
   font-weight: 700;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   margin-bottom: 14px;
 }
@@ -362,7 +364,7 @@
   margin-bottom: 10px;
   letter-spacing: 0.3px;
   transition: opacity 0.2s;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Cormorant Garamond', serif;
 }
 
 .btn-checkout {

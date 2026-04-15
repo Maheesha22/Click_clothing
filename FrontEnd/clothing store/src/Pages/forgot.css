@@ -25,6 +25,22 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+.forgot-logo-container {
+  width: 130px;
+  height: 90px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.forgot-logo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 /* ── TITLE ── */
 .forgot-title {
   font-family: 'Cormorant Garamond', serif;
@@ -141,3 +157,5 @@
   .forgot-title { font-size: 32px; margin-bottom: 20px; }
   .forgot-btn { padding: 15px; font-size: 16px; margin-top: 10px; }
 }
+
+
