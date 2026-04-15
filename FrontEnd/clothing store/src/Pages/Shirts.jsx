@@ -7,26 +7,46 @@ import { useNavigate } from "react-router-dom";
 
 // ── Product Data ────────────────────────────────────────────────
 const ALL_PRODUCTS = [
-  { id:1,  name:"Classic Oxford Shirt – White",       basePrice:2495, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#ffffff","#d4c5a9","#1a3a5c"], img:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82" },
-  { id:2,  name:"Slim Fit Formal Shirt – Sky Blue",   basePrice:2890, sizes:["S","M","L","XL"],              inStock:true,  colors:["#87ceeb","#ffffff","#c4e0f3"], img:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=82" },
-  { id:3,  name:"Linen Relaxed Shirt – Ecru",         basePrice:3290, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#ece8dc","#d4c5a9","#c4a882"], img:"https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=82" },
-  { id:4,  name:"Plaid Flannel Shirt – Forest",       basePrice:3490, sizes:["S","M","L","XL","XXL"],        inStock:false, colors:["#2e5e3e","#6b3a2a","#1a3a5c"], img:"https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=82" },
-  { id:5,  name:"Classic Denim Shirt – Indigo",       basePrice:3990, sizes:["S","M","L","XL","XXL","XXXL"], inStock:true,  colors:["#3b5998","#1a1a2e","#5b7fa6"], img:"https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=82" },
-  { id:6,  name:"Casual Polo Shirt – Olive",          basePrice:2190, sizes:["S","M","L","XL"],              inStock:true,  colors:["#6b7a3e","#1a1a1a","#8b3a2a"], img:"https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=82" },
-  { id:7,  name:"Mandarin Collar Shirt – Black",      basePrice:3190, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#111111","#333333","#555555"], img:"https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82" },
-  { id:8,  name:"Hawaiian Print Shirt – Coral",       basePrice:2890, sizes:["S","M","L","XL","XXL"],        inStock:false, colors:["#e8836a","#2e8b57","#4169e1"], img:"https://images.unsplash.com/photo-1610652492500-ded49ceeb378?w=600&q=82" },
-  { id:9,  name:"Slim Fit Dress Shirt – Charcoal",    basePrice:3590, sizes:["S","M","L","XL"],              inStock:true,  colors:["#444444","#111111","#666666"], img:"https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=82" },
-  { id:10, name:"Relaxed Linen Shirt – Sage",         basePrice:2650, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#8fad8a","#f5f5f0","#d4c5a9"], img:"https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=82" },
-  { id:11, name:"Premium Twill Shirt – Navy",         basePrice:4490, sizes:["S","M","L","XL","XXL","XXXL"], inStock:true,  colors:["#1a3a5c","#111111","#2c4a7c"], img:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82" },
-  { id:12, name:"Oversized Oxford Shirt – Blush",     basePrice:2990, sizes:["S","M","L"],                   inStock:false, colors:["#e8c5c5","#f5f0eb","#d4a5a5"], img:"https://images.unsplash.com/photo-1512327536842-5aa37d1ba3e3?w=600&q=82" },
-  { id:13, name:"Wide Collar Shirt – Cream",          basePrice:3150, sizes:["M","L","XL","XXL","XXXL"],     inStock:true,  colors:["#fffaed","#f5f5f0","#c4a882"], img:"https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82" },
-  { id:14, name:"Slim Fit Check Shirt – Burgundy",    basePrice:2895, sizes:["S","M","L","XL"],              inStock:true,  colors:["#6b2737","#1a3a5c","#111111"], img:"https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=82" },
-  { id:15, name:"Tailored Poplin Shirt – White",      basePrice:3890, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#ffffff","#f5f5f0","#e8e0d4"], img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=82" },
-  { id:16, name:"Utility Shirt – Khaki",              basePrice:2750, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#b5a47a","#8a7a5a","#6b6040"], img:"https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=82" },
-  { id:17, name:"Camp Collar Shirt – Ecru",           basePrice:3350, sizes:["S","M","L","XL","XXL","XXXL"], inStock:false, colors:["#ece8dc","#d4c5a9","#c4b89a"], img:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=82" },
-  { id:18, name:"Performance Stretch Shirt – Black",  basePrice:3690, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#111111","#1a3a5c","#444444"], img:"https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=82" },
-  { id:19, name:"Corduroy Overshirt – Rust",          basePrice:4100, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#8b3a2a","#6b2737","#111111"], img:"https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=82" },
-  { id:20, name:"Short Sleeve Linen Shirt – Aqua",    basePrice:2490, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#5fb3b3","#87ceeb","#f5f5f0"], img:"https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=82" },
+  { id:1,  name:"Classic Oxford Shirt – White",       basePrice:2495, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#ffffff","#d4c5a9","#1a3a5c"], img:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82","https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=82","https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82"] },
+  { id:2,  name:"Slim Fit Formal Shirt – Sky Blue",   basePrice:2890, sizes:["S","M","L","XL"],              inStock:true,  colors:["#87ceeb","#ffffff","#c4e0f3"], img:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=82","https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82","https://images.unsplash.com/photo-1512327536842-5aa37d1ba3e3?w=600&q=82"] },
+  { id:3,  name:"Linen Relaxed Shirt – Ecru",         basePrice:3290, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#ece8dc","#d4c5a9","#c4a882"], img:"https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=82","https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82","https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=82"] },
+  { id:4,  name:"Plaid Flannel Shirt – Forest",       basePrice:3490, sizes:["S","M","L","XL","XXL"],        inStock:false, colors:["#2e5e3e","#6b3a2a","#1a3a5c"], img:"https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=82","https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=82","https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82"] },
+  { id:5,  name:"Classic Denim Shirt – Indigo",       basePrice:3990, sizes:["S","M","L","XL","XXL","XXXL"], inStock:true,  colors:["#3b5998","#1a1a2e","#5b7fa6"], img:"https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=82","https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=82","https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=82"] },
+  { id:6,  name:"Casual Polo Shirt – Olive",          basePrice:2190, sizes:["S","M","L","XL"],              inStock:true,  colors:["#6b7a3e","#1a1a1a","#8b3a2a"], img:"https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=82","https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=82","https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=82"] },
+  { id:7,  name:"Mandarin Collar Shirt – Black",      basePrice:3190, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#111111","#333333","#555555"], img:"https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82","https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=82","https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=82"] },
+  { id:8,  name:"Hawaiian Print Shirt – Coral",       basePrice:2890, sizes:["S","M","L","XL","XXL"],        inStock:false, colors:["#e8836a","#2e8b57","#4169e1"], img:"https://images.unsplash.com/photo-1610652492500-ded49ceeb378?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1610652492500-ded49ceeb378?w=600&q=82","https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=82","https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=82"] },
+  { id:9,  name:"Slim Fit Dress Shirt – Charcoal",    basePrice:3590, sizes:["S","M","L","XL"],              inStock:true,  colors:["#444444","#111111","#666666"], img:"https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=82","https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82","https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=82"] },
+  { id:10, name:"Relaxed Linen Shirt – Sage",         basePrice:2650, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#8fad8a","#f5f5f0","#d4c5a9"], img:"https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=82","https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=82","https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82"] },
+  { id:11, name:"Premium Twill Shirt – Navy",         basePrice:4490, sizes:["S","M","L","XL","XXL","XXXL"], inStock:true,  colors:["#1a3a5c","#111111","#2c4a7c"], img:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82","https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82","https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=82"] },
+  { id:12, name:"Oversized Oxford Shirt – Blush",     basePrice:2990, sizes:["S","M","L"],                   inStock:false, colors:["#e8c5c5","#f5f0eb","#d4a5a5"], img:"https://images.unsplash.com/photo-1512327536842-5aa37d1ba3e3?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1512327536842-5aa37d1ba3e3?w=600&q=82","https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82","https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=82"] },
+  { id:13, name:"Wide Collar Shirt – Cream",          basePrice:3150, sizes:["M","L","XL","XXL","XXXL"],     inStock:true,  colors:["#fffaed","#f5f5f0","#c4a882"], img:"https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82","https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82","https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=82"] },
+  { id:14, name:"Slim Fit Check Shirt – Burgundy",    basePrice:2895, sizes:["S","M","L","XL"],              inStock:true,  colors:["#6b2737","#1a3a5c","#111111"], img:"https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=82","https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82","https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82"] },
+  { id:15, name:"Tailored Poplin Shirt – White",      basePrice:3890, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#ffffff","#f5f5f0","#e8e0d4"], img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=82","https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=82","https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82"] },
+  { id:16, name:"Utility Shirt – Khaki",              basePrice:2750, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#b5a47a","#8a7a5a","#6b6040"], img:"https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=82","https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=82","https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=82"] },
+  { id:17, name:"Camp Collar Shirt – Ecru",           basePrice:3350, sizes:["S","M","L","XL","XXL","XXXL"], inStock:false, colors:["#ece8dc","#d4c5a9","#c4b89a"], img:"https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=82","https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=82","https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=82"] },
+  { id:18, name:"Performance Stretch Shirt – Black",  basePrice:3690, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#111111","#1a3a5c","#444444"], img:"https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=82","https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=82","https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=82"] },
+  { id:19, name:"Corduroy Overshirt – Rust",          basePrice:4100, sizes:["M","L","XL","XXL"],            inStock:true,  colors:["#8b3a2a","#6b2737","#111111"], img:"https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=82","https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=82","https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=82"] },
+  { id:20, name:"Short Sleeve Linen Shirt – Aqua",    basePrice:2490, sizes:["S","M","L","XL","XXL"],        inStock:true,  colors:["#5fb3b3","#87ceeb","#f5f5f0"], img:"https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=82",
+    colorImgs:["https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=82","https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=82","https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=82"] },
 ];
 
 const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];
@@ -148,12 +168,28 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
   const [selColor, setSelColor]     = useState(null);
   const [addingColor, setAddingColor] = useState(false);
 
+  // ── ADDED: track which image is currently displayed ──────────
+  const [displayImg, setDisplayImg] = useState(product.img);
+
   const allColors = [...product.colors, ...extraColors];
   const ZOOM_STEP = 0.25, MAX_ZOOM = 3, MIN_ZOOM = 1;
   const LIGHT = new Set(["#f5f5f0","#ece8dc","#ffffff","#fffaed","#f5f0eb","#c4e0f3","#e8c5c5","#d4a5a5"]);
 
   const handleZoomIn  = (e) => { e.stopPropagation(); setZoom((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM)); };
   const handleZoomOut = (e) => { e.stopPropagation(); setZoom((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM)); };
+
+  // ── ADDED: when color is selected, swap image and reset zoom ──
+  function handleColorSelect(color, colorIndex) {
+    const isDeselecting = selColor === color;
+    setSelColor(isDeselecting ? null : color);
+    setZoom(1);
+    if (isDeselecting) {
+      setDisplayImg(product.img);
+    } else {
+      const mapped = product.colorImgs && product.colorImgs[colorIndex];
+      setDisplayImg(mapped || product.img);
+    }
+  }
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -170,7 +206,8 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
         {/* Image pane */}
         <div className="sh-modal-imgpane">
           <div className="sh-modal-imgscroll">
-            <img src={product.img} alt={product.name}
+            {/* CHANGED: src now uses displayImg instead of product.img */}
+            <img src={displayImg} alt={product.name}
               style={{ transform: `scale(${zoom})`, transition: "transform .25s ease" }}
               onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=800&q=80"; }} />
           </div>
@@ -200,7 +237,8 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
                       title={c}
                       className={`sh-modal-swatch ${selColor === c ? "active" : ""}`}
                       style={{ background: c, border: LIGHT.has(c) ? "2px solid #ccc" : "2px solid transparent" }}
-                      onClick={() => setSelColor(selColor === c ? null : c)}
+                      // CHANGED: calls handleColorSelect instead of inline setSelColor
+                      onClick={() => handleColorSelect(c, i)}
                     />
                     {isExtra && (
                       <button className="sh-modal-swatch-del" title="Remove color"
@@ -342,6 +380,10 @@ function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal 
   const [wished,   setWished]   = useState(false);
   const [editing,  setEditing]  = useState(false);
   const [editVal,  setEditVal]  = useState(prices[product.id]);
+
+  // ── ADDED: track card-level displayed image ──────────────────
+  const [cardImg, setCardImg] = useState(product.img);
+
   const price = prices[product.id];
   const allColors = [...product.colors, ...extraColors];
 
@@ -350,10 +392,23 @@ function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal 
     if (!isNaN(v) && v >= 0) { onPriceUpdate(product.id, v); setEditing(false); }
   }
 
+  // ── ADDED: swap card image when a color swatch is clicked ─────
+  function handleCardColorSelect(color, colorIndex) {
+    const isDeselecting = selColor === color;
+    setSelColor(isDeselecting ? null : color);
+    if (isDeselecting) {
+      setCardImg(product.img);
+    } else {
+      const mapped = product.colorImgs && product.colorImgs[colorIndex];
+      setCardImg(mapped || product.img);
+    }
+  }
+
   return (
     <div className="sh-pcard" onClick={() => onOpenModal(product)}>
       <div className="sh-imgw">
-        <img src={product.img} alt={product.name} loading="lazy"
+        {/* CHANGED: src now uses cardImg instead of product.img */}
+        <img src={cardImg} alt={product.name} loading="lazy"
           onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80"; }} />
         <span className={`sh-av-badge ${product.inStock ? "in" : "out"}`}>
           {product.inStock ? "In Stock" : "Out of Stock"}
@@ -382,7 +437,12 @@ function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal 
 
         <div className="sh-color-section" onClick={(e) => e.stopPropagation()}>
           <div className="sh-color-lbl">Colors</div>
-          <ColorSwatches colors={allColors} selColor={selColor} onSelect={setSelColor} />
+          {/* CHANGED: uses updated ColorSwatches with index-aware onSelect */}
+          <ColorSwatchesWithIndex
+            colors={allColors}
+            selColor={selColor}
+            onSelect={handleCardColorSelect}
+          />
         </div>
 
         <div className="sh-psizes">
@@ -405,6 +465,27 @@ function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal 
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── ADDED: index-aware color swatch for cards ────────────────────
+// Passes both color value AND its index to onSelect so the card
+// knows which colorImgs slot to use. Original ColorSwatches is
+// kept unchanged above for any other usage.
+function ColorSwatchesWithIndex({ colors, selColor, onSelect }) {
+  const LIGHT = new Set(["#f5f5f0","#ece8dc","#ffffff","#fffaed","#f5f0eb","#c4e0f3","#e8c5c5","#d4a5a5"]);
+  return (
+    <div className="sh-color-row">
+      {colors.map((c, i) => (
+        <button
+          key={i}
+          title={c}
+          className={`sh-color-swatch ${selColor === c ? "active" : ""}`}
+          style={{ background: c, border: LIGHT.has(c) ? "1.5px solid #ccc" : "1.5px solid transparent" }}
+          onClick={(e) => { e.stopPropagation(); onSelect(c, i); }}
+        />
+      ))}
     </div>
   );
 }

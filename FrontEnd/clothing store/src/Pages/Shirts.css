@@ -1014,3 +1014,25 @@
   .sh-tb-ctrl { flex-wrap: wrap; }
   .sh-imgw { height: 230px; }
 }
+
+/* =============================================
+   ADDED: Color-swap image transition
+   Smooth crossfade when the card/modal image
+   changes on color swatch selection.
+   ============================================= */
+
+.sh-imgw img {
+  transition: transform 0.4s, opacity 0.3s ease;
+}
+
+.sh-imgw img.sh-img-fade {
+  opacity: 0;
+}
+
+.sh-modal-imgscroll img {
+  transition: transform 0.25s ease, opacity 0.3s ease;
+}
+
+.sh-modal-imgscroll img.sh-img-fade {
+  opacity: 0;
+}
