@@ -1,153 +1,234 @@
 /* =============================================
    Shirts.css — Click Super Mall
-   All classes prefixed with "shirts-" to avoid
-   conflicts with other page styles.
+   All classes prefixed "sh-" — mirrors
+   Trousers.css with sh- instead of tr-
    ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --shirts-font-display: 'Playfair Display', serif;
-  --shirts-font-body:    'DM Sans', sans-serif;
-  --shirts-bg:           #f7f7f7;
-  --shirts-white:        #ffffff;
-  --shirts-black:        #0a0a0a;
-  --shirts-text:         #111111;
-  --shirts-muted:        #777777;
-  --shirts-border:       #e0e0e0;
-  --shirts-accent:       #c9a84c;
-  --shirts-in-stock:     #2e7d32;
-  --shirts-out-stock:    #c62828;
-  --shirts-sidebar-w:    180px;
+  --sh-font-display : 'Playfair Display', serif;
+  --sh-font-body    : 'DM Sans', sans-serif;
+  --sh-bg           : #f7f7f5;
+  --sh-white        : #ffffff;
+  --sh-black        : #0a0a0a;
+  --sh-text         : #111111;
+  --sh-muted        : #888888;
+  --sh-border       : #e2e2e2;
+  --sh-accent       : #c9a84c;        /* gold — same as Trousers */
+  --sh-surface      : #f0ede8;
+  --sh-in           : #27ae60;
+  --sh-out          : #e03b3b;
+  --sh-sidebar-w    : 175px;
+  --sh-card-radius  : 3px;
 }
 
 /* ── PAGE ── */
-.shirts-page {
+.sh-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--shirts-bg);
-  font-family: var(--shirts-font-body);
+  background: var(--sh-bg);
+  font-family: var(--sh-font-body);
+  color: var(--sh-text);
 }
 
-/* ── LAYOUT ── */
-.shirts-layout {
+/* ── TAB BAR ── */
+.sh-tab-bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--sh-white);
+  border-bottom: 1px solid var(--sh-border);
+  overflow: visible;
+  position: relative;
+  z-index: 200;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.sh-tab-item { position: relative; }
+
+.sh-tab-btn {
+  background: none;
+  border: none;
+  border-right: 1px solid var(--sh-border);
+  cursor: pointer;
+  font-family: var(--sh-font-body);
+  font-size: 0.8rem;
+  color: #555;
+  padding: 14px 20px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  display: block;
+}
+
+.sh-tab-btn:hover { background: #fafafa; color: var(--sh-black); }
+
+.sh-tab-active {
+  background: var(--sh-black) !important;
+  color: var(--sh-white) !important;
+  font-weight: 600;
+}
+
+/* ── TAB DROPDOWN ── */
+.sh-tab-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--sh-white);
+  min-width: 200px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+  border-top: 2px solid var(--sh-accent);
+  border-radius: 0 0 4px 4px;
+  z-index: 300;
+}
+
+.sh-tab-item:hover .sh-tab-dropdown { display: block; }
+
+.sh-tab-dd-item {
+  position: relative;
+  padding: 12px 18px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--sh-text);
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+
+.sh-tab-dd-item:last-child { border-bottom: none; }
+.sh-tab-dd-item:hover { background: #faf6ee; color: #8a6a1a; }
+
+/* ── TAB SUB-DROPDOWN ── */
+.sh-tab-sub-dropdown {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  background: var(--sh-white);
+  min-width: 170px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+  border-top: 2px solid var(--sh-accent);
+  border-radius: 0 4px 4px 0;
+  z-index: 400;
+}
+
+.sh-tab-dd-item:hover .sh-tab-sub-dropdown { display: block; }
+
+.sh-tab-sub-item {
+  padding: 12px 18px;
+  font-size: 0.82rem;
+  color: var(--sh-text);
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.12s;
+}
+
+.sh-tab-sub-item:last-child { border-bottom: none; }
+.sh-tab-sub-item:hover { background: #fafafa; }
+
+/* ── PAGE WRAP ── */
+.sh-page-wrap {
   display: flex;
   flex: 1;
-  max-width: 100%;
+  align-items: flex-start;
 }
 
 /* =============================================
    SIDEBAR
    ============================================= */
 
-.shirts-sidebar {
-  flex: 0 0 var(--shirts-sidebar-w);
-  background: var(--shirts-white);
-  border-right: 1px solid var(--shirts-border);
+.sh-sidebar {
+  flex: 0 0 var(--sh-sidebar-w);
   padding: 24px 16px;
-  min-height: calc(100vh - 120px);
+  background: var(--sh-white);
+  border-right: 1px solid var(--sh-border);
+  min-height: calc(100vh - 90px);
+  position: sticky;
+  top: 0;
 }
 
-.shirts-sidebar-title {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: var(--shirts-muted);
-  margin: 0 0 20px 0;
+.sh-sb-brand {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  color: var(--sh-muted);
+  margin-bottom: 20px;
 }
 
-.shirts-filter-section {
-  margin-bottom: 28px;
-}
+.sh-sb-sec { margin-bottom: 26px; }
 
-.shirts-filter-label {
+.sh-sb-lbl {
   font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--shirts-text);
-  margin: 0 0 10px 0;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sh-text);
+  margin-bottom: 10px;
 }
 
-/* Size filter grid */
-.shirts-size-filter-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* Size buttons in sidebar */
+.sh-sb-sizes {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
-.shirts-size-filter-btn {
-  background: var(--shirts-white);
-  border: 1px solid var(--shirts-border);
-  font-family: var(--shirts-font-body);
-  font-size: 0.78rem;
+.sh-sb-sz {
+  background: var(--sh-white);
+  border: 1px solid var(--sh-border);
+  font-family: var(--sh-font-body);
+  font-size: 0.75rem;
   font-weight: 500;
-  color: var(--shirts-text);
-  padding: 7px 4px;
+  color: var(--sh-text);
+  padding: 5px 10px;
   border-radius: 2px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.14s;
+  min-width: 38px;
   text-align: center;
 }
 
-.shirts-size-filter-btn:hover {
-  border-color: var(--shirts-accent);
-  color: var(--shirts-accent);
-}
+.sh-sb-sz:hover { border-color: var(--sh-accent); color: var(--sh-accent); }
+.sh-sb-sz.active { background: var(--sh-black); color: var(--sh-white); border-color: var(--sh-black); }
 
-.shirts-size-filter-btn.active {
-  background: var(--shirts-black);
-  color: var(--shirts-white);
-  border-color: var(--shirts-black);
-}
+/* Price fields */
+.sh-pf-fields { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 
-/* Price inputs */
-.shirts-price-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.shirts-price-row-input {
+.sh-pf-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.shirts-price-label-sm {
+  gap: 8px;
   font-size: 0.75rem;
-  color: var(--shirts-muted);
-  width: 28px;
-  flex-shrink: 0;
+  color: var(--sh-muted);
 }
 
-.shirts-price-input {
+.sh-pf-row input {
   flex: 1;
-  border: 1px solid var(--shirts-border);
+  border: 1px solid var(--sh-border);
   border-radius: 2px;
-  padding: 6px 10px;
-  font-family: var(--shirts-font-body);
+  padding: 5px 8px;
+  font-family: var(--sh-font-body);
   font-size: 0.8rem;
-  color: var(--shirts-text);
-  background: var(--shirts-white);
+  color: var(--sh-text);
+  background: var(--sh-white);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.14s;
 }
 
-.shirts-price-input:focus {
-  border-color: var(--shirts-accent);
-}
+.sh-pf-row input:focus { border-color: var(--sh-accent); }
 
-.shirts-apply-btn {
+.sh-apply-btn {
   width: 100%;
-  background: var(--shirts-black);
-  color: var(--shirts-white);
+  background: var(--sh-black);
+  color: var(--sh-white);
   border: none;
   padding: 9px 0;
-  font-family: var(--shirts-font-body);
+  font-family: var(--sh-font-body);
   font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -156,69 +237,49 @@
   transition: background 0.15s;
 }
 
-.shirts-apply-btn:hover {
-  background: var(--shirts-accent);
-}
+.sh-apply-btn:hover { background: var(--sh-accent); }
 
-/* Checkboxes */
-.shirts-checkbox-label {
+/* Availability checkboxes */
+.sh-av-opts { display: flex; flex-direction: column; gap: 8px; }
+
+.sh-av-opt {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-size: 0.82rem;
-  color: var(--shirts-text);
+  color: var(--sh-text);
   cursor: pointer;
-  margin-bottom: 8px;
 }
 
-.shirts-checkbox-label input[type="checkbox"] {
-  accent-color: var(--shirts-black);
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-}
+.sh-av-opt input[type="checkbox"] { accent-color: var(--sh-black); width: 14px; height: 14px; cursor: pointer; }
 
 /* =============================================
    MAIN CONTENT
    ============================================= */
 
-.shirts-main {
+.sh-main {
   flex: 1;
   min-width: 0;
-  padding: 20px 28px;
-  background: var(--shirts-bg);
+  padding: 20px 24px 40px 24px;
 }
 
 /* Breadcrumb */
-.shirts-breadcrumb {
+.sh-bc {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.shirts-breadcrumb-link {
+  gap: 6px;
+  margin-bottom: 14px;
   font-size: 0.78rem;
-  color: var(--shirts-muted);
-  cursor: pointer;
-  transition: color 0.15s;
+  color: var(--sh-muted);
 }
 
-.shirts-breadcrumb-link:hover { color: var(--shirts-text); }
+.sh-bc a { color: var(--sh-muted); text-decoration: none; transition: color 0.13s; }
+.sh-bc a:hover { color: var(--sh-text); }
+.sh-sep { font-size: 0.78rem; color: var(--sh-muted); }
+.sh-cur { color: var(--sh-text); font-weight: 500; }
 
-.shirts-breadcrumb-sep {
-  font-size: 0.78rem;
-  color: var(--shirts-muted);
-}
-
-.shirts-breadcrumb-current {
-  font-size: 0.78rem;
-  color: var(--shirts-text);
-  font-weight: 500;
-}
-
-/* Toolbar */
-.shirts-toolbar {
+/* Top bar: title + controls */
+.sh-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -227,193 +288,123 @@
   gap: 12px;
 }
 
-.shirts-page-title {
-  font-family: var(--shirts-font-display);
+.sh-pg-title {
+  font-family: var(--sh-font-display);
   font-size: 2.2rem;
   font-weight: 700;
-  color: var(--shirts-text);
+  color: var(--sh-text);
   margin: 0;
   line-height: 1;
 }
 
-.shirts-title-accent {
-  color: var(--shirts-accent);
-}
+.sh-pg-title span { color: var(--sh-accent); }
 
-.shirts-toolbar-right {
+.sh-tb-ctrl {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.shirts-count {
-  font-size: 0.75rem;
-  color: var(--shirts-muted);
-}
-
-.shirts-products-found {
-  font-size: 0.78rem;
-  color: var(--shirts-muted);
-  margin-bottom: 20px;
-}
-
-/* Custom selects */
-.shirts-select-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-}
-
-.shirts-select-label {
+.sh-tbl {
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--shirts-muted);
   text-transform: uppercase;
+  color: var(--sh-muted);
   white-space: nowrap;
 }
 
-.shirts-custom-select {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--shirts-border);
+.sh-tb-sel {
+  border: 1px solid var(--sh-border);
   border-radius: 2px;
-  padding: 6px 12px;
-  font-family: var(--shirts-font-body);
+  padding: 6px 10px;
+  font-family: var(--sh-font-body);
   font-size: 0.78rem;
-  color: var(--shirts-text);
-  background: var(--shirts-white);
+  color: var(--sh-text);
+  background: var(--sh-white);
   cursor: pointer;
-  min-width: 60px;
-  user-select: none;
-  transition: border-color 0.15s;
+  outline: none;
+  transition: border-color 0.14s;
 }
 
-.shirts-custom-select:hover { border-color: #aaa; }
+.sh-tb-sel:focus { border-color: var(--sh-accent); }
 
-.shirts-sort-select { min-width: 170px; }
-
-.shirts-select-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  background: var(--shirts-white);
-  border: 1px solid var(--shirts-border);
-  border-radius: 2px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-  z-index: 200;
-  min-width: 100%;
-  overflow: hidden;
-}
-
-.shirts-select-option {
-  padding: 10px 14px;
+.sh-rinfo {
   font-size: 0.78rem;
-  color: var(--shirts-text);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.12s;
+  color: var(--sh-muted);
+  margin-bottom: 18px;
 }
-
-.shirts-select-option:hover { background: #f5f0e8; color: #8a6a1a; }
 
 /* =============================================
    PRODUCT GRID
    ============================================= */
 
-.shirts-product-grid {
+.sh-pgrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
+/* Empty state */
+.sh-empty {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 0.95rem;
+  color: var(--sh-muted);
+}
+
+/* Load More */
+.sh-lmwrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+.sh-lmbtn {
+  background: var(--sh-white);
+  border: 1.5px solid var(--sh-black);
+  color: var(--sh-black);
+  font-family: var(--sh-font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 11px 36px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sh-lmbtn:hover:not(:disabled) { background: var(--sh-black); color: var(--sh-white); }
+.sh-lmbtn:disabled { opacity: 0.45; cursor: default; border-color: var(--sh-border); }
+
 /* =============================================
    PRODUCT CARD
    ============================================= */
 
-.shirts-product-card {
-  position: relative;
-  background: var(--shirts-white);
-  border: 1px solid var(--shirts-border);
-  border-radius: 3px;
+.sh-pcard {
+  background: var(--sh-white);
+  border: 1px solid var(--sh-border);
+  border-radius: var(--sh-card-radius);
   overflow: hidden;
-  transition: box-shadow 0.25s, transform 0.25s;
-}
-
-.shirts-product-card:hover {
-  box-shadow: 0 8px 28px rgba(0,0,0,0.12);
-  transform: translateY(-3px);
-}
-
-/* Stock badge */
-.shirts-stock-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 4px 9px;
-  border-radius: 2px;
-  z-index: 5;
-  text-transform: uppercase;
-}
-
-.shirts-stock-badge.in-stock {
-  background: rgba(46, 125, 50, 0.92);
-  color: #ffffff;
-}
-
-.shirts-stock-badge.out-of-stock {
-  background: rgba(198, 40, 40, 0.92);
-  color: #ffffff;
-}
-
-/* Card action buttons */
-.shirts-card-actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  z-index: 5;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.shirts-product-card:hover .shirts-card-actions { opacity: 1; }
-
-.shirts-card-action-btn {
-  background: rgba(255,255,255,0.92);
-  border: 1px solid var(--shirts-border);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  color: var(--shirts-text);
-  transition: background 0.15s, color 0.15s;
+  transition: transform 0.22s, box-shadow 0.22s;
+  position: relative;
 }
 
-.shirts-card-action-btn:hover {
-  background: var(--shirts-black);
-  color: var(--shirts-white);
-  border-color: var(--shirts-black);
+.sh-pcard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.11);
 }
 
-/* Image */
-.shirts-img-wrap {
+/* Image wrap */
+.sh-imgw {
+  position: relative;
   overflow: hidden;
-  height: 280px;
+  height: 300px;
 }
 
-.shirts-product-img {
+.sh-imgw img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -422,207 +413,604 @@
   transition: transform 0.4s;
 }
 
-.shirts-product-card:hover .shirts-product-img { transform: scale(1.05); }
+.sh-pcard:hover .sh-imgw img { transform: scale(1.05); }
 
-/* Info section */
-.shirts-product-info {
-  padding: 14px 14px 12px 14px;
+/* Stock badge */
+.sh-av-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 2px;
+  z-index: 4;
 }
 
-.shirts-product-name {
-  font-family: var(--shirts-font-body);
-  font-size: 0.88rem;
+.sh-av-badge.in  { background: rgba(39,174,96,0.92);  color: #fff; }
+.sh-av-badge.out { background: rgba(224,59,59,0.92);  color: #fff; }
+
+/* Hover icons: wishlist + eye */
+.sh-hicons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 4;
+}
+
+.sh-pcard:hover .sh-hicons { opacity: 1; }
+
+.sh-hico {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid var(--sh-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sh-text);
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+
+.sh-hico:hover { background: var(--sh-black); color: var(--sh-white); border-color: var(--sh-black); }
+.sh-hico.liked { color: #e03b3b; }
+
+/* Quick Add bar */
+.sh-qadd {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--sh-black);
+  color: var(--sh-white);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 9px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.22s, transform 0.22s;
+  z-index: 4;
+  cursor: pointer;
+}
+
+.sh-pcard:hover .sh-qadd { opacity: 1; transform: translateY(0); }
+.sh-qadd:hover { background: var(--sh-accent); }
+
+/* Card body */
+.sh-pbody { padding: 14px 14px 12px; }
+
+.sh-pname {
+  font-size: 0.87rem;
   font-weight: 600;
-  color: var(--shirts-text);
-  margin: 0 0 6px 0;
+  color: var(--sh-text);
+  margin-bottom: 6px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.shirts-price-row {
+.sh-pprow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 4px;
 }
 
-.shirts-price {
+.sh-pprice {
   font-size: 0.92rem;
   font-weight: 700;
-  color: var(--shirts-text);
+  color: var(--sh-text);
 }
 
-.shirts-edit-price {
+.sh-pedit-btn {
   font-size: 0.7rem;
-  color: var(--shirts-accent);
+  color: var(--sh-accent);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  font-family: var(--shirts-font-body);
+  font-family: var(--sh-font-body);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-/* Payment options */
-.shirts-payment-options {
-  font-size: 0.68rem;
-  color: var(--shirts-muted);
-  margin-bottom: 2px;
+.sh-pedit-wrap {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 3px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
-.shirts-pay-text { font-size: 0.68rem; }
-
-.shirts-pay-amount {
-  font-weight: 600;
-  color: var(--shirts-text);
-  font-size: 0.68rem;
-}
-
-.shirts-pay-badge {
-  display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 2px 6px;
+.sh-pedit-wrap input {
+  width: 90px;
+  border: 1px solid var(--sh-border);
   border-radius: 2px;
-  letter-spacing: 0.3px;
+  padding: 4px 8px;
+  font-family: var(--sh-font-body);
+  font-size: 0.8rem;
+  outline: none;
 }
 
-.shirts-pay-badge.koko   { background: #e8f4f8; color: #0066cc; }
-.shirts-pay-badge.mintpay { background: #e8f8ee; color: #008844; }
-.shirts-pay-badge.payz   { background: #f0e8f8; color: #7700cc; }
-
-/* Colors */
-.shirts-colors-section {
-  margin-top: 9px;
-  margin-bottom: 4px;
+.sh-pedit-wrap button {
+  background: var(--sh-black);
+  color: var(--sh-white);
+  border: none;
+  border-radius: 2px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s;
 }
 
-.shirts-label {
+.sh-pedit-wrap button:hover { background: var(--sh-accent); }
+
+/* EMI row */
+.sh-pemi {
+  font-size: 0.68rem;
+  color: var(--sh-muted);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.sh-koko   { display:inline-block; background:#dceeff; color:#0055cc; font-weight:700; font-size:0.6rem; padding:1px 5px; border-radius:2px; }
+.sh-mint   { display:inline-block; background:#dcffe8; color:#007733; font-weight:700; font-size:0.6rem; padding:1px 5px; border-radius:2px; }
+.sh-payzy  { display:inline-block; background:#f0dcff; color:#6600bb; font-weight:700; font-size:0.6rem; padding:1px 5px; border-radius:2px; }
+
+/* Colors section */
+.sh-color-section { margin-bottom: 6px; }
+
+.sh-color-lbl {
   font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--shirts-muted);
-  display: block;
-  margin-bottom: 6px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  color: var(--sh-muted);
+  margin-bottom: 5px;
 }
 
-.shirts-colors {
-  display: flex;
-  gap: 5px;
-}
+.sh-color-row { display: flex; flex-wrap: wrap; gap: 5px; }
 
-.shirts-color-dot {
-  width: 18px;
-  height: 18px;
+.sh-color-swatch {
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.15s, box-shadow 0.15s;
-  flex-shrink: 0;
+  transition: transform 0.14s, box-shadow 0.14s;
 }
 
-.shirts-color-dot:hover { transform: scale(1.15); }
-.shirts-color-dot.selected { box-shadow: 0 0 0 2px var(--shirts-accent); }
+.sh-color-swatch:hover { transform: scale(1.18); }
+.sh-color-swatch.active { box-shadow: 0 0 0 2px var(--sh-accent); }
 
-/* Size buttons */
-.shirts-sizes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin: 7px 0;
-}
+/* Size buttons on card */
+.sh-psizes { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
 
-.shirts-size-btn {
-  min-width: 32px;
-  padding: 4px 6px;
-  font-family: var(--shirts-font-body);
-  font-size: 0.72rem;
+.sh-psz {
+  font-family: var(--sh-font-body);
+  font-size: 0.7rem;
   font-weight: 600;
+  padding: 4px 8px;
   border-radius: 2px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.13s;
+  min-width: 32px;
   text-align: center;
-  line-height: 1;
 }
 
-.shirts-size-btn.available {
-  background: var(--shirts-black);
-  color: var(--shirts-white);
-  border: 1px solid var(--shirts-black);
+.sh-psz.avail {
+  background: var(--sh-black);
+  color: var(--sh-white);
+  border: 1px solid var(--sh-black);
 }
 
-.shirts-size-btn.available:hover,
-.shirts-size-btn.available.selected {
-  background: var(--shirts-accent);
-  border-color: var(--shirts-accent);
-  color: var(--shirts-white);
+.sh-psz.avail:hover,
+.sh-psz.avail.picked {
+  background: var(--sh-accent);
+  border-color: var(--sh-accent);
+  color: var(--sh-white);
 }
 
-.shirts-size-btn.unavailable {
-  background: var(--shirts-white);
-  color: #cccccc;
-  border: 1px solid #e5e5e5;
+.sh-psz.na {
+  background: var(--sh-white);
+  color: #ccc;
+  border: 1px solid #e8e8e8;
   cursor: not-allowed;
   text-decoration: line-through;
 }
 
-/* Availability indicator */
-.shirts-availability {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  margin-top: 6px;
-}
+/* Availability dot row */
+.sh-pavrow { display: flex; align-items: center; gap: 5px; }
 
-.shirts-availability.available { color: var(--shirts-in-stock); }
-.shirts-availability.unavailable { color: var(--shirts-out-stock); }
-
-.shirts-availability-dot {
+.sh-pavdot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  display: inline-block;
   flex-shrink: 0;
 }
 
-.shirts-availability.available .shirts-availability-dot   { background: var(--shirts-in-stock); }
-.shirts-availability.unavailable .shirts-availability-dot { background: var(--shirts-out-stock); }
+.sh-pavtxt { font-size: 0.72rem; font-weight: 500; }
+
+/* =============================================
+   MODAL
+   ============================================= */
+
+.sh-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+
+.sh-modal-box {
+  background: var(--sh-white);
+  border-radius: 4px;
+  display: flex;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+}
+
+.sh-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--sh-white);
+  border: 1px solid var(--sh-border);
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sh-text);
+  z-index: 10;
+  transition: background 0.14s, color 0.14s;
+}
+
+.sh-modal-close:hover { background: var(--sh-black); color: var(--sh-white); border-color: var(--sh-black); }
+
+/* Image pane */
+.sh-modal-imgpane {
+  flex: 0 0 48%;
+  background: var(--sh-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.sh-modal-imgscroll {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sh-modal-imgscroll img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  transform-origin: center;
+}
+
+.sh-modal-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,0.9);
+  border-top: 1px solid var(--sh-border);
+}
+
+.sh-modal-zoom button {
+  background: none;
+  border: 1px solid var(--sh-border);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sh-text);
+  transition: all 0.13s;
+}
+
+.sh-modal-zoom button:hover:not(:disabled) { background: var(--sh-black); color: var(--sh-white); border-color: var(--sh-black); }
+.sh-modal-zoom button:disabled { opacity: 0.35; cursor: default; }
+
+.sh-modal-zoomlvl { font-size: 0.75rem; font-weight: 600; color: var(--sh-text); min-width: 40px; text-align: center; }
+
+/* Info pane */
+.sh-modal-info {
+  flex: 1;
+  padding: 28px 26px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sh-modal-badge {
+  display: inline-block;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+  width: fit-content;
+}
+
+.sh-modal-badge.in  { background: rgba(39,174,96,0.1);  color: var(--sh-in);  border: 1px solid rgba(39,174,96,0.25); }
+.sh-modal-badge.out { background: rgba(224,59,59,0.1);  color: var(--sh-out); border: 1px solid rgba(224,59,59,0.25); }
+
+.sh-modal-name {
+  font-family: var(--sh-font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--sh-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.sh-modal-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--sh-text);
+}
+
+.sh-modal-sizelbl {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sh-muted);
+  margin-bottom: 8px;
+}
+
+/* Color swatches in modal */
+.sh-modal-colors-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.sh-modal-swatch-wrap { position: relative; }
+
+.sh-modal-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.14s, box-shadow 0.14s;
+}
+
+.sh-modal-swatch:hover { transform: scale(1.15); }
+.sh-modal-swatch.active { box-shadow: 0 0 0 3px var(--sh-accent); }
+
+.sh-modal-swatch-del {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 14px;
+  height: 14px;
+  background: var(--sh-out);
+  color: var(--sh-white);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.sh-modal-addcolor-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--sh-border);
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sh-muted);
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s;
+}
+
+.sh-modal-addcolor-btn:hover { border-color: var(--sh-accent); color: var(--sh-accent); }
+
+/* Sizes in modal */
+.sh-modal-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.sh-modal-sz {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 2px;
+  min-width: 36px;
+  text-align: center;
+}
+
+.sh-modal-sz.avail { background: var(--sh-black); color: var(--sh-white); }
+.sh-modal-sz.na    { background: #f2f2f2; color: #bbb; text-decoration: line-through; }
+
+/* EMI in modal */
+.sh-modal-emi {
+  font-size: 0.72rem;
+  color: var(--sh-muted);
+  line-height: 1.8;
+  background: var(--sh-surface);
+  padding: 10px 12px;
+  border-radius: 3px;
+}
+
+/* Add to Cart */
+.sh-modal-atc {
+  background: var(--sh-black);
+  color: var(--sh-white);
+  border: none;
+  padding: 13px 0;
+  font-family: var(--sh-font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+}
+
+.sh-modal-atc:hover:not(:disabled) { background: var(--sh-accent); }
+.sh-modal-atc:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* =============================================
+   ADD COLOR PANEL
+   ============================================= */
+
+.sh-addcolor-panel {
+  background: #fafafa;
+  border: 1px solid var(--sh-border);
+  border-radius: 4px;
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.sh-addcolor-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sh-text);
+  margin-bottom: 10px;
+}
+
+.sh-addcolor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sh-color-picker {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--sh-border);
+  border-radius: 2px;
+  padding: 2px;
+  cursor: pointer;
+  background: none;
+}
+
+.sh-color-hex-input {
+  flex: 1;
+  border: 1px solid var(--sh-border);
+  border-radius: 2px;
+  padding: 6px 8px;
+  font-family: var(--sh-font-body);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.sh-color-hex-input:focus { border-color: var(--sh-accent); }
+
+.sh-color-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--sh-border);
+  flex-shrink: 0;
+}
+
+.sh-addcolor-btns { display: flex; gap: 8px; }
+
+.sh-addcolor-confirm {
+  flex: 1;
+  background: var(--sh-black);
+  color: var(--sh-white);
+  border: none;
+  padding: 7px 0;
+  border-radius: 2px;
+  font-family: var(--sh-font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.14s;
+}
+
+.sh-addcolor-confirm:hover { background: var(--sh-accent); }
+
+.sh-addcolor-cancel {
+  flex: 1;
+  background: var(--sh-white);
+  color: var(--sh-text);
+  border: 1px solid var(--sh-border);
+  padding: 7px 0;
+  border-radius: 2px;
+  font-family: var(--sh-font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.14s;
+}
+
+.sh-addcolor-cancel:hover { border-color: var(--sh-out); color: var(--sh-out); }
 
 /* =============================================
    RESPONSIVE
    ============================================= */
 
 @media (max-width: 1200px) {
-  .shirts-product-grid { grid-template-columns: repeat(3, 1fr); }
+  .sh-pgrid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 900px) {
-  .shirts-layout { flex-direction: column; }
-  .shirts-sidebar {
+  .sh-page-wrap { flex-direction: column; }
+  .sh-sidebar {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 20px;
     min-height: unset;
+    position: static;
+    width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--shirts-border);
+    border-bottom: 1px solid var(--sh-border);
   }
-  .shirts-filter-section { margin-bottom: 0; min-width: 140px; }
-  .shirts-product-grid { grid-template-columns: repeat(2, 1fr); }
+  .sh-sb-sec { margin-bottom: 0; min-width: 130px; }
+  .sh-pgrid { grid-template-columns: repeat(2, 1fr); }
+  .sh-modal-box { flex-direction: column; }
+  .sh-modal-imgpane { flex: none; height: 260px; }
 }
 
 @media (max-width: 600px) {
-  .shirts-product-grid { grid-template-columns: 1fr; }
-  .shirts-page-title { font-size: 1.7rem; }
-  .shirts-toolbar { flex-direction: column; align-items: flex-start; }
-  .shirts-toolbar-right { flex-wrap: wrap; }
-  .shirts-img-wrap { height: 220px; }
+  .sh-pgrid { grid-template-columns: 1fr; }
+  .sh-pg-title { font-size: 1.7rem; }
+  .sh-topbar { flex-direction: column; align-items: flex-start; }
+  .sh-tb-ctrl { flex-wrap: wrap; }
+  .sh-imgw { height: 230px; }
 }
