@@ -23,6 +23,7 @@ export default function Customers() {
                   <td><Badge label={c.status} cls={c.status==='Active'?'b-active':'b-inactive'}/></td>
                   <td><div className="act-grp"><button className="ab ab-view">👁 View</button><button className="ab ab-edit">✏️ Edit</button><button className="ab ab-del">🗑️</button></div></td>
                 </tr>
+      
               ))}
             </tbody>
           </table>
