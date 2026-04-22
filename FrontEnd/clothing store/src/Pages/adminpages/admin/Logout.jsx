@@ -6,4 +6,6 @@ export default function Logout() {
       <IcoLogout/><span className="lbl">Logout</span>
     </button>
   );
+  
 }
+
