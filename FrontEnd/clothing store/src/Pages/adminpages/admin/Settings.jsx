@@ -42,4 +42,5 @@ export default function Settings({ toast }) {
       </div>
     </div>
   );
+  
 }
