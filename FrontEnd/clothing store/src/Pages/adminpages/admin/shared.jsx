@@ -13,28 +13,28 @@ import { useState, useRef, useCallback } from 'react';
    STATIC DATA
 ═══════════════════════════════════════════════════════════ */
 export const INIT_PRODUCTS = [
-  { id:'PRD-001', e:'👕', name:'Classic White T-Shirt',  sku:'SKU-1001', cat:'Tops',        price:24.99, stock:120, status:'Active'   },
-  { id:'PRD-002', e:'👖', name:'Slim Fit Denim Jeans',   sku:'SKU-1002', cat:'Bottoms',     price:59.99, stock:85,  status:'Active'   },
-  { id:'PRD-003', e:'🧥', name:'Classic Denim Jacket',   sku:'SKU-1003', cat:'Outerwear',   price:99.00, stock:5,   status:'Active'   },
-  { id:'PRD-004', e:'👗', name:'Floral Summer Dress',    sku:'SKU-1004', cat:'Dresses',     price:79.50, stock:40,  status:'Active'   },
-  { id:'PRD-005', e:'👟', name:'White Canvas Sneakers',  sku:'SKU-1005', cat:'Footwear',    price:54.99, stock:0,   status:'Inactive' },
-  { id:'PRD-006', e:'🧶', name:'Knit Cardigan',          sku:'SKU-1006', cat:'Tops',        price:69.00, stock:7,   status:'Active'   },
-  { id:'PRD-007', e:'🩳', name:'Cargo Shorts',           sku:'SKU-1007', cat:'Bottoms',     price:34.99, stock:60,  status:'Active'   },
-  { id:'PRD-008', e:'🧣', name:'Wool Scarf',             sku:'SKU-1008', cat:'Accessories', price:22.00, stock:3,   status:'Active'   },
-  { id:'PRD-009', e:'👔', name:'Oxford Button-Up Shirt', sku:'SKU-1009', cat:'Tops',        price:49.99, stock:55,  status:'Active'   },
-  { id:'PRD-010', e:'🥿', name:'Leather Loafers',        sku:'SKU-1010', cat:'Footwear',    price:89.99, stock:0,   status:'Inactive' },
-  { id:'PRD-011', e:'🧤', name:'Leather Gloves',         sku:'SKU-1011', cat:'Accessories', price:18.50, stock:90,  status:'Active'   },
-  { id:'PRD-012', e:'👘', name:'Bohemian Maxi Dress',    sku:'SKU-1012', cat:'Dresses',     price:94.00, stock:22,  status:'Active'   },
+  { id:'PRD-001', e:'', name:'Classic White T-Shirt',  sku:'SKU-1001', cat:'Tops',        price:990.00, stock:120, status:'Active'   },
+  { id:'PRD-002', e:'', name:'Slim Fit Denim Jeans',   sku:'SKU-1002', cat:'Bottoms',     price:3000.00, stock:85,  status:'Active'   },
+  { id:'PRD-003', e:'', name:'Classic Denim Jacket',   sku:'SKU-1003', cat:'Outerwear',   price:2500.00, stock:5,   status:'Active'   },
+  { id:'PRD-004', e:'', name:'Floral Summer Dress',    sku:'SKU-1004', cat:'Dresses',     price:4000.00, stock:40,  status:'Active'   },
+  { id:'PRD-005', e:'', name:'White Canvas Sneakers',  sku:'SKU-1005', cat:'Footwear',    price:1100.00, stock:0,   status:'Inactive' },
+  { id:'PRD-006', e:'', name:'Knit Cardigan',          sku:'SKU-1006', cat:'Tops',        price:1300.00, stock:7,   status:'Active'   },
+  { id:'PRD-007', e:'', name:'Cargo Shorts',           sku:'SKU-1007', cat:'Bottoms',     price:950.00, stock:60,  status:'Active'   },
+  { id:'PRD-008', e:'', name:'Wool Scarf',             sku:'SKU-1008', cat:'Accessories', price:1500.00, stock:3,   status:'Active'   },
+  { id:'PRD-009', e:'', name:'Oxford Button-Up Shirt', sku:'SKU-1009', cat:'Tops',        price:1590.00, stock:55,  status:'Active'   },
+  { id:'PRD-010', e:'', name:'Leather Loafers',        sku:'SKU-1010', cat:'Footwear',    price:800.00, stock:0,   status:'Inactive' },
+  { id:'PRD-011', e:'', name:'Leather Gloves',         sku:'SKU-1011', cat:'Accessories', price:1500.00, stock:90,  status:'Active'   },
+  { id:'PRD-012', e:'', name:'Bohemian Maxi Dress',    sku:'SKU-1012', cat:'Dresses',     price:3400.00, stock:22,  status:'Active'   },
 ];
 
 export const INIT_CATEGORIES = [
-  { name:'👕 Tops',        desc:'T-shirts, blouses, shirts',       count:48, status:'Active'   },
-  { name:'👖 Bottoms',     desc:'Jeans, trousers, shorts, skirts', count:36, status:'Active'   },
-  { name:'🧥 Outerwear',   desc:'Jackets, coats, blazers',         count:24, status:'Active'   },
-  { name:'👗 Dresses',     desc:'Casual, formal & party dresses',  count:31, status:'Active'   },
-  { name:'👟 Footwear',    desc:'Sneakers, heels, boots, sandals', count:19, status:'Active'   },
-  { name:'🎀 Accessories', desc:'Bags, scarves, hats, belts',      count:52, status:'Active'   },
-  { name:'🩱 Swimwear',    desc:'Swimsuits, bikinis, cover-ups',   count:14, status:'Inactive' },
+  { name:' Tops',        desc:'T-shirts, blouses, shirts',       count:48, status:'Active'   },
+  { name:' Bottoms',     desc:'Jeans, trousers, shorts, skirts', count:36, status:'Active'   },
+  { name:' Outerwear',   desc:'Jackets, coats, blazers',         count:24, status:'Active'   },
+  { name:' Dresses',     desc:'Casual, formal & party dresses',  count:31, status:'Active'   },
+  { name:' Footwear',    desc:'Sneakers, heels, boots, sandals', count:19, status:'Active'   },
+  { name:' Accessories', desc:'Bags, scarves, hats, belts',      count:52, status:'Active'   },
+  { name:' Swimwear',    desc:'Swimsuits, bikinis, cover-ups',   count:14, status:'Inactive' },
 ];
 
 export const ORDERS_DATA = [
@@ -61,13 +61,13 @@ export const CUSTOMERS_DATA = [
 ];
 
 export const TRANSACTIONS = [
-  { id:'PAY-9001', ini:'SL', cust:'Sophie Laurent', order:'#ORD-7821', amount:'$89.99',  method:'💳 Credit Card',     status:'Paid',    date:'10 Mar 2026' },
-  { id:'PAY-9002', ini:'MC', cust:'Marcus Chen',    order:'#ORD-7820', amount:'$64.50',  method:'🅿️ PayPal',           status:'Pending', date:'10 Mar 2026' },
-  { id:'PAY-9003', ini:'AP', cust:'Aisha Patel',    order:'#ORD-7819', amount:'$129.00', method:'💳 Credit Card',     status:'Paid',    date:'9 Mar 2026'  },
-  { id:'PAY-9004', ini:'TE', cust:'Tom Eriksen',    order:'#ORD-7818', amount:'$45.00',  method:'💵 Cash on Delivery', status:'Pending', date:'9 Mar 2026'  },
-  { id:'PAY-9005', ini:'ZW', cust:'Zara Williams',  order:'#ORD-7817', amount:'$78.00',  method:'💳 Credit Card',     status:'Paid',    date:'8 Mar 2026'  },
-  { id:'PAY-9006', ini:'LO', cust:'Liam Ortega',    order:'#ORD-7816', amount:'$52.00',  method:'🅿️ PayPal',           status:'Failed',  date:'8 Mar 2026'  },
-  { id:'PAY-9007', ini:'NR', cust:'Nina Russo',     order:'#ORD-7815', amount:'$199.00', method:'💳 Credit Card',     status:'Paid',    date:'7 Mar 2026'  },
+  { id:'PAY-9001', ini:'SL', cust:'Sophie Laurent', order:'#ORD-7821', amount:'$89.99',  method:'💳 COD',     status:'Paid',    date:'10 Mar 2026' },
+  { id:'PAY-9002', ini:'MC', cust:'Marcus Chen',    order:'#ORD-7820', amount:'$64.50',  method:'🅿️ COD',     status:'Pending', date:'10 Mar 2026' },
+  { id:'PAY-9003', ini:'AP', cust:'Aisha Patel',    order:'#ORD-7819', amount:'$129.00', method:'💳 COD',     status:'Paid',    date:'9 Mar 2026'  },
+  { id:'PAY-9004', ini:'TE', cust:'Tom Eriksen',    order:'#ORD-7818', amount:'$45.00',  method:'💵 COD',     status:'Pending', date:'9 Mar 2026'  },
+  { id:'PAY-9005', ini:'ZW', cust:'Zara Williams',  order:'#ORD-7817', amount:'$78.00',  method:'💳 COD',     status:'Paid',    date:'8 Mar 2026'  },
+  { id:'PAY-9006', ini:'LO', cust:'Liam Ortega',    order:'#ORD-7816', amount:'$52.00',  method:'🅿️ COD',     status:'Failed',  date:'8 Mar 2026'  },
+  { id:'PAY-9007', ini:'NR', cust:'Nina Russo',     order:'#ORD-7815', amount:'$199.00', method:'💳 COD',     status:'Paid',    date:'7 Mar 2026'  },
 ];
 
 export const COURIERS = [
@@ -93,7 +93,7 @@ export const INVENTORY = [
 export const O_BADGE  = { Delivered:'b-delivered', Processing:'b-processing', Shipped:'b-shipped', Pending:'b-pending', Cancelled:'b-cancelled' };
 export const P_BADGE  = { Paid:'b-paid', Pending:'b-pending', Failed:'b-failed' };
 export const CAT_CLS  = { Tops:'cp-tops', Bottoms:'cp-bottoms', Outerwear:'cp-outerwear', Dresses:'cp-dresses', Footwear:'cp-footwear', Accessories:'cp-accessories' };
-export const CAT_E    = { Tops:'👕', Bottoms:'👖', Outerwear:'🧥', Dresses:'👗', Footwear:'👟', Accessories:'🎀' };
+export const CAT_E    = { Tops:'', Bottoms:'', Outerwear:'🧥', Dresses:'', Footwear:'👟', Accessories:'' };
 export const PER_PAGE = 10;
 
 /* ═══════════════════════════════════════════════════════════
