@@ -8,7 +8,7 @@ export default function Payments() {
       <div className="ph"><div><h1 className="ph-title">Payments</h1><p className="ph-sub">Transaction records &amp; courier payment management.</p></div></div>
       <MiniStats items={[['💰','$284,920','Total Revenue'],['✅','$271,440','Paid'],['⏳','$9,480','Pending'],['❌','$4,000','Failed']]}/>
 
-      <div className="card" style={{overflow:'hidden',marginBottom:16}}>
+      <div className="admin_card" style={{overflow:'hidden',marginBottom:16}}>
         <div className="card-hdr-pad"><div className="c-title">Payment Transactions</div></div>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:1000}}>
@@ -30,7 +30,7 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="card" style={{overflow:'hidden'}}>
+      <div className="admin_card" style={{overflow:'hidden'}}>
         <div className="card-hdr-pad"><div className="c-title">Courier Service Payments</div><div className="c-sub" style={{marginTop:4}}>Delivery partner settlements</div></div>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:860}}>
