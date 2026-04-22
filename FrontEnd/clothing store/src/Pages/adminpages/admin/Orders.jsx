@@ -18,7 +18,7 @@ export default function Orders() {
       <div className="toolbar">
         <div className="tb-search"><IcoSearch w={13}/><input className="tb-inp" placeholder="Search orders, customers…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
       </div>
-      <div className="card" style={{overflow:'hidden'}}>
+      <div className="admin_card" style={{overflow:'hidden'}}>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:1020}}>
             <thead><tr><th>Order ID</th><th>Customer</th><th>Product(s)</th><th>Order Status</th><th>Payment</th><th>Total</th><th>Actions</th></tr></thead>
