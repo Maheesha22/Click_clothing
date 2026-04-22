@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from "./Pages/home";
-import Cart from "./Pages/cart";
-import CheckoutPage from "./Pages/checkout";
+//import Cart from "./Pages/cart";
+//import CheckoutPage from "./Pages/checkout";
 import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
-import Dashboard from "./Pages/admin_dashboard1";
+import Dashboard from "./Pages/Admindashboard";
 import Trousers from './Pages/Trousers';
 import Sarong from "./Pages/sarong"; /*edit by G*/
 import Shirts from './Pages/Shirts';
@@ -62,7 +62,7 @@ function App() {
           <Route path="/cart"     element={<Cart />} />
           <Route path="/checkout" element={<CheckoutPage />} />
         </Routes>
-      }
+    }
     </BrowserRouter>
   );
 }
