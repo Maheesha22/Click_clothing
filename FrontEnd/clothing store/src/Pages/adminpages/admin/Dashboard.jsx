@@ -65,7 +65,7 @@ export default function Dashboard({ goOrders }) {
 
       {/* Chart + Low stock */}
       <div className="mid-grid">
-        <div className="card chart-card">
+        <div className="chart-card">
           <div className="c-hdr">
             <div><div className="c-title">Sales Analytics</div><div className="c-sub">Revenue &amp; order trends</div></div>
             <div className="tog-grp">
@@ -76,17 +76,17 @@ export default function Dashboard({ goOrders }) {
           <ChartSalesBar />
         </div>
 
-        <div className="card ls-card">
+        <div className="ls-card">
           <div className="ls-hd">
             <div className="ls-ic">⚠️</div>
             <div><div className="c-title">Low Stock Alerts</div><div className="c-sub">4 items need attention</div></div>
           </div>
           <div className="ls-list">
             {[
-              { e:'👕', nm:'Striped Polo Shirt', sku:'SKU-4421', cnt:'3 left', cls:'c-r' },
-              { e:'🧥', nm:'Denim Jacket (M)',   sku:'SKU-3312', cnt:'5 left', cls:'c-o' },
-              { e:'👟', nm:'White Sneakers',      sku:'SKU-5501', cnt:'7 left', cls:'c-o' },
-              { e:'🧶', nm:'Knit Cardigan (S)',   sku:'SKU-2287', cnt:'4 left', cls:'c-r' },
+              { e:'', nm:'Striped Polo Shirt', sku:'SKU-4421', cnt:'3 left', cls:'c-r' },
+              { e:'', nm:'Denim Jacket (M)',   sku:'SKU-3312', cnt:'5 left', cls:'c-o' },
+              { e:'', nm:'White Sneakers',      sku:'SKU-5501', cnt:'7 left', cls:'c-o' },
+              { e:'', nm:'Knit Cardigan (S)',   sku:'SKU-2287', cnt:'4 left', cls:'c-r' },
             ].map(item => (
               <div key={item.sku} className="ls-row">
                 <div className="ls-l">
@@ -104,7 +104,7 @@ export default function Dashboard({ goOrders }) {
       </div>
 
       {/* Recent Orders table */}
-      <div className="card" style={{ padding:'20px 22px' }}>
+      <div className="admin_card" style={{ padding:'20px 22px' }}>
         <div className="c-hdr">
           <div><div className="c-title">Recent Orders</div><div className="c-sub">Latest 6 transactions</div></div>
           <button className="btn-secondary" style={{ fontSize:12, padding:'7px 14px' }} onClick={goOrders}>View All</button>
