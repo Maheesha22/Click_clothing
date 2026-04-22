@@ -6,7 +6,7 @@ export default function Inventory({ toast }) {
     <div className="view">
       <div className="ph"><div><h1 className="ph-title">Inventory</h1><p className="ph-sub">Monitor and manage stock levels.</p></div></div>
       <MiniStats items={[['📦','1,284','Total SKUs'],['✅','1,109','In Stock'],['⚠️','131','Low Stock'],['🚫','44','Out of Stock']]}/>
-      <div className="card" style={{overflow:'hidden'}}>
+      <div className="admin_card" style={{overflow:'hidden'}}>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:880}}>
             <thead><tr><th>Product Name</th><th>SKU</th><th>Category</th><th>Stock</th><th>Reorder Level</th><th>Status</th><th>Actions</th></tr></thead>
