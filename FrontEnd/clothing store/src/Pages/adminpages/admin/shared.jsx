@@ -61,21 +61,21 @@ export const CUSTOMERS_DATA = [
 ];
 
 export const TRANSACTIONS = [
-  { id:'PAY-9001', ini:'SL', cust:'Sophie Laurent', order:'#ORD-7821', amount:'$89.99',  method:'💳 COD',     status:'Paid',    date:'10 Mar 2026' },
-  { id:'PAY-9002', ini:'MC', cust:'Marcus Chen',    order:'#ORD-7820', amount:'$64.50',  method:'💳 COD',     status:'Pending', date:'10 Mar 2026' },
-  { id:'PAY-9003', ini:'AP', cust:'Aisha Patel',    order:'#ORD-7819', amount:'$129.00', method:'💳 COD',     status:'Paid',    date:'9 Mar 2026'  },
-  { id:'PAY-9004', ini:'TE', cust:'Tom Eriksen',    order:'#ORD-7818', amount:'$45.00',  method:'💳 COD',     status:'Pending', date:'9 Mar 2026'  },
-  { id:'PAY-9005', ini:'ZW', cust:'Zara Williams',  order:'#ORD-7817', amount:'$78.00',  method:'💳 COD',     status:'Paid',    date:'8 Mar 2026'  },
-  { id:'PAY-9006', ini:'LO', cust:'Liam Ortega',    order:'#ORD-7816', amount:'$52.00',  method:'💳 COD',     status:'Failed',  date:'8 Mar 2026'  },
-  { id:'PAY-9007', ini:'NR', cust:'Nina Russo',     order:'#ORD-7815', amount:'$199.00', method:'💳 COD',     status:'Paid',    date:'7 Mar 2026'  },
+  { id:'PAY-9001', ini:'SL', cust:'Sophie Laurent', order:'#ORD-7821', amount:'$89.99',  method:' COD',     status:'Paid',    date:'10 Mar 2026' },
+  { id:'PAY-9002', ini:'MC', cust:'Marcus Chen',    order:'#ORD-7820', amount:'$64.50',  method:' COD',     status:'Pending', date:'10 Mar 2026' },
+  { id:'PAY-9003', ini:'AP', cust:'Aisha Patel',    order:'#ORD-7819', amount:'$129.00', method:' COD',     status:'Paid',    date:'9 Mar 2026'  },
+  { id:'PAY-9004', ini:'TE', cust:'Tom Eriksen',    order:'#ORD-7818', amount:'$45.00',  method:' COD',     status:'Pending', date:'9 Mar 2026'  },
+  { id:'PAY-9005', ini:'ZW', cust:'Zara Williams',  order:'#ORD-7817', amount:'$78.00',  method:' COD',     status:'Paid',    date:'8 Mar 2026'  },
+  { id:'PAY-9006', ini:'LO', cust:'Liam Ortega',    order:'#ORD-7816', amount:'$52.00',  method:' COD',     status:'Failed',  date:'8 Mar 2026'  },
+  { id:'PAY-9007', ini:'NR', cust:'Nina Russo',     order:'#ORD-7815', amount:'$199.00', method:' COD',     status:'Paid',    date:'7 Mar 2026'  },
 ];
 
 export const COURIERS = [
-  { name:'🚚 DHL Express',  handled:142, period:'Feb 2026', amount:'$4,260', status:'Paid'       },
-  { name:'📦 FedEx',        handled:98,  period:'Feb 2026', amount:'$2,940', status:'Pending'    },
-  { name:'🏃 UPS',          handled:76,  period:'Feb 2026', amount:'$2,280', status:'Paid'       },
-  { name:'⚡ Local Courier', handled:210, period:'Mar 2026', amount:'$3,150', status:'Pending'    },
-  { name:'✈️ Aramex',       handled:55,  period:'Mar 2026', amount:'$1,650', status:'Processing' },
+  { name:'Kubiyo Courier',  handled:142, period:'Feb 2026', amount:'4,260', status:'Paid'       },
+  { name:'Kubiyo Courier',        handled:98,  period:'Feb 2026', amount:'2,940', status:'Pending'    },
+  { name:'Kubiyo Courier',          handled:76,  period:'Feb 2026', amount:'2,280', status:'Paid'       },
+  { name:'Kubiyo Courier', handled:210, period:'Mar 2026', amount:'3,150', status:'Pending'    },
+  { name:'Kubiyo Courier',       handled:55,  period:'Mar 2026', amount:'1,650', status:'Processing' },
 ];
 
 export const INVENTORY = [
