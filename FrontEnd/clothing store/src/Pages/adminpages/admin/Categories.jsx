@@ -33,7 +33,7 @@ export default function Categories({ toast }) {
         <div><h1 className="ph-title">Categories</h1><p className="ph-sub">Organise your product catalogue.</p></div>
         <button className="btn-primary" onClick={openAdd}><IcoPlus/> Add Category</button>
       </div>
-      <div className="card" style={{overflow:'hidden'}}>
+      <div className="admin_card" style={{overflow:'hidden'}}>
         <div className="tbl-wrap">
           <table className="tbl">
             <thead><tr><th>Category</th><th>Description</th><th>Products</th><th>Status</th><th>Actions</th></tr></thead>
@@ -76,5 +76,4 @@ export default function Categories({ toast }) {
       </Modal>
     </div>
   );
-  
 }
