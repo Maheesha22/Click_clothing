@@ -12,7 +12,6 @@
  *   3. Add DM Sans to public/index.html <head>:
  *        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"/>
  */
-
 import { useState } from 'react';
 import './AdminDashboard.css';
 
