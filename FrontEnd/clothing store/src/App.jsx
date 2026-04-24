@@ -4,10 +4,13 @@ import HomePage from "./Pages/home";
 //import Cart from "./Pages/cart";
 //import CheckoutPage from "./Pages/checkout";
 import LoginPage from "./Pages/login";
-//import RegisterPage from "./Pages/register";
-//import ForgotPage from "./Pages/forgot";
+import RegisterPage from "./Pages/register";
+import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/Admindashboard";
-
+import Trousers from './Pages/Trousers';
+import Sarong from "./Pages/sarong"; /*edit by G*/
+import Shirts from './Pages/Shirts';
+ 
 function App() {
   const [page, setPage] = useState("home");
   const [recoveryMsg, setRecoveryMsg] = useState("");
@@ -49,6 +52,10 @@ function App() {
       {page === "register"  && <RegisterPage onNavigate={navigate} />}
       {page === "forgot"    && <ForgotPage onNavigate={navigate} onSuccess={handleForgotSuccess} />}
       {page === "login"     && <LoginPage onLogin={() => navigate("dashboard")} onNavigate={navigate} recoveryMsg={recoveryMsg} />}
+      {page === "trousers" && <Trousers />} 
+      {page === "shirts" && <Shirts />} 
+      {page === "sarong" && <Sarong />} 
+      {/*edit by G*/}
       {page === "home"      &&
         <Routes>
           <Route path="/"         element={<HomePage />} />
