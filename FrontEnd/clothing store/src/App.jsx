@@ -9,6 +9,7 @@ import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/Admindashboard";
+import UserPage from "./Pages/user";           // ADD THIS
 import Trousers from './Pages/Trousers';
 import Sarong from "./Pages/sarong";
 import Shirts from "./Pages/shirts";
@@ -34,6 +35,9 @@ function App() {
 
         {/* 🧑‍💼 DASHBOARD */}
         <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* 👤 USER PAGE */}
+        <Route path="/user" element={<UserPage />} />     {/* ADD THIS */}
 
         {/* 👕 PRODUCT PAGES */}
         <Route path="/trousers" element={<Trousers />} />
