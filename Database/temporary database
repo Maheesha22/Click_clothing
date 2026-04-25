@@ -1,6 +1,5 @@
  CREATE DATABASE Clothing_store;
-
-  use Clothing_store;
+   use Clothing_store;   
 
    CREATE TABLE Admin
     (AdminID VARCHAR (30)PRIMARY KEY,
@@ -26,7 +25,6 @@
      PRIMARY KEY ( UserId,Address)
 );
    
-
 CREATE TABLE orders(
     orderId VARCHAR(30) NOT NULL,
     UserId VARCHAR(30) NOT NULL,
@@ -91,6 +89,7 @@ CREATE TABLE Cart (
     Size VARCHAR(50),
     Quantity INT
 );
+.
 
 
 

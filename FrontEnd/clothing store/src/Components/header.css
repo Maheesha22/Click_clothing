@@ -20,6 +20,7 @@
   border: none;
   border-bottom: 1px solid #e8e4df;
   border-radius: 0;
+  position: relative; 
 }
 
 /* Logo */
@@ -56,6 +57,9 @@
   display: flex;
   gap: 36px;
   align-items: center;
+  position: absolute;       
+  left: 50%;               
+  transform: translateX(-50%);
 }
 
 .nav-link {
