@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const MEN_MENU = [
   { label: "Sarong",      page: "sarong"   },
   { label: "Trousers",    page: "trousers" },
-  { label: "Shirts",      page: "shirts"   },   // ← navigates to /shirts
+  { label: "Shirts",      page: "shirts"   },
   { label: "T-Shirts",    page: "tshirts"  },
   { label: "Shorts",      page: "shorts"   },
   { label: "Accessories", sub: ["Caps", "Perfume", "Deodorant"] },
@@ -24,11 +24,6 @@ const NAV_TABS = [
   { label: "Recently Viewed" },
   { label: "Search History" },
 ];
-
-// ── Fires the window event that App.jsx listens to ─────────────
-function navigateTo(page) {
-  window.dispatchEvent(new CustomEvent("navigate", { detail: page }));
-}
 
 // ── Slideshow Data ──────────────────────────────────────────────
 const SLIDES = [
@@ -169,7 +164,7 @@ function ProductRow({ items }) {
 }
 
 // ── Left Sidebar ────────────────────────────────────────────────
-function HomeSidebar() {
+function HomeSidebar({ navigate }) {
   const [menOpen, setMenOpen] = useState(false);
 
   return (
@@ -200,7 +195,7 @@ function HomeSidebar() {
                 item.page ? "home-sidebar-sub-nav" : "",
                 item.sub  ? "home-sidebar-sub-has-acc" : "",
               ].join(" ").trim()}
-              onClick={() => item.page && navigateTo(item.page)}
+              onClick={() => item.page && navigate(`/${item.page}`)}
             >
               <span>{item.label}</span>
               {(item.page || item.sub) && (
@@ -225,7 +220,7 @@ function HomeSidebar() {
 }
 
 // ── Tab Bar — used in Home page top nav ─────────────────────────
-function HomeTabBar({ activeTab, setActiveTab }) {
+function HomeTabBar({ activeTab, setActiveTab, navigate }) {
   return (
     <div className="home-tab-bar">
       {NAV_TABS.map((tab) => (
@@ -243,7 +238,7 @@ function HomeTabBar({ activeTab, setActiveTab }) {
                 <div
                   className={`home-dropdown-item${item.page ? " home-dropdown-nav" : ""}`}
                   key={item.label}
-                  onClick={() => item.page && navigateTo(item.page)}
+                  onClick={() => item.page && navigate(`/${item.page}`)}
                 >
                   {item.label}
                   {item.sub && <span className="home-dropdown-arrow">▶</span>}
@@ -274,10 +269,10 @@ export default function Home() {
       <Header />
 
       <main className="home-main">
-        <HomeTabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <HomeTabBar activeTab={activeTab} setActiveTab={setActiveTab} navigate={navigate} />
 
         <div className="home-content-area">
-          <HomeSidebar />
+          <HomeSidebar navigate={navigate} />
 
           <div className="home-right">
             <div className="home-slideshow-area">
@@ -310,7 +305,7 @@ export default function Home() {
         <p className="home-shop-category-label">Shopping By Category</p>
 
         <div className="home-cat-top-row">
-          <div className="home-cat-card home-cat-mens" onClick={() => navigateTo("sarong")}>
+          <div className="home-cat-card home-cat-mens" onClick={() => navigate("/sarong")}>
             <img src="/mens.jpg" alt="Mens" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">
