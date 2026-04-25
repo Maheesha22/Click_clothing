@@ -4,6 +4,7 @@ import "./register.css";
 import logo from "../assets/Logo.jpg";
 import Header from "../Components/header";
 import Footer from "../Components/footer";
+import API from "../services/api";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -13,8 +14,9 @@ export default function RegisterPage() {
   const [password, setPassword]   = useState("");
   const [confirm, setConfirm]     = useState("");
   const [error, setError]         = useState("");
+  const [loading, setLoading]     = useState(false);
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !password || !confirm) {
       setError("Please fill in all fields.");
@@ -24,8 +26,29 @@ export default function RegisterPage() {
       setError("Passwords do not match.");
       return;
     }
+    
     setError("");
-    navigate("/login");
+    setLoading(true);
+
+    // API call to backend - NOW SENDING firstName AND lastName
+    try {
+      const response = await API.post('/users/register', {
+        firstName: firstName,   // CHANGED: send firstName
+        lastName: lastName,     // CHANGED: send lastName
+        email: email,
+        password: password
+      });
+      
+      console.log("Registration success:", response.data);
+      alert("Registration successful! Please login.");
+      navigate("/login");
+      
+    } catch (err) {
+      console.error("Registration error:", err.response?.data);
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,7 +98,9 @@ export default function RegisterPage() {
 
           {error && <p className="register-error">{error}</p>}
 
-          <button className="register-btn" onClick={handleSignUp}>CREATE ACCOUNT</button>
+          <button className="register-btn" onClick={handleSignUp} disabled={loading}>
+            {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+          </button>
 
           <p className="register-signin-text">
             Already have an account ?{" "}
