@@ -5,6 +5,7 @@ import "./login.css";
 import logo from "../assets/Logo.jpg";
 import Header from "../Components/header";
 import Footer from "../Components/footer";
+import API from "../services/api";
 
 const GOOGLE_CLIENT_ID = "991033244443-aie1ulhbfsskjq7bdlonnnf8kfhg01hb.apps.googleusercontent.com";
 
@@ -16,21 +17,79 @@ export default function LoginPage() {
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
 
-  const handleLogin = (e) => {
+  // Regular login with email/password
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email === "admin1" && password === "1234") {
-      setError("");
-      navigate("/dashboard");
-    } else {
-      setError("Invalid username or password. Please try again.");
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await API.post('/users/login', {
+        email: email,
+        password: password
+      });
+
+      console.log("Login success:", response.data);
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Redirect based on isAdmin
+      if (response.data.user.isAdmin) {
+        navigate("/dashboard");
+      } else {
+        navigate("/user");
+      }
+      
+    } catch (err) {
+      console.error("Login error:", err.response?.data);
+      setError(err.response?.data?.message || "Invalid email or password. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleGoogleSuccess = (credentialResponse) => {
-    // Google login succeeded — navigate to dashboard
+  // Google Login
+  const handleGoogleSuccess = async (credentialResponse) => {
     console.log("Google login success:", credentialResponse);
-    navigate("/dashboard");
+    setLoading(true);
+    setError("");
+
+    try {
+      // Decode the Google credential to get user info
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + credentialResponse.credential);
+      const userInfo = await response.json();
+      
+      console.log("Google user info:", userInfo);
+      
+      // Send to your backend
+      const backendResponse = await API.post('/users/google-login', {
+        email: userInfo.email,
+        firstName: userInfo.given_name || "",
+        lastName: userInfo.family_name || "",
+        googleId: userInfo.sub
+      });
+      
+      console.log("Backend response:", backendResponse.data);
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(backendResponse.data.user));
+      
+      // Redirect based on isAdmin
+      if (backendResponse.data.user.isAdmin) {
+        navigate("/dashboard");
+      } else {
+        navigate("/user");
+      }
+      
+    } catch (err) {
+      console.error("Google login error:", err);
+      setError("Google sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleError = () => {
@@ -45,14 +104,14 @@ export default function LoginPage() {
           <img src={logo} alt="Logo" />
         </div>
 
-        <div className="card">
+        <div className="login-card">
           <h1 className="title">Welcome Back</h1>
 
           {recoveryMsg && <p className="recovery-msg">{recoveryMsg}</p>}
 
           <div className="input-group">
-            <label className="input-label">USERNAME*</label>
-            <input className="input-field" type="text" placeholder="Enter your username"
+            <label className="input-label">EMAIL*</label>
+            <input className="input-field" type="email" placeholder="Enter your email"
               value={email} onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleLogin(e)} />
           </div>
@@ -66,7 +125,9 @@ export default function LoginPage() {
 
           {error && <p className="login-error">{error}</p>}
 
-          <button className="login-btn" onClick={handleLogin}>Login</button>
+          <button className="login-btn" onClick={handleLogin} disabled={loading}>
+            {loading ? "LOGGING IN..." : "LOGIN"}
+          </button>
 
           {/* Divider */}
           <div className="divider">
