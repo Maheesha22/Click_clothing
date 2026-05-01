@@ -9,10 +9,11 @@ import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/Admindashboard";
-import UserPage from "./Pages/user";           // ADD THIS
+import UserPage from "./Pages/user";           
 import Trousers from './Pages/Trousers';
 import Sarong from "./Pages/sarong";
 import Shirts from "./Pages/shirts";
+import FeedbackForm from "./Pages/FeedbackForm";
 
 function App() {
   const handleForgotSuccess = () => {
@@ -22,24 +23,23 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🌐 MAIN PAGES */}
+        {/*MAIN PAGES */}
         <Route path="/" element={<HomePage />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/Contactus" element={<ContactUs />} />
+        <Route path="/feedback" element={<FeedbackForm />} /> 
 
-        {/* 🔐 AUTH PAGES */}
+        {/*Login pages */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
 
-        {/* 🧑‍💼 DASHBOARD */}
+        {/*Admin & User */}
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/user" element={<UserPage />} />
 
-        {/* 👤 USER PAGE */}
-        <Route path="/user" element={<UserPage />} />     {/* ADD THIS */}
-
-        {/* 👕 PRODUCT PAGES */}
+        {/*PRODUCT PAGES */}
         <Route path="/trousers" element={<Trousers />} />
         <Route path="/sarong" element={<Sarong />} />
         <Route path="/shirts" element={<Shirts />} />
