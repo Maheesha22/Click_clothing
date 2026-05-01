@@ -30,18 +30,30 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
-    // API call to backend - NOW SENDING firstName AND lastName
     try {
-      const response = await API.post('/users/register', {
-        firstName: firstName,   // CHANGED: send firstName
-        lastName: lastName,     // CHANGED: send lastName
+      const registerResponse = await API.post('/users/register', {
+        firstName: firstName,
+        lastName: lastName,
         email: email,
         password: password
       });
       
-      console.log("Registration success:", response.data);
-      alert("Registration successful! Please login.");
-      navigate("/login");
+      console.log("Registration success:", registerResponse.data);
+      
+      const loginResponse = await API.post('/users/login', {
+        email: email,
+        password: password
+      });
+      
+      console.log("Auto-login success:", loginResponse.data);
+      
+      localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
+      
+      if (loginResponse.data.user.isAdmin) {
+        navigate("/dashboard");
+      } else {
+        navigate("/user");
+      }
       
     } catch (err) {
       console.error("Registration error:", err.response?.data);
