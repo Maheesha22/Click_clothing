@@ -69,7 +69,11 @@ export default function Footer() {
               Feedback
               </Link>
             </li>
-            <li>FAQs</li>
+            <li>
+              <Link to="/faq" style={{ textDecoration: 'none', color: 'inherit' }}>
+              FAQs
+              </Link>
+            </li>
           </ul>
         </div>
 
