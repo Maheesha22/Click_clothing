@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Trousers.css";
 import { useNavigate } from "react-router-dom";
-import { cartAPI } from "../services/api";
+import cartService from "../services/cartService";
 
 // ── Product Data ────────────────────────────────────────────────
 const ALL_PRODUCTS = [
@@ -552,12 +552,11 @@ function ReviewsSection({ productId, productName }) {
   );
 }
 
-// ── Add to Cart Helper Function with API (UPDATED to read from sessionStorage) ──
+// ── Add to Cart Helper Function with Service ─────────────────────────────────────────
 function useCart() {
   const navigate = useNavigate();
   
   const addToCartAndRedirect = async (product, selectedColor, selectedSize, price) => {
-    // ✅ Get user from sessionStorage (where your login stores it)
     const userData = sessionStorage.getItem('user');
     let userId = null;
     
@@ -569,12 +568,6 @@ function useCart() {
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
-    }
-    
-    // ✅ Fallback to localStorage if not found in sessionStorage
-    if (!userId) {
-      userId = localStorage.getItem('userId');
-      console.log('Found userId in localStorage:', userId);
     }
     
     if (!userId) {
@@ -630,13 +623,13 @@ function useCart() {
         addButton.disabled = true;
       }
 
-      const response = await cartAPI.addToCart(cartData);
+      const response = await cartService.addToCart(cartData);
       
-      if (response.data.success) {
-        const cartResponse = await cartAPI.getCart(userId);
+      if (response.success) {
+        const cartResponse = await cartService.getCart(userId);
         
-        if (cartResponse.data.success) {
-          const formattedCart = cartResponse.data.cartItems.map(item => ({
+        if (cartResponse.success) {
+          const formattedCart = cartResponse.cartItems.map(item => ({
             id: item.id,
             name: item.name,
             size: item.size ? parseInt(item.size) : 32,
@@ -654,11 +647,11 @@ function useCart() {
         
         navigate('/cart');
       } else {
-        alert(response.data.message || 'Failed to add item to cart');
+        alert(response.message || 'Failed to add item to cart');
       }
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Failed to add item to cart. Please try again.');
+      alert(error.message || 'Failed to add item to cart. Please try again.');
     } finally {
       const addButton = document.querySelector('.tr-modal-atc');
       if (addButton) {
