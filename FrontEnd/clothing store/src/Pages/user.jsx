@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from "../Components/header";
 import Footer from "../Components/footer";
 import './User.css';
+import Wishlist from './userpages/Wishlist';
+import OrderHistory from './userpages/OrderHistory';
+import Cart from './userpages/Cart';
+import Settings from './userpages/Settings';
 
 const User = () => {
   const navigate = useNavigate();
-  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+  const [user] = useState(JSON.parse(sessionStorage.getItem('user') || '{}'));
+
+  useEffect(() => {
+    if (!user.email) {
+      navigate('/login');
+    }
+  }, []);
   const [activeSection, setActiveSection] = useState('wishlist');
   const [cartItems, setCartItems] = useState([
     { id: 1, name: 'Premium Headphones', price: 199.99, quantity: 1, emoji: '🎧' },
@@ -28,7 +38,7 @@ const User = () => {
   ]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     navigate('/login');
   };
 
@@ -98,111 +108,6 @@ const User = () => {
     </svg>
   );
 
-  const renderWishlist = () => (
-    <div className="wishlist-section">
-      <h2 className="section-title">My Wishlist</h2>
-      <div className="wishlist-grid">
-        {wishlistItems.map(item => (
-          <div key={item.id} className="wishlist-item">
-            <div className="item-emoji">{item.emoji}</div>
-            <h3 className="item-name">{item.name}</h3>
-            <p className="item-price">${item.price.toFixed(2)}</p>
-            <div className="item-actions">
-              <button className="add-to-cart-btn">Add to Cart</button>
-              <button className="remove-btn">Remove</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderOrderHistory = () => (
-    <div className="orders-section">
-      <h2 className="section-title">Order History</h2>
-      <div className="orders-list">
-        {orders.map(order => (
-          <div key={order.id} className="order-item">
-            <div className="order-header">
-              <span className="order-id">{order.id}</span>
-              <span className={`order-status status-${order.status.toLowerCase()}`}>
-                {order.status}
-              </span>
-            </div>
-            <div className="order-details">
-              <span className="order-date">{order.date}</span>
-              <span className="order-items">{order.items} items</span>
-              <span className="order-total">${order.total.toFixed(2)}</span>
-            </div>
-            <div className="order-actions">
-              <button className="view-details-btn">View Details</button>
-              <button className="track-btn">Track Order</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderCart = () => {
-    const { subtotal, shipping, total } = calculateTotal();
-
-    return (
-      <div className="cart-section">
-        <h2 className="section-title">Shopping Cart</h2>
-        <div className="cart-content">
-          <div className="cart-items">
-            {cartItems.length === 0 ? (
-              <p className="empty-cart">Your cart is empty</p>
-            ) : (
-              cartItems.map(item => (
-                <div key={item.id} className="cart-item">
-                  <div className="cart-item-image">{item.emoji}</div>
-                  <div className="cart-item-details">
-                    <h3>{item.name}</h3>
-                    <p className="cart-item-price">${item.price.toFixed(2)}</p>
-                  </div>
-                  <div className="quantity-controls">
-                    <button onClick={() => updateQuantity(item.id, -1)}>−</button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)}>+</button>
-                  </div>
-                  <div className="cart-item-total">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </div>
-                  <button
-                    className="remove-item-btn"
-                    onClick={() => removeFromCart(item.id)}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          {cartItems.length > 0 && (
-            <div className="cart-summary">
-              <h3>Order Summary</h3>
-              <div className="summary-line">
-                <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="summary-line">
-                <span>Shipping</span>
-                <span>${shipping.toFixed(2)}</span>
-              </div>
-              <div className="summary-total">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <button className="checkout-btn">Proceed to Checkout</button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   if (!user.email) {
     navigate('/login');
     return null;
@@ -246,7 +151,10 @@ const User = () => {
               <span className="nav-badge">3</span>
             </button>
 
-            <button className="nav-item">
+            <button
+              className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`}
+              onClick={() => setActiveSection('settings')}
+            >
               <span className="nav-icon"><SettingsIcon /></span>
               <span className="nav-label">Settings</span>
             </button>
@@ -259,9 +167,17 @@ const User = () => {
         </aside>
 
         <main className="main-content">
-          {activeSection === 'wishlist' && renderWishlist()}
-          {activeSection === 'orders' && renderOrderHistory()}
-          {activeSection === 'cart' && renderCart()}
+          {activeSection === 'wishlist' && <Wishlist wishlistItems={wishlistItems} />}
+          {activeSection === 'orders' && <OrderHistory orders={orders} />}
+          {activeSection === 'cart' && (
+            <Cart
+              cartItems={cartItems}
+              updateQuantity={updateQuantity}
+              removeFromCart={removeFromCart}
+              calculateTotal={calculateTotal}
+            />
+          )}
+          {activeSection === 'settings' && <Settings user={user} />}
         </main>
       </div>
       <Footer />
