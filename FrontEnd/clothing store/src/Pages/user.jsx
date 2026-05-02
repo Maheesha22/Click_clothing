@@ -6,7 +6,6 @@ import './User.css';
 import Wishlist from './userpages/Wishlist';
 import OrderHistory from './userpages/OrderHistory';
 import Cart from './userpages/Cart';
-import cart from './cart';
 import Settings from './userpages/Settings';
 
 const User = () => {
@@ -145,10 +144,10 @@ const User = () => {
               <span className="nav-label">Order History</span>
             </button>
 
-            {/* Cart — logged-in only */}
+            {/* Cart — navigates to /cart page */}
             <button
-              className={`nav-item ${activeSection === 'cart' ? 'active' : ''}`}
-              onClick={() => isLoggedIn ? setActiveSection('cart') : navigate('/login')}
+              className="nav-item"
+              onClick={() => navigate('/cart')}
             >
               <span className="nav-icon"><CartIcon /></span>
               <span className="nav-label">Cart</span>

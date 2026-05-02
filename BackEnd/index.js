@@ -33,6 +33,9 @@ app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);                   // ← added
 app.use("/api/cart", cartRoutes);
 
+const wishlistRoutes = require("./routes/WishlistRoutes");
+app.use("/api/wishlist", wishlistRoutes);
+
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
 });
