@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Trousers.css";
 import { useNavigate } from "react-router-dom";
-
+import { cartAPI } from "../services/api";
 
 // ── Product Data ────────────────────────────────────────────────
 const ALL_PRODUCTS = [
@@ -308,11 +308,6 @@ const TrashIcon = () => (
     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
   </svg>
 );
-const StarIcon = ({ filled }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? "#c8982a" : "none"} stroke="#c8982a" strokeWidth="2">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-);
 const CheckIcon = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
     <polyline points="20 6 9 17 4 12"/>
@@ -324,7 +319,6 @@ const EditIcon = () => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
   </svg>
 );
-
 
 // ── Star Rating Display ─────────────────────────────────────────
 function StarRating({ rating, size = 14 }) {
@@ -368,7 +362,6 @@ function StarPicker({ value, onChange }) {
   );
 }
 
-
 // ── Color Swatch Strip (on card) ─────────────────────────────────
 function ColorSwatches({ colors, selColor, onSelect }) {
   return (
@@ -385,7 +378,6 @@ function ColorSwatches({ colors, selColor, onSelect }) {
     </div>
   );
 }
-
 
 // ── Admin: Add Color Panel (inside modal) ────────────────────────
 function AddColorPanel({ onAdd, onClose }) {
@@ -414,7 +406,6 @@ function AddColorPanel({ onAdd, onClose }) {
     </div>
   );
 }
-
 
 // ── Reviews Section ─────────────────────────────────────────────
 function ReviewsSection({ productId, productName }) {
@@ -467,7 +458,6 @@ function ReviewsSection({ productId, productName }) {
           )}
         </div>
 
-        {/* Summary bar */}
         <div className="tr-reviews-summary">
           <div className="tr-reviews-avg-block">
             <span className="tr-reviews-avg-num">{avgRating.toFixed(1)}</span>
@@ -488,14 +478,12 @@ function ReviewsSection({ productId, productName }) {
         </div>
       </div>
 
-      {/* Success toast */}
       {submitted && (
         <div className="tr-review-toast">
           <CheckIcon /> Your review has been posted. Thank you!
         </div>
       )}
 
-      {/* Write Review Form */}
       {showForm && (
         <div className="tr-review-form">
           <div className="tr-review-form-title">Share Your Experience</div>
@@ -533,7 +521,6 @@ function ReviewsSection({ productId, productName }) {
         </div>
       )}
 
-      {/* Review list */}
       <div className="tr-reviews-list">
         {reviews.length === 0 ? (
           <div className="tr-no-reviews">No reviews yet. Be the first to share your experience!</div>
@@ -565,13 +552,37 @@ function ReviewsSection({ productId, productName }) {
   );
 }
 
-// ── Add to Cart Helper Function ─────────────────────────────────────────
-// Custom hook for cart functionality
+// ── Add to Cart Helper Function with API (UPDATED to read from sessionStorage) ──
 function useCart() {
   const navigate = useNavigate();
   
-  const addToCartAndRedirect = (product, selectedColor, selectedSize, price) => {
-    // Get color name from hex value
+  const addToCartAndRedirect = async (product, selectedColor, selectedSize, price) => {
+    // ✅ Get user from sessionStorage (where your login stores it)
+    const userData = sessionStorage.getItem('user');
+    let userId = null;
+    
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        userId = user.id;
+        console.log('Found userId in sessionStorage:', userId);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+    
+    // ✅ Fallback to localStorage if not found in sessionStorage
+    if (!userId) {
+      userId = localStorage.getItem('userId');
+      console.log('Found userId in localStorage:', userId);
+    }
+    
+    if (!userId) {
+      alert('Please login to add items to cart');
+      navigate('/login');
+      return;
+    }
+    
     const getColorName = (hex) => {
       const colorMap = {
         "#f5f5f0": "White",
@@ -590,67 +601,88 @@ function useCart() {
         "#ece8dc": "White",
         "#6b2737": "Burgundy",
         "#b5a47a": "Khaki",
-        "#c0736a": "Sand",
       };
       return colorMap[hex] || "Custom";
     };
 
-    // Create cart item object matching Cart.jsx structure
-    const cartItem = {
-      id: Date.now(), // Use timestamp for unique ID
-      name: product.name,
-      size: selectedSize ? parseInt(selectedSize) : 32,
-      sizeLabel: selectedSize ? selectedSize.toString() : "32",
-      price: price,
-      qty: 1,
-      color: selectedColor || product.colors[0],
-      colorName: selectedColor ? getColorName(selectedColor) : getColorName(product.colors[0]),
+    const getImageUrl = () => {
+      if (selectedColor && product.colorImages && product.colorImages[selectedColor]) {
+        return product.colorImages[selectedColor];
+      }
+      return product.img;
     };
 
-    // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // Check if same product (same name, size, color) exists
-    const existingItemIndex = existingCart.findIndex(
-      item => item.name === cartItem.name && 
-              item.sizeLabel === cartItem.sizeLabel && 
-              item.colorName === cartItem.colorName
-    );
-    
-    if (existingItemIndex > -1) {
-      // Increment quantity if exists
-      existingCart[existingItemIndex].qty += 1;
-    } else {
-      // Add new item
-      existingCart.push(cartItem);
+    const cartData = {
+      userId: parseInt(userId),
+      productId: product.id,
+      name: product.name,
+      price: price,
+      imageUrl: getImageUrl(),
+      color: selectedColor ? getColorName(selectedColor) : getColorName(product.colors[0]),
+      size: selectedSize ? selectedSize.toString() : "",
+      quantity: 1
+    };
+
+    try {
+      const addButton = document.querySelector('.tr-modal-atc');
+      if (addButton) {
+        addButton.textContent = 'Adding...';
+        addButton.disabled = true;
+      }
+
+      const response = await cartAPI.addToCart(cartData);
+      
+      if (response.data.success) {
+        const cartResponse = await cartAPI.getCart(userId);
+        
+        if (cartResponse.data.success) {
+          const formattedCart = cartResponse.data.cartItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            size: item.size ? parseInt(item.size) : 32,
+            sizeLabel: item.size,
+            price: parseFloat(item.price),
+            qty: item.quantity,
+            color: item.color,
+            colorName: item.color,
+            imageUrl: item.imageUrl
+          }));
+          
+          localStorage.setItem('cart', JSON.stringify(formattedCart));
+          window.dispatchEvent(new CustomEvent('cartUpdated', { detail: formattedCart }));
+        }
+        
+        navigate('/cart');
+      } else {
+        alert(response.data.message || 'Failed to add item to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add item to cart. Please try again.');
+    } finally {
+      const addButton = document.querySelector('.tr-modal-atc');
+      if (addButton) {
+        addButton.textContent = 'Add to Cart';
+        addButton.disabled = false;
+      }
     }
-    
-    // Save back to localStorage
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    
-    // Dispatch custom event for cart update
-    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: existingCart }));
-    
-    // Redirect to cart page
-    navigate('/cart');
   };
   
   return { addToCartAndRedirect };
 }
 
-// ── Product Modal (Modified with Add to Cart) ────────────────────────────────────────────────
+// ── Product Modal ────────────────────────────────────────────────
 function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, onClose }) {
-  const [zoom, setZoom]         = useState(1);
+  const [zoom, setZoom] = useState(1);
   const [selColor, setSelColor] = useState(null);
-  const [selSize, setSelSize]   = useState(null);
+  const [selSize, setSelSize] = useState(null);
   const [addingColor, setAddingColor] = useState(false);
-  const [imgKey, setImgKey]     = useState(0);
+  const [imgKey, setImgKey] = useState(0);
   const { addToCartAndRedirect } = useCart();
 
   const allColors = [...product.colors, ...extraColors];
   const ZOOM_STEP = 0.25, MAX_ZOOM = 3, MIN_ZOOM = 1;
 
-  // Resolve current image based on selected color
   const currentImg = (() => {
     if (selColor && product.colorImages && product.colorImages[selColor]) {
       return product.colorImages[selColor];
@@ -658,7 +690,6 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
     return product.img;
   })();
 
-  // Handle Add to Cart
   const handleAddToCart = () => {
     if (!selSize) {
       alert("Please select a size");
@@ -669,7 +700,6 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
       return;
     }
     
-    // Use selected color or first available
     const finalColor = selColor || allColors[0];
     addToCartAndRedirect(product, finalColor, selSize, price);
   };
@@ -681,7 +711,7 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
     setImgKey(k => k + 1);
   }
 
-  const handleZoomIn  = (e) => { e.stopPropagation(); setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)); };
+  const handleZoomIn = (e) => { e.stopPropagation(); setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)); };
   const handleZoomOut = (e) => { e.stopPropagation(); setZoom(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)); };
 
   useEffect(() => {
@@ -694,10 +724,8 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
   return (
     <div className="tr-modal-overlay" onClick={onClose}>
       <div className="tr-modal-box" onClick={(e) => e.stopPropagation()}>
-
         <button className="tr-modal-close" onClick={onClose}><CloseIcon /></button>
 
-        {/* Left: Image pane */}
         <div className="tr-modal-imgpane">
           <div className="tr-modal-imgscroll">
             <img
@@ -710,7 +738,6 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
             />
           </div>
 
-          {/* Color indicator strip under image */}
           {selColor && (
             <div className="tr-modal-color-indicator" style={{ background: selColor }}>
               <span className="tr-modal-color-label">
@@ -722,11 +749,10 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
           <div className="tr-modal-zoom">
             <button onClick={handleZoomOut} disabled={zoom <= MIN_ZOOM} title="Zoom out"><ZoomOutIcon /></button>
             <span className="tr-modal-zoomlvl">{Math.round(zoom * 100)}%</span>
-            <button onClick={handleZoomIn}  disabled={zoom >= MAX_ZOOM} title="Zoom in"><ZoomInIcon /></button>
+            <button onClick={handleZoomIn} disabled={zoom >= MAX_ZOOM} title="Zoom in"><ZoomInIcon /></button>
           </div>
         </div>
 
-        {/* Right: Info + Reviews scrollable pane */}
         <div className="tr-modal-right">
           <div className="tr-modal-info">
             <span className={`tr-modal-badge ${product.inStock ? "in" : "out"}`}>
@@ -736,7 +762,6 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
             <h2 className="tr-modal-name">{product.name}</h2>
             <div className="tr-modal-price">Rs {price.toLocaleString()}.00</div>
 
-            {/* Colors */}
             <div>
               <div className="tr-modal-sizelbl">
                 Available Colors
@@ -776,7 +801,6 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
               )}
             </div>
 
-            {/* Sizes - Made interactive */}
             <div>
               <div className="tr-modal-sizelbl">
                 Available Sizes
@@ -811,7 +835,6 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
               up to 4 x <strong>Rs {Math.round(price / 4).toLocaleString()}</strong> with <span className="tr-payzy">PayZy</span>
             </div>
 
-            {/* Modified Add to Cart button */}
             <button 
               className="tr-modal-atc" 
               disabled={!product.inStock}
@@ -821,14 +844,12 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
             </button>
           </div>
 
-          {/* Reviews */}
           <ReviewsSection productId={product.id} productName={product.name} />
         </div>
       </div>
     </div>
   );
 }
-
 
 // ── Tab Bar ─────────────────────────────────────────────────────
 function TabBar({ activeTab, setActiveTab }) {
@@ -867,7 +888,6 @@ function TabBar({ activeTab, setActiveTab }) {
   );
 }
 
-
 // ── Sidebar ─────────────────────────────────────────────────────
 function Sidebar({ selSize, setSelSize, pMin, setPMin, pMax, setPMax, showIn, setShowIn, showOut, setShowOut, onApply }) {
   return (
@@ -893,14 +913,13 @@ function Sidebar({ selSize, setSelSize, pMin, setPMin, pMax, setPMax, showIn, se
       <div className="tr-sb-sec">
         <div className="tr-sb-lbl">Availability</div>
         <div className="tr-av-opts">
-          <label className="tr-av-opt"><input type="checkbox" checked={showIn}  onChange={(e) => setShowIn(e.target.checked)}  /> In Stock</label>
+          <label className="tr-av-opt"><input type="checkbox" checked={showIn} onChange={(e) => setShowIn(e.target.checked)} /> In Stock</label>
           <label className="tr-av-opt"><input type="checkbox" checked={showOut} onChange={(e) => setShowOut(e.target.checked)} /> Out of Stock</label>
         </div>
       </div>
     </aside>
   );
 }
-
 
 // ── EMI helper ──────────────────────────────────────────────────
 function EmiRow({ price }) {
@@ -915,14 +934,13 @@ function EmiRow({ price }) {
   );
 }
 
-
 // ── Product Card ─────────────────────────────────────────────────
 function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal }) {
-  const [selSize,  setSelSize]  = useState(null);
+  const [selSize, setSelSize] = useState(null);
   const [selColor, setSelColor] = useState(null);
-  const [wished,   setWished]   = useState(false);
-  const [editing,  setEditing]  = useState(false);
-  const [editVal,  setEditVal]  = useState(prices[product.id]);
+  const [wished, setWished] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editVal, setEditVal] = useState(prices[product.id]);
   const price = prices[product.id];
   const allColors = [...product.colors, ...extraColors];
 
@@ -956,7 +974,6 @@ function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal 
       <div className="tr-pbody">
         <div className="tr-pname">{product.name}</div>
 
-        {/* Mini rating on card */}
         <div className="tr-card-rating" onClick={(e) => e.stopPropagation()}>
           <StarRating rating={Math.round(avgRating)} size={11} />
           <span className="tr-card-rating-txt">({reviewCount})</span>
@@ -1003,20 +1020,19 @@ function ProductCard({ product, prices, extraColors, onPriceUpdate, onOpenModal 
   );
 }
 
-
 // ── Main Trousers Page ───────────────────────────────────────────
 export default function Trousers() {
-  const [activeTab,    setActiveTab]   = useState("Men");
-  const [selSize,      setSelSize]     = useState(null);
-  const [pMin,         setPMin]        = useState(0);
-  const [pMax,         setPMax]        = useState(10000);
-  const [appliedMin,   setAppliedMin]  = useState(0);
-  const [appliedMax,   setAppliedMax]  = useState(10000);
-  const [showIn,       setShowIn]      = useState(true);
-  const [showOut,      setShowOut]     = useState(true);
-  const [sortMode,     setSortMode]    = useState("new");
-  const [perPage,      setPerPage]     = useState(10);
-  const [loaded,       setLoaded]      = useState(10);
+  const [activeTab, setActiveTab] = useState("Men");
+  const [selSize, setSelSize] = useState(null);
+  const [pMin, setPMin] = useState(0);
+  const [pMax, setPMax] = useState(10000);
+  const [appliedMin, setAppliedMin] = useState(0);
+  const [appliedMax, setAppliedMax] = useState(10000);
+  const [showIn, setShowIn] = useState(true);
+  const [showOut, setShowOut] = useState(true);
+  const [sortMode, setSortMode] = useState("new");
+  const [perPage, setPerPage] = useState(10);
+  const [loaded, setLoaded] = useState(10);
   const [modalProduct, setModalProduct] = useState(null);
 
   const [extraColors, setExtraColors] = useState(() => {
@@ -1042,16 +1058,16 @@ export default function Trousers() {
     if (selSize && !p.sizes.includes(selSize)) return false;
     const pr = prices[p.id];
     if (pr < appliedMin || pr > appliedMax) return false;
-    if (!showIn  && p.inStock)  return false;
+    if (!showIn && p.inStock) return false;
     if (!showOut && !p.inStock) return false;
     return true;
   }).sort((a, b) => {
-    if (sortMode === "low")  return prices[a.id] - prices[b.id];
+    if (sortMode === "low") return prices[a.id] - prices[b.id];
     if (sortMode === "high") return prices[b.id] - prices[a.id];
     return 0;
   });
 
-  const visible   = filtered.slice(0, loaded);
+  const visible = filtered.slice(0, loaded);
   const allLoaded = loaded >= filtered.length;
 
   useEffect(() => { setLoaded(perPage); }, [selSize, appliedMin, appliedMax, showIn, showOut, sortMode, perPage]);
@@ -1066,7 +1082,7 @@ export default function Trousers() {
           selSize={selSize} setSelSize={(s) => { setSelSize(s); setLoaded(perPage); }}
           pMin={pMin} setPMin={setPMin}
           pMax={pMax} setPMax={setPMax}
-          showIn={showIn}   setShowIn={(v)  => { setShowIn(v);  setLoaded(perPage); }}
+          showIn={showIn} setShowIn={(v) => { setShowIn(v); setLoaded(perPage); }}
           showOut={showOut} setShowOut={(v) => { setShowOut(v); setLoaded(perPage); }}
           onApply={handleApply}
         />
