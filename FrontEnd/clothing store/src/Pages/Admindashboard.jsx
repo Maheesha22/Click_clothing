@@ -20,18 +20,18 @@ import {
   IcoMenu, IcoSearch, IcoBell, IcoChevron,
   IcoDash, IcoBox, IcoTag, IcoCart, IcoUsers,
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
-} from './shared';
+} from './adminpages/admin/shared';
 
-import Dashboard  from './Dashboard';
-import Products   from './Products';
-import Categories from './Categories';
-import Orders     from './Orders';
-import Customers  from './Customers';
-import Inventory  from './Inventory';
-import Payments   from './Payments';
-import Reports    from './Reports';
-import Settings   from './Settings';
-import Logout     from './Logout';
+import Dashboard  from './adminpages/admin/Dashboard';
+import Products   from './adminpages/admin/Products';
+import Categories from './adminpages/admin/Categories';
+import Orders     from './adminpages/admin/Orders';
+import Customers  from './adminpages/admin/Customers';
+import Inventory  from './adminpages/admin/Inventory';
+import Payments   from './adminpages/admin/Payments';
+import Reports    from './adminpages/admin/Reports';
+import Settings   from './adminpages/admin/Settings';
+import Logout     from './adminpages/admin/Logout';
 
 /* ═══════════════════════════════════════════════════════════
    SIDEBAR NAV CONFIG

@@ -1,4 +1,5 @@
 import "./footer.css";
+import { Link } from "react-router-dom";  
 
 export default function Footer() {
   return (
@@ -58,8 +59,21 @@ export default function Footer() {
           </div>
           <ul>
             <li>About Us</li>
-            <li>Contact Us</li>
-            <li>FAQs</li>
+            <li>
+              <Link to="/Contactus" style={{ textDecoration: 'none', color: 'inherit' }}>
+                Contact Us
+              </Link>
+            </li>
+            <li>
+              <Link to="/feedback" style={{ textDecoration: 'none', color: 'inherit' }}>
+              Feedback
+              </Link>
+            </li>
+            <li>
+              <Link to="/faq" style={{ textDecoration: 'none', color: 'inherit' }}>
+              FAQs
+              </Link>
+            </li>
           </ul>
         </div>
 

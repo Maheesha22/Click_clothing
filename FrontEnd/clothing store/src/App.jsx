@@ -12,9 +12,6 @@ import Dashboard from "./Pages/Admindashboard";
 import UserPage from "./Pages/user";
 import Trousers from './Pages/Trousers';
 import Shirts from "./Pages/shirts";
-import FormalShirtsPage from "./Pages/formal-shirts";
-import TShirtsPage from "./Pages/tshirts";
-import ShortsPage from "./Pages/shorts";
 import FeedbackForm from "./Pages/FeedbackForm";
 import FAQPage from "./Pages/FAQ";
 
@@ -37,7 +34,6 @@ function App() {
         <Route path="/Contactus" element={<ContactUs />} />
         <Route path="/feedback" element={<FeedbackForm />} />
         <Route path="/faq" element={<FAQPage />} />
-
 
         {/*Login pages */}
         <Route path="/login" element={<LoginPage />} />

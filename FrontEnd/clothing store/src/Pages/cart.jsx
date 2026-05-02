@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../Components/footer";
+import EditProductModal from "./EditProduct";
+import cartService from "../services/cartService";
 import "./cart.css";
 
 const ProductSVG = () => (
@@ -15,65 +17,199 @@ const ProductSVG = () => (
   </svg>
 );
 
-const initialItems = [
-  { id: 1, name: "Long Sleeve", size: 28, price: 2500, qty: 1, color: "#c0736a" },
-  { id: 2, name: "Long Sleeve", size: 28, price: 2500, qty: 1, color: "#c0736a" },
+const colorPalette = [
+  { name: "Black", value: "#1F1F1F" },
+  { name: "White", value: "#F5F5F5" },
+  { name: "Gray", value: "#9E9E9E" },
+  { name: "Navy", value: "#1B2A4A" },
+  { name: "Sand", value: "#D6C5A9" },
 ];
 
 export default function Cart() {
-  const [items, setItems]       = useState(initialItems);
+  const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(new Set());
-  const navigate                = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Get userId from sessionStorage
+  const getUserId = () => {
+    try {
+      const userData = sessionStorage.getItem('user');
+      console.log('Cart - SessionStorage user data:', userData);
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        console.log('Cart - Parsed user:', user);
+        return user.id;
+      }
+    } catch (error) {
+      console.error('Cart - Error parsing user data:', error);
+    }
+    return null;
+  };
+
+  const userId = getUserId();
+  console.log('Cart - Final userId:', userId);
+
+  const fetchCartItems = async () => {
+    console.log('Cart - Fetching cart items for userId:', userId);
+    
+    if (!userId) {
+      console.log('Cart - No userId, setting loading false');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await cartService.getCart(userId);
+      console.log('Cart - API Response:', response);
+      
+      if (response && response.success) {
+        const cartItems = response.cartItems || [];
+        console.log('Cart - Raw cart items:', cartItems);
+        console.log('Cart - Number of items:', cartItems.length);
+        
+        if (cartItems.length > 0) {
+          const formattedItems = cartItems.map(item => ({
+            id: item.id,
+            name: item.name || 'Product',
+            size: item.size ? parseInt(item.size) : 32,
+            sizeLabel: item.size || '32',
+            price: parseFloat(item.price) || 0,
+            qty: item.quantity || 1,
+            color: item.color || '#000000',
+            colorName: item.color || 'Black',
+            imageUrl: item.imageUrl || ''
+          }));
+          
+          console.log('Cart - Formatted items:', formattedItems);
+          setItems(formattedItems);
+        } else {
+          console.log('Cart - No items in cart');
+          setItems([]);
+        }
+      } else {
+        console.log('Cart - Response success is false or response is invalid');
+        setItems([]);
+      }
+    } catch (error) {
+      console.error('Cart - Error fetching cart:', error);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch cart on mount and when userId changes
+  useEffect(() => {
+    console.log('Cart - useEffect triggered');
+    fetchCartItems();
+  }, [userId]);
+
+  // Listen for cart updates
+  useEffect(() => {
+    const handleCartUpdate = (event) => {
+      console.log('Cart - Received cartUpdated event:', event.detail);
+      fetchCartItems();
+    };
+    
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, []);
 
   const toggleSelect = (id) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
+    setSelected(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      return newSelected;
     });
   };
 
-  const changeQty = (id, delta) => {
-    setItems((prev) =>
-      prev
-        .map((item) =>
-          item.id === id ? { ...item, qty: Math.max(0, item.qty + delta) } : item
-        )
-        .filter((item) => item.qty > 0)
-    );
-    if (delta < 0) {
-      const item = items.find((i) => i.id === id);
-      if (item && item.qty + delta <= 0) {
-        setSelected((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
+  const changeQty = async (id, delta) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    
+    const newQty = Math.max(1, item.qty + delta);
+    
+    if (newQty !== item.qty) {
+      try {
+        const response = await cartService.updateQuantity(id, newQty);
+        console.log('Cart - Update quantity response:', response);
+        
+        if (response.success) {
+          setItems(prev =>
+            prev.map(item =>
+              item.id === id ? { ...item, qty: newQty } : item
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Cart - Error updating quantity:', error);
       }
     }
   };
 
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
+  const removeItem = async (id) => {
+    try {
+      const response = await cartService.removeFromCart(id);
+      console.log('Cart - Remove item response:', response);
+      
+      if (response.success) {
+        setItems(prev => prev.filter(item => item.id !== id));
+        setSelected(prev => {
+          const newSelected = new Set(prev);
+          newSelected.delete(id);
+          return newSelected;
+        });
+      }
+    } catch (error) {
+      console.error('Cart - Error removing item:', error);
+    }
   };
 
-  const selectedItems = items.filter((item) => selected.has(item.id));
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [tempColor, setTempColor] = useState("");
+  const [tempSize, setTempSize] = useState("");
 
-  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setTempColor(item.colorName);
+    setTempSize(item.sizeLabel);
+    setIsModalOpen(true);
+  };
 
-  /*const subtotal = items
-    .filter((item) => selected.has(item.id))
-    .reduce((sum, item) => sum + item.price * item.qty, 0);*/
+  const saveEditChanges = () => {
+    if (editingItem) {
+      const updatedColor = colorPalette.find(c => c.name === tempColor);
+      setItems(prev =>
+        prev.map(item =>
+          item.id === editingItem.id
+            ? {
+                ...item,
+                colorName: tempColor,
+                color: updatedColor ? updatedColor.value : item.color,
+                sizeLabel: tempSize,
+                size: tempSize,
+              }
+            : item
+        )
+      );
+    }
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
 
+  const selectedItems = items.filter(item => selected.has(item.id));
+  const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const selectedTotalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
 
   const handleProceedToCheckout = () => {
-    // ✅ CHANGE 3 — alert if nothing selected, then pass selectedItems + subtotal to checkout
     if (selectedItems.length === 0) {
       alert("Please select at least one item to proceed.");
       return;
@@ -83,16 +219,26 @@ export default function Cart() {
     });
   };
 
-
   const handleProceedToHome = () => {
     navigate("/");
   };
 
+  if (loading) {
+    return (
+      <div className="cart-page-wrapper">
+        <header className="cart-header">
+          <img src="/logo.jpeg" alt="CLiCK" className="cart-logo-img" />
+        </header>
+        <main className="cart-main">
+          <div style={{ textAlign: 'center', padding: '50px' }}>Loading your cart...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="cart-page-wrapper">
-
-      {/* ── Header ── */}
       <header className="cart-header">
         <img src="/logo.jpeg" alt="CLiCK" className="cart-logo-img" />
         <div className="cart-icon-wrap">
@@ -102,20 +248,15 @@ export default function Cart() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          <span className="cart-icon-badge">{selectedTotalQty > 0 ? selectedTotalQty : "+"}</span>
+          <span className="cart-icon-badge">{selectedTotalQty > 0 ? selectedTotalQty : "0"}</span>
         </div>
       </header>
 
-      {/* ── Main ── */}
       <main className="cart-main">
         <h1 className="cart-page-title">Your Cart</h1>
 
         <div className="cart-layout">
-
-          {/* ── Cart Items ── */}
           <div className="cart-items-container">
-
-            {/* Column Header */}
             <div className="cart-table-header">
               <span>Product</span>
               <span className="th-center">Price</span>
@@ -124,61 +265,88 @@ export default function Cart() {
               <span />
             </div>
 
-            {/* Item Rows */}
-            {items.map((item) => (
-              <div className="cart-row" key={item.id}>
+            {items.length === 0 ? (
+              <div className="empty-cart-message" style={{ textAlign: 'center', padding: '50px' }}>
+                <p>Your cart is empty!</p>
+                <button 
+                  onClick={() => navigate('/trousers')} 
+                  style={{ 
+                    padding: '10px 20px', 
+                    cursor: 'pointer',
+                    backgroundColor: '#000',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '5px',
+                    marginTop: '10px'
+                  }}
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            ) : (
+              items.map((item) => (
+                <div className="cart-row" key={item.id}>
+                  <div
+                    className={`select-circle${selected.has(item.id) ? " selected" : ""}`}
+                    onClick={() => toggleSelect(item.id)}
+                  />
 
-                {/* Select Circle */}
-                <div
-                  className={`select-circle${selected.has(item.id) ? " selected" : ""}`}
-                  onClick={() => toggleSelect(item.id)}
-                />
-
-                {/* Product */}
-                <div className="product-cell">
-                  <div className="product-image">
-                    <ProductSVG />
-                  </div>
-                  <div className="product-meta">
-                    <span className="product-name">{item.name}</span>
-                    <div className="product-info-row">
-                      <span className="product-size">{item.size}</span>
-                      <span
-                        className="product-color-swatch"
-                        style={{ background: item.color }}
-                      />
-                      <span className="edit-icon">✏️</span>
+                  <div className="product-cell">
+                    <div className="product-image">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} style={{ width: '80px', height: '80px', objectFit: 'cover' }} />
+                      ) : (
+                        <ProductSVG />
+                      )}
+                    </div>
+                    <div className="product-meta">
+                      <span className="product-name">{item.name}</span>
+                      <div className="product-info-row">
+                        <span className="product-size">Size: {item.sizeLabel}</span>
+                        <span
+                          className="product-color-swatch"
+                          style={{ 
+                            background: item.color,
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            display: 'inline-block',
+                            marginLeft: '10px'
+                          }}
+                        />
+                        <button 
+                          className="edit-pencil-btn" 
+                          onClick={() => openEditModal(item)}
+                          style={{ marginLeft: '10px', cursor: 'pointer' }}
+                        >
+                          ✏️
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Price */}
-                <div className="price-cell">Rs.{item.price.toFixed(2)}</div>
+                  <div className="price-cell">Rs.{item.price.toFixed(2)}</div>
 
-                {/* Quantity */}
-                <div className="qty-cell">
-                  <div className="qty-control">
-                    <button onClick={() => changeQty(item.id, -1)}>−</button>
-                    <span className="qty-num">{item.qty}</span>
-                    <button onClick={() => changeQty(item.id, 1)}>+</button>
+                  <div className="qty-cell">
+                    <div className="qty-control">
+                      <button onClick={() => changeQty(item.id, -1)}>-</button>
+                      <span className="qty-num">{item.qty}</span>
+                      <button onClick={() => changeQty(item.id, 1)}>+</button>
+                    </div>
+                  </div>
+
+                  <div className="total-cell">
+                    Rs.{(item.price * item.qty).toFixed(2)}
+                  </div>
+
+                  <div className="remove-cell">
+                    <button className="remove-btn" onClick={() => removeItem(item.id)}>✕</button>
                   </div>
                 </div>
-
-                {/* Total */}
-                <div className="total-cell">
-                  Rs.{(item.price * item.qty).toFixed(2)}
-                </div>
-
-                {/* Remove */}
-                <div className="remove-cell">
-                  <button className="remove-btn" onClick={() => removeItem(item.id)}>✕</button>
-                </div>
-
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          {/* ── Order Summary ── */}
           <aside className="order-summary">
             <h2 className="summary-title">Order Summary</h2>
             <div className="summary-divider" />
@@ -198,9 +366,20 @@ export default function Cart() {
             </button>
             <button className="btn-continue" onClick={handleProceedToHome}>Continue Shopping</button>
           </aside>
-
         </div>
       </main>
+
+      <EditProductModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        product={editingItem}
+        tempColor={tempColor}
+        setTempColor={setTempColor}
+        tempSize={tempSize}
+        setTempSize={setTempSize}
+        onSave={saveEditChanges}
+      />
+
       <Footer />
     </div>
   );
