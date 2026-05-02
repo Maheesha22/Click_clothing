@@ -27,6 +27,9 @@ db.sequelize.authenticate()
 const userRoutes = require("./routes/UserRoutes");
 app.use("/api/users", userRoutes);
 
+const wishlistRoutes = require("./routes/WishlistRoutes");
+app.use("/api/wishlist", wishlistRoutes);
+
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
 });
