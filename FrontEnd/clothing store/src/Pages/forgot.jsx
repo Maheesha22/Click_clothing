@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "./forgot.css";
-import Header from "../Components/Header";
-import Footer from "../Components/Footer";
+import logo from "../assets/Logo.jpg";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
 
-export default function ForgotPage({ onNavigate, onSuccess }) {
+export default function ForgotPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
 
@@ -14,27 +17,26 @@ export default function ForgotPage({ onNavigate, onSuccess }) {
       return;
     }
     setError("");
-    onSuccess();
+    navigate("/login", {
+      state: { recoveryMsg: "We've sent you an email with a link to update your password." }
+    });
   };
 
   return (
     <>
       <Header />
-
       <div className="forgot-page">
+        <div className="forgot-logo-container">
+          <img src={logo} alt="Logo" />
+        </div>
         <div className="forgot-card">
           <h1 className="forgot-title">Recover Password</h1>
 
           <div className="forgot-input-group">
             <label className="forgot-label">EMAIL</label>
-            <input
-              className="forgot-input"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleRecover(e)}
-            />
+            <input className="forgot-input" type="email" placeholder="Enter your email"
+              value={email} onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleRecover(e)} />
           </div>
 
           {error && <p className="forgot-error">{error}</p>}
@@ -42,13 +44,10 @@ export default function ForgotPage({ onNavigate, onSuccess }) {
           <button className="forgot-btn" onClick={handleRecover}>Recover</button>
 
           <p className="forgot-back">
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("login"); }}>
-              ← Back to Login
-            </a>
+            <Link to="/login">← Back to Login</Link>
           </p>
         </div>
       </div>
-
       <Footer />
     </>
   );

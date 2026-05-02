@@ -1,17 +1,22 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "./register.css";
-import Header from "../Components/Header";
-import Footer from "../Components/Footer";
+import logo from "../assets/Logo.jpg";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
+import API from "../services/api";
 
-export default function RegisterPage({ onNavigate }) {
+export default function RegisterPage() {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName]   = useState("");
   const [email, setEmail]         = useState("");
   const [password, setPassword]   = useState("");
   const [confirm, setConfirm]     = useState("");
   const [error, setError]         = useState("");
+  const [loading, setLoading]     = useState(false);
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     if (!firstName || !lastName || !email || !password || !confirm) {
       setError("Please fill in all fields.");
@@ -21,15 +26,50 @@ export default function RegisterPage({ onNavigate }) {
       setError("Passwords do not match.");
       return;
     }
+    
     setError("");
-    alert("Account created successfully!");
+    setLoading(true);
+
+    try {
+      const registerResponse = await API.post('/users/register', {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: password
+      });
+      
+      console.log("Registration success:", registerResponse.data);
+      
+      const loginResponse = await API.post('/users/login', {
+        email: email,
+        password: password
+      });
+      
+      console.log("Auto-login success:", loginResponse.data);
+      
+      localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
+      
+      if (loginResponse.data.user.isAdmin) {
+        navigate("/dashboard");
+      } else {
+        navigate("/user");
+      }
+      
+    } catch (err) {
+      console.error("Registration error:", err.response?.data);
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <Header />
-
       <div className="register-page">
+        <div className="register-logo-container">
+          <img src={logo} alt="Logo" />
+        </div>
         <div className="register-card">
           <h1 className="register-title">WELCOME !</h1>
 
@@ -70,17 +110,16 @@ export default function RegisterPage({ onNavigate }) {
 
           {error && <p className="register-error">{error}</p>}
 
-          <button className="register-btn" onClick={handleSignUp}>CREATE ACCOUNT</button>
+          <button className="register-btn" onClick={handleSignUp} disabled={loading}>
+            {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
+          </button>
 
           <p className="register-signin-text">
             Already have an account ?{" "}
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigate("login"); }}>
-              Sign In
-            </a>
+            <Link to="/login">Sign In</Link>
           </p>
         </div>
       </div>
-
       <Footer />
     </>
   );
