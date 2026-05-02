@@ -1,33 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import Header from "../Components/header";
 import Footer from "../Components/footer";
 import './User.css';
-import Wishlist from './userpages/Wishlist';
-import OrderHistory from './userpages/OrderHistory';
-import Cart from './userpages/Cart';
-import Settings from './userpages/Settings';
 
 const User = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
-  // Get user from session — null if not logged in
   const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
   const isLoggedIn = !!(storedUser?.email);
-
-  // Display info — show "Guest" if not logged in
   const displayName = isLoggedIn ? `${storedUser.firstName} ${storedUser.lastName}` : 'Guest';
   const displayEmail = isLoggedIn ? storedUser.email : 'Not signed in';
-
-  const initialTab = searchParams.get('tab') || 'wishlist';
-  const [activeSection, setActiveSection] = useState(initialTab);
-
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Premium Headphones', price: 199.99, quantity: 1, emoji: '🎧' },
-    { id: 2, name: 'Smart Watch', price: 299.99, quantity: 2, emoji: '⌚' },
-    { id: 3, name: 'Laptop Bag', price: 79.99, quantity: 1, emoji: '💼' }
-  ]);
 
   const [orders] = useState([
     { id: 'ORD-2024001', date: '2024-01-15', items: 3, total: 459.97, status: 'Delivered' },
@@ -40,25 +23,8 @@ const User = () => {
     navigate('/login');
   };
 
-  const updateQuantity = (id, change) => {
-    setCartItems(cartItems.map(item => {
-      if (item.id === id) {
-        const newQuantity = Math.max(1, item.quantity + change);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    }));
-  };
-
-  const removeFromCart = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
-
-  const calculateTotal = () => {
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 0 ? 15.00 : 0;
-    return { subtotal, shipping, total: subtotal + shipping };
-  };
+  const navClass = ({ isActive }) =>
+    `nav-item${isActive ? ' active' : ''}`;
 
   const WishlistIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -127,42 +93,30 @@ const User = () => {
 
           <nav className="sidebar-nav">
             {/* Wishlist — available to everyone */}
-            <button
-              className={`nav-item ${activeSection === 'wishlist' ? 'active' : ''}`}
-              onClick={() => setActiveSection('wishlist')}
-            >
+            <NavLink to="/user/wishlist" className={navClass}>
               <span className="nav-icon"><WishlistIcon /></span>
               <span className="nav-label">Wishlist</span>
-            </button>
+            </NavLink>
 
-            {/* Order History — shows login message for guests */}
-            <button
-              className={`nav-item ${activeSection === 'orders' ? 'active' : ''}`}
-              onClick={() => setActiveSection('orders')}
-            >
+            {/* Order History */}
+            <NavLink to="/user/orders" className={navClass}>
               <span className="nav-icon"><OrderIcon /></span>
               <span className="nav-label">Order History</span>
-            </button>
+            </NavLink>
 
-            {/* Cart — navigates to /cart page */}
-            <button
-              className="nav-item"
-              onClick={() => navigate('/cart')}
-            >
+            {/* Cart — goes to /cart page */}
+            <button className="nav-item" onClick={() => navigate('/cart')}>
               <span className="nav-icon"><CartIcon /></span>
               <span className="nav-label">Cart</span>
             </button>
 
-            {/* Settings — logged-in only */}
-            <button
-              className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`}
-              onClick={() => isLoggedIn ? setActiveSection('settings') : navigate('/login')}
-            >
+            {/* Settings */}
+            <NavLink to="/user/settings" className={navClass}>
               <span className="nav-icon"><SettingsIcon /></span>
               <span className="nav-label">Settings</span>
-            </button>
+            </NavLink>
 
-            {/* Logout (logged-in) or Login (guest) */}
+            {/* Logout or Login */}
             {isLoggedIn ? (
               <button className="nav-item logout" onClick={handleLogout}>
                 <span className="nav-icon"><LogoutIcon /></span>
@@ -178,17 +132,8 @@ const User = () => {
         </aside>
 
         <main className="main-content">
-          {activeSection === 'wishlist' && <Wishlist user={storedUser} />}
-          {activeSection === 'orders' && <OrderHistory orders={orders} isLoggedIn={isLoggedIn} />}
-          {activeSection === 'cart' && (
-            <Cart
-              cartItems={cartItems}
-              updateQuantity={updateQuantity}
-              removeFromCart={removeFromCart}
-              calculateTotal={calculateTotal}
-            />
-          )}
-          {activeSection === 'settings' && <Settings user={storedUser} />}
+          {/* Child route renders here */}
+          <Outlet context={{ storedUser, isLoggedIn, orders }} />
         </main>
       </div>
       <Footer />
