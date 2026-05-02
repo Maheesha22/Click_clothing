@@ -1,0 +1,266 @@
+/* Modal Overlay - Black & White Professional */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #ffffff;
+  width: 90%;
+  max-width: 520px;
+  border: none;
+  box-shadow: 0 30px 45px -20px rgba(0, 0, 0, 0.3);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 1.5rem 1.8rem 0.8rem 1.8rem;
+  border-bottom: 1px solid #eeeeee;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.modal-header h3 {
+  font-size: 1.35rem;
+  font-weight: 550;
+  letter-spacing: -0.2px;
+  margin: 0;
+  color: #000000;
+}
+
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  line-height: 1;
+  color: #6b6b6b;
+  transition: all 0.15s;
+  padding: 0 6px;
+}
+
+.close-modal:hover {
+  color: #000000;
+}
+
+/* Modal Body */
+.modal-body {
+  padding: 1.2rem 1.8rem 1.8rem 1.8rem;
+}
+
+/* Product Preview Row */
+.product-preview-row {
+  display: flex;
+  gap: 1rem;
+  background: #fafafa;
+  padding: 1rem;
+  margin-bottom: 1.6rem;
+  border: 1px solid #ececec;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.preview-image {
+  width: 70px;
+  height: 70px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.preview-image svg {
+  width: 100%;
+  height: 100%;
+}
+
+.preview-info {
+  flex: 1;
+}
+
+.preview-info .product-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+  color: #000000;
+}
+
+.current-vs-new {
+  font-size: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 4px;
+}
+
+.current-vs-new span {
+  background: #ffffff;
+  padding: 2px 8px;
+  border-radius: 16px;
+  font-family: monospace;
+  font-size: 0.7rem;
+  border: 1px solid #e0e0e0;
+}
+
+/* Edit Groups */
+.edit-group {
+  margin-bottom: 1.8rem;
+}
+
+.edit-label {
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 0.9rem;
+  display: block;
+  color: #1e1e1e;
+}
+
+/* Color Options with Actual Swatches */
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.color-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d4d4d4;
+  background: #ffffff;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 450;
+  transition: all 0.18s ease;
+  border-radius: 40px;
+}
+
+.color-badge:hover {
+  border-color: #000000;
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.color-badge.selected {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.color-badge.selected .color-swatch {
+  border: 1px solid #ffffff;
+}
+
+/* Size Options */
+.size-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.size-badge {
+  border: 1px solid #d4d4d4;
+  background: #ffffff;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  border-radius: 40px;
+  min-width: 52px;
+  text-align: center;
+}
+
+.size-badge:hover {
+  border-color: #000000;
+}
+
+.size-badge.selected {
+  background: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 0.2rem 1.8rem 1.8rem 1.8rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-btn {
+  background: #000000;
+  border: none;
+  color: #ffffff;
+  font-weight: 550;
+  padding: 0.9rem 1.5rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  width: 100%;
+  text-transform: uppercase;
+  border-radius: 40px;
+}
+
+.save-btn:hover {
+  background: #2a2a2a;
+}
+
+/* Responsive */
+@media (max-width: 680px) {
+  .modal-body {
+    padding: 1rem;
+  }
+  
+  .product-preview-row {
+    padding: 0.8rem;
+  }
+  
+  .color-badge,
+  .size-badge {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+  }
+  
+  .modal-header {
+    padding: 1.2rem 1.5rem 0.6rem 1.5rem;
+  }
+  
+  .modal-footer {
+    padding: 0.2rem 1.5rem 1.5rem 1.5rem;
+  }
+}
