@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header from "../Components/header";
+import Footer from "../Components/footer";
 import './User.css';
 
 const User = () => {
+  const navigate = useNavigate();
+  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
   const [activeSection, setActiveSection] = useState('wishlist');
   const [cartItems, setCartItems] = useState([
     { id: 1, name: 'Premium Headphones', price: 199.99, quantity: 1, emoji: '🎧' },
@@ -22,7 +27,11 @@ const User = () => {
     { id: 'ORD-2024003', date: '2024-01-22', items: 5, total: 799.95, status: 'Delivered' }
   ]);
 
-  
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
   const updateQuantity = (id, change) => {
     setCartItems(cartItems.map(item => {
       if (item.id === id) {
@@ -42,6 +51,52 @@ const User = () => {
     const shipping = subtotal > 0 ? 15.00 : 0;
     return { subtotal, shipping, total: subtotal + shipping };
   };
+
+  const WishlistIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+
+  const OrderIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
+
+  const CartIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <circle cx="9" cy="21" r="1" />
+      <circle cx="20" cy="21" r="1" />
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+  );
+
+  const SettingsIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+
+  const LogoutIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+
+  const UserIcon = () => (
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </svg>
+  );
 
   const renderWishlist = () => (
     <div className="wishlist-section">
@@ -75,8 +130,8 @@ const User = () => {
               </span>
             </div>
             <div className="order-details">
-              <span className="order-date">📅 {order.date}</span>
-              <span className="order-items">📦 {order.items} items</span>
+              <span className="order-date">{order.date}</span>
+              <span className="order-items">{order.items} items</span>
               <span className="order-total">${order.total.toFixed(2)}</span>
             </div>
             <div className="order-actions">
@@ -91,7 +146,7 @@ const User = () => {
 
   const renderCart = () => {
     const { subtotal, shipping, total } = calculateTotal();
-    
+
     return (
       <div className="cart-section">
         <h2 className="section-title">Shopping Cart</h2>
@@ -115,8 +170,8 @@ const User = () => {
                   <div className="cart-item-total">
                     ${(item.price * item.quantity).toFixed(2)}
                   </div>
-                  <button 
-                    className="remove-item-btn" 
+                  <button
+                    className="remove-item-btn"
                     onClick={() => removeFromCart(item.id)}
                   >
                     ✕
@@ -148,60 +203,69 @@ const User = () => {
     );
   };
 
+  if (!user.email) {
+    navigate('/login');
+    return null;
+  }
+
   return (
-    <div className="user-dashboard">
-      <aside className="sidebar">
-        <div className="user-profile">
-          <div className="user-avatar">👤</div>
-          <h3 className="user-name">John Doe</h3>
-          <p className="user-email">john.doe@example.com</p>
-        </div>
-        
-        <nav className="sidebar-nav">
-          <button 
-            className={`nav-item ${activeSection === 'wishlist' ? 'active' : ''}`}
-            onClick={() => setActiveSection('wishlist')}
-          >
-            <span className="nav-icon">❤️</span>
-            <span className="nav-label">Wishlist</span>
-            <span className="nav-badge">4</span>
-          </button>
-          
-          <button 
-            className={`nav-item ${activeSection === 'orders' ? 'active' : ''}`}
-            onClick={() => setActiveSection('orders')}
-          >
-            <span className="nav-icon">📦</span>
-            <span className="nav-label">Order History</span>
-          </button>
-          
-          <button 
-            className={`nav-item ${activeSection === 'cart' ? 'active' : ''}`}
-            onClick={() => setActiveSection('cart')}
-          >
-            <span className="nav-icon">🛒</span>
-            <span className="nav-label">Cart</span>
-            <span className="nav-badge">3</span>
-          </button>
-          
-          <button className="nav-item">
-            <span className="nav-icon">⚙️</span>
-            <span className="nav-label">Settings</span>
-          </button>
-          
-          <button className="nav-item logout">
-            <span className="nav-icon">🚪</span>
-            <span className="nav-label">Logout</span>
-          </button>
-        </nav>
-      </aside>
-      
-      <main className="main-content">
-        {activeSection === 'wishlist' && renderWishlist()}
-        {activeSection === 'orders' && renderOrderHistory()}
-        {activeSection === 'cart' && renderCart()}
-      </main>
-    </div>
+    <>
+      <Header />
+      <div className="user-dashboard">
+        <aside className="sidebar">
+          <div className="user-profile">
+            <div className="user-avatar"><UserIcon /></div>
+            <h3 className="user-name">{user.firstName} {user.lastName}</h3>
+            <p className="user-email">{user.email}</p>
+          </div>
+
+          <nav className="sidebar-nav">
+            <button
+              className={`nav-item ${activeSection === 'wishlist' ? 'active' : ''}`}
+              onClick={() => setActiveSection('wishlist')}
+            >
+              <span className="nav-icon"><WishlistIcon /></span>
+              <span className="nav-label">Wishlist</span>
+              <span className="nav-badge">4</span>
+            </button>
+
+            <button
+              className={`nav-item ${activeSection === 'orders' ? 'active' : ''}`}
+              onClick={() => setActiveSection('orders')}
+            >
+              <span className="nav-icon"><OrderIcon /></span>
+              <span className="nav-label">Order History</span>
+            </button>
+
+            <button
+              className={`nav-item ${activeSection === 'cart' ? 'active' : ''}`}
+              onClick={() => setActiveSection('cart')}
+            >
+              <span className="nav-icon"><CartIcon /></span>
+              <span className="nav-label">Cart</span>
+              <span className="nav-badge">3</span>
+            </button>
+
+            <button className="nav-item">
+              <span className="nav-icon"><SettingsIcon /></span>
+              <span className="nav-label">Settings</span>
+            </button>
+
+            <button className="nav-item logout" onClick={handleLogout}>
+              <span className="nav-icon"><LogoutIcon /></span>
+              <span className="nav-label">Logout</span>
+            </button>
+          </nav>
+        </aside>
+
+        <main className="main-content">
+          {activeSection === 'wishlist' && renderWishlist()}
+          {activeSection === 'orders' && renderOrderHistory()}
+          {activeSection === 'cart' && renderCart()}
+        </main>
+      </div>
+      <Footer />
+    </>
   );
 };
 

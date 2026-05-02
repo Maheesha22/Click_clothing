@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../Components/footer";
+import EditProductModal from "./EditProduct"; // ✅ ADD THIS IMPORT
 import "./cart.css";
 
 const ProductSVG = () => (
@@ -15,15 +16,43 @@ const ProductSVG = () => (
   </svg>
 );
 
-const initialItems = [
-  { id: 1, name: "Long Sleeve", size: 28, price: 2500, qty: 1, color: "#c0736a" },
-  { id: 2, name: "Long Sleeve", size: 28, price: 2500, qty: 1, color: "#c0736a" },
+// ✅ ADD COLOR PALETTE (for mapping color hex to names)
+const colorPalette = [
+  { name: "Black", value: "#1F1F1F" },
+  { name: "White", value: "#F5F5F5" },
+  { name: "Gray", value: "#9E9E9E" },
+  { name: "Navy", value: "#1B2A4A" },
+  { name: "Sand", value: "#D6C5A9" },
 ];
 
 export default function Cart() {
-  const [items, setItems]       = useState(initialItems);
+  // Load cart from localStorage on initial render
+  const [items, setItems] = useState(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [selected, setSelected] = useState(new Set());
-  const navigate                = useNavigate();
+  const navigate = useNavigate();
+
+  // Save to localStorage whenever items change
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(items));
+  }, [items]);
+
+  // Listen for cart updates from other components
+  useEffect(() => {
+    const handleCartUpdate = (event) => {
+      setItems(event.detail);
+    };
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, []);
+
+  // ✅ ADD STATE FOR EDIT MODAL
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [tempColor, setTempColor] = useState("");
+  const [tempSize, setTempSize] = useState("");
 
   const toggleSelect = (id) => {
     setSelected((prev) => {
@@ -62,18 +91,41 @@ export default function Cart() {
     });
   };
 
+  // ✅ ADD FUNCTION TO OPEN EDIT MODAL
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setTempColor(item.colorName);
+    setTempSize(item.sizeLabel);
+    setIsModalOpen(true);
+  };
+
+  // ✅ ADD FUNCTION TO SAVE EDITED CHANGES
+  const saveEditChanges = () => {
+    if (editingItem) {
+      const updatedColor = colorPalette.find(c => c.name === tempColor);
+      setItems(prev =>
+        prev.map(item =>
+          item.id === editingItem.id
+            ? {
+                ...item,
+                colorName: tempColor,
+                color: updatedColor ? updatedColor.value : item.color,
+                sizeLabel: tempSize,
+                size: tempSize,
+              }
+            : item
+        )
+      );
+    }
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
+
   const selectedItems = items.filter((item) => selected.has(item.id));
-
   const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
-
-  /*const subtotal = items
-    .filter((item) => selected.has(item.id))
-    .reduce((sum, item) => sum + item.price * item.qty, 0);*/
-
   const selectedTotalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
 
   const handleProceedToCheckout = () => {
-    // ✅ CHANGE 3 — alert if nothing selected, then pass selectedItems + subtotal to checkout
     if (selectedItems.length === 0) {
       alert("Please select at least one item to proceed.");
       return;
@@ -83,11 +135,9 @@ export default function Cart() {
     });
   };
 
-
   const handleProceedToHome = () => {
     navigate("/");
   };
-
 
   return (
     <div className="cart-page-wrapper">
@@ -142,12 +192,21 @@ export default function Cart() {
                   <div className="product-meta">
                     <span className="product-name">{item.name}</span>
                     <div className="product-info-row">
-                      <span className="product-size">{item.size}</span>
+                      <span className="product-size">{item.sizeLabel || item.size}</span>
                       <span
                         className="product-color-swatch"
                         style={{ background: item.color }}
                       />
-                      <span className="edit-icon">✏️</span>
+                      {/* ✅ REPLACE the edit icon with a button that opens modal */}
+                      <button 
+                        className="edit-pencil-btn" 
+                        onClick={() => openEditModal(item)}
+                        aria-label="Edit product"
+                      >
+                        <svg className="pencil-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -201,6 +260,19 @@ export default function Cart() {
 
         </div>
       </main>
+
+      {/* ✅ ADD EDIT MODAL COMPONENT -  */}
+      <EditProductModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        product={editingItem}
+        tempColor={tempColor}
+        setTempColor={setTempColor}
+        tempSize={tempSize}
+        setTempSize={setTempSize}
+        onSave={saveEditChanges}
+      />
+
       <Footer />
     </div>
   );
