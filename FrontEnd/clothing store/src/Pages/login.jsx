@@ -34,7 +34,7 @@ export default function LoginPage() {
       console.log("Login success:", response.data);
       
       // Store user data
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      sessionStorage.setItem('user', JSON.stringify(response.data.user));
       
       // Redirect based on isAdmin
       if (response.data.user.isAdmin) {
@@ -75,7 +75,7 @@ export default function LoginPage() {
       console.log("Backend response:", backendResponse.data);
       
       // Store user data
-      localStorage.setItem('user', JSON.stringify(backendResponse.data.user));
+      sessionStorage.setItem('user', JSON.stringify(backendResponse.data.user));
       
       // Redirect based on isAdmin
       if (backendResponse.data.user.isAdmin) {
