@@ -36,6 +36,27 @@
   color: var(--tr-text);
 }
 
+/* Selected size state in modal */
+.tr-modal-sz.selected {
+  background: #1a1a1a !important;
+  color: white !important;
+  border: 1px solid #1a1a1a !important;
+}
+
+.tr-modal-sz.avail:hover {
+  background: #f0f0f0;
+  transform: scale(1.05);
+}
+
+.tr-modal-sz.avail {
+  cursor: pointer;
+}
+
+.tr-modal-sz.na {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* ══════════════════════════
    TAB BAR
 ══════════════════════════ */

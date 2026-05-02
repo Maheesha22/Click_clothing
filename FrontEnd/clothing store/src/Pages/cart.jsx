@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../Components/footer";
 import EditProductModal from "./EditProduct"; // ✅ ADD THIS IMPORT
@@ -25,16 +25,28 @@ const colorPalette = [
   { name: "Sand", value: "#D6C5A9" },
 ];
 
-// ✅ UPDATED initialItems with colorName and sizeLabel
-const initialItems = [
-  { id: 1, name: "Long Sleeve", size: 28, price: 2500, qty: 1, color: "#c0736a", colorName: "Sand", sizeLabel: "28" },
-  { id: 2, name: "Long Sleeve", size: 28, price: 2500, qty: 1, color: "#c0736a", colorName: "Sand", sizeLabel: "28" },
-];
-
 export default function Cart() {
-  const [items, setItems] = useState(initialItems);
+  // Load cart from localStorage on initial render
+  const [items, setItems] = useState(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [selected, setSelected] = useState(new Set());
   const navigate = useNavigate();
+
+  // Save to localStorage whenever items change
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(items));
+  }, [items]);
+
+  // Listen for cart updates from other components
+  useEffect(() => {
+    const handleCartUpdate = (event) => {
+      setItems(event.detail);
+    };
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    return () => window.removeEventListener('cartUpdated', handleCartUpdate);
+  }, []);
 
   // ✅ ADD STATE FOR EDIT MODAL
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -249,7 +261,7 @@ export default function Cart() {
         </div>
       </main>
 
-      {/* ✅ ADD EDIT MODAL COMPONENT - place this before Footer */}
+      {/* ✅ ADD EDIT MODAL COMPONENT -  */}
       <EditProductModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

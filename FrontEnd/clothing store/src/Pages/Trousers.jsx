@@ -565,13 +565,87 @@ function ReviewsSection({ productId, productName }) {
   );
 }
 
+// ── Add to Cart Helper Function ─────────────────────────────────────────
+// Custom hook for cart functionality
+function useCart() {
+  const navigate = useNavigate();
+  
+  const addToCartAndRedirect = (product, selectedColor, selectedSize, price) => {
+    // Get color name from hex value
+    const getColorName = (hex) => {
+      const colorMap = {
+        "#f5f5f0": "White",
+        "#111111": "Black",
+        "#1a3a5c": "Navy",
+        "#8b3a2a": "Brick",
+        "#c4a882": "Sand",
+        "#4a6fa5": "Steel Blue",
+        "#3d4a2e": "Olive",
+        "#d4c5a9": "Sand",
+        "#444444": "Gray",
+        "#6b7a3e": "Olive",
+        "#888888": "Gray",
+        "#c4a060": "Camel",
+        "#6e7f8d": "Slate",
+        "#ece8dc": "White",
+        "#6b2737": "Burgundy",
+        "#b5a47a": "Khaki",
+        "#c0736a": "Sand",
+      };
+      return colorMap[hex] || "Custom";
+    };
 
-// ── Product Modal ────────────────────────────────────────────────
+    // Create cart item object matching Cart.jsx structure
+    const cartItem = {
+      id: Date.now(), // Use timestamp for unique ID
+      name: product.name,
+      size: selectedSize ? parseInt(selectedSize) : 32,
+      sizeLabel: selectedSize ? selectedSize.toString() : "32",
+      price: price,
+      qty: 1,
+      color: selectedColor || product.colors[0],
+      colorName: selectedColor ? getColorName(selectedColor) : getColorName(product.colors[0]),
+    };
+
+    // Get existing cart from localStorage
+    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    
+    // Check if same product (same name, size, color) exists
+    const existingItemIndex = existingCart.findIndex(
+      item => item.name === cartItem.name && 
+              item.sizeLabel === cartItem.sizeLabel && 
+              item.colorName === cartItem.colorName
+    );
+    
+    if (existingItemIndex > -1) {
+      // Increment quantity if exists
+      existingCart[existingItemIndex].qty += 1;
+    } else {
+      // Add new item
+      existingCart.push(cartItem);
+    }
+    
+    // Save back to localStorage
+    localStorage.setItem('cart', JSON.stringify(existingCart));
+    
+    // Dispatch custom event for cart update
+    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: existingCart }));
+    
+    // Redirect to cart page
+    navigate('/cart');
+  };
+  
+  return { addToCartAndRedirect };
+}
+
+// ── Product Modal (Modified with Add to Cart) ────────────────────────────────────────────────
 function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, onClose }) {
   const [zoom, setZoom]         = useState(1);
   const [selColor, setSelColor] = useState(null);
+  const [selSize, setSelSize]   = useState(null);
   const [addingColor, setAddingColor] = useState(false);
-  const [imgKey, setImgKey]     = useState(0); // for animation reset
+  const [imgKey, setImgKey]     = useState(0);
+  const { addToCartAndRedirect } = useCart();
 
   const allColors = [...product.colors, ...extraColors];
   const ZOOM_STEP = 0.25, MAX_ZOOM = 3, MIN_ZOOM = 1;
@@ -584,11 +658,27 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
     return product.img;
   })();
 
+  // Handle Add to Cart
+  const handleAddToCart = () => {
+    if (!selSize) {
+      alert("Please select a size");
+      return;
+    }
+    if (!selColor && allColors.length > 0) {
+      alert("Please select a color");
+      return;
+    }
+    
+    // Use selected color or first available
+    const finalColor = selColor || allColors[0];
+    addToCartAndRedirect(product, finalColor, selSize, price);
+  };
+
   function handleColorSelect(color) {
     const next = selColor === color ? null : color;
     setSelColor(next);
-    setZoom(1); // reset zoom on color change
-    setImgKey(k => k + 1); // trigger fade animation
+    setZoom(1);
+    setImgKey(k => k + 1);
   }
 
   const handleZoomIn  = (e) => { e.stopPropagation(); setZoom(z => Math.min(z + ZOOM_STEP, MAX_ZOOM)); };
@@ -686,13 +776,31 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
               )}
             </div>
 
-            {/* Sizes */}
+            {/* Sizes - Made interactive */}
             <div>
-              <div className="tr-modal-sizelbl">Available Sizes</div>
+              <div className="tr-modal-sizelbl">
+                Available Sizes
+                {selSize && <span className="tr-modal-color-hint"> — selected {selSize}</span>}
+              </div>
               <div className="tr-modal-sizes">
                 {ALL_SIZES.map((s) => {
                   const has = product.sizes.includes(s);
-                  return <span key={s} className={`tr-modal-sz ${has ? "avail" : "na"}`}>{s}</span>;
+                  return (
+                    <button
+                      key={s}
+                      className={`tr-modal-sz ${has ? "avail" : "na"} ${selSize === s ? "selected" : ""}`}
+                      onClick={() => has && setSelSize(s)}
+                      disabled={!has}
+                      style={{
+                        cursor: has ? "pointer" : "not-allowed",
+                        background: selSize === s ? "#1a1a1a" : "transparent",
+                        color: selSize === s ? "white" : (has ? "inherit" : "#ccc"),
+                        border: selSize === s ? "1px solid #1a1a1a" : "1px solid #ddd"
+                      }}
+                    >
+                      {s}
+                    </button>
+                  );
                 })}
               </div>
             </div>
@@ -703,7 +811,12 @@ function ProductModal({ product, price, extraColors, onAddColor, onRemoveColor, 
               up to 4 x <strong>Rs {Math.round(price / 4).toLocaleString()}</strong> with <span className="tr-payzy">PayZy</span>
             </div>
 
-            <button className="tr-modal-atc" disabled={!product.inStock}>
+            {/* Modified Add to Cart button */}
+            <button 
+              className="tr-modal-atc" 
+              disabled={!product.inStock}
+              onClick={handleAddToCart}
+            >
               {product.inStock ? "Add to Cart" : "Out of Stock"}
             </button>
           </div>
