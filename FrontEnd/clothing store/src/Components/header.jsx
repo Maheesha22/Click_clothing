@@ -73,7 +73,7 @@ const Header = () => {
           <button
             className="icon-btn"
             aria-label="Wishlist"
-            onClick={() => navigate('/user?tab=wishlist')}
+            onClick={() => navigate('/user/wishlist')}
             title="Wishlist"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
