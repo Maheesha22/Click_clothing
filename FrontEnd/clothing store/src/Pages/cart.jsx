@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../Components/footer";
-import EditProductModal from "./EditProduct"; // ✅ ADD THIS IMPORT
+import EditProductModal from "./EditProduct";
+import cartService from "../services/cartService";
 import "./cart.css";
 
 const ProductSVG = () => (
@@ -16,7 +17,6 @@ const ProductSVG = () => (
   </svg>
 );
 
-// ✅ ADD COLOR PALETTE (for mapping color hex to names)
 const colorPalette = [
   { name: "Black", value: "#1F1F1F" },
   { name: "White", value: "#F5F5F5" },
@@ -26,72 +26,157 @@ const colorPalette = [
 ];
 
 export default function Cart() {
-  // Load cart from localStorage on initial render
-  const [items, setItems] = useState(() => {
-    const savedCart = localStorage.getItem('cart');
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(new Set());
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Save to localStorage whenever items change
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
-  }, [items]);
+  // Get userId from sessionStorage
+  const getUserId = () => {
+    try {
+      const userData = sessionStorage.getItem('user');
+      console.log('Cart - SessionStorage user data:', userData);
+      
+      if (userData) {
+        const user = JSON.parse(userData);
+        console.log('Cart - Parsed user:', user);
+        return user.id;
+      }
+    } catch (error) {
+      console.error('Cart - Error parsing user data:', error);
+    }
+    return null;
+  };
 
-  // Listen for cart updates from other components
+  const userId = getUserId();
+  console.log('Cart - Final userId:', userId);
+
+  const fetchCartItems = async () => {
+    console.log('Cart - Fetching cart items for userId:', userId);
+    
+    if (!userId) {
+      console.log('Cart - No userId, setting loading false');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await cartService.getCart(userId);
+      console.log('Cart - API Response:', response);
+      
+      if (response && response.success) {
+        const cartItems = response.cartItems || [];
+        console.log('Cart - Raw cart items:', cartItems);
+        console.log('Cart - Number of items:', cartItems.length);
+        
+        if (cartItems.length > 0) {
+          const formattedItems = cartItems.map(item => ({
+            id: item.id,
+            name: item.name || 'Product',
+            size: item.size ? parseInt(item.size) : 32,
+            sizeLabel: item.size || '32',
+            price: parseFloat(item.price) || 0,
+            qty: item.quantity || 1,
+            color: item.color || '#000000',
+            colorName: item.color || 'Black',
+            imageUrl: item.imageUrl || ''
+          }));
+          
+          console.log('Cart - Formatted items:', formattedItems);
+          setItems(formattedItems);
+        } else {
+          console.log('Cart - No items in cart');
+          setItems([]);
+        }
+      } else {
+        console.log('Cart - Response success is false or response is invalid');
+        setItems([]);
+      }
+    } catch (error) {
+      console.error('Cart - Error fetching cart:', error);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch cart on mount and when userId changes
+  useEffect(() => {
+    console.log('Cart - useEffect triggered');
+    fetchCartItems();
+  }, [userId]);
+
+  // Listen for cart updates
   useEffect(() => {
     const handleCartUpdate = (event) => {
-      setItems(event.detail);
+      console.log('Cart - Received cartUpdated event:', event.detail);
+      fetchCartItems();
     };
+    
     window.addEventListener('cartUpdated', handleCartUpdate);
     return () => window.removeEventListener('cartUpdated', handleCartUpdate);
   }, []);
 
-  // ✅ ADD STATE FOR EDIT MODAL
+  const toggleSelect = (id) => {
+    setSelected(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(id)) {
+        newSelected.delete(id);
+      } else {
+        newSelected.add(id);
+      }
+      return newSelected;
+    });
+  };
+
+  const changeQty = async (id, delta) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    
+    const newQty = Math.max(1, item.qty + delta);
+    
+    if (newQty !== item.qty) {
+      try {
+        const response = await cartService.updateQuantity(id, newQty);
+        console.log('Cart - Update quantity response:', response);
+        
+        if (response.success) {
+          setItems(prev =>
+            prev.map(item =>
+              item.id === id ? { ...item, qty: newQty } : item
+            )
+          );
+        }
+      } catch (error) {
+        console.error('Cart - Error updating quantity:', error);
+      }
+    }
+  };
+
+  const removeItem = async (id) => {
+    try {
+      const response = await cartService.removeFromCart(id);
+      console.log('Cart - Remove item response:', response);
+      
+      if (response.success) {
+        setItems(prev => prev.filter(item => item.id !== id));
+        setSelected(prev => {
+          const newSelected = new Set(prev);
+          newSelected.delete(id);
+          return newSelected;
+        });
+      }
+    } catch (error) {
+      console.error('Cart - Error removing item:', error);
+    }
+  };
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [tempColor, setTempColor] = useState("");
   const [tempSize, setTempSize] = useState("");
 
-  const toggleSelect = (id) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
-  const changeQty = (id, delta) => {
-    setItems((prev) =>
-      prev
-        .map((item) =>
-          item.id === id ? { ...item, qty: Math.max(0, item.qty + delta) } : item
-        )
-        .filter((item) => item.qty > 0)
-    );
-    if (delta < 0) {
-      const item = items.find((i) => i.id === id);
-      if (item && item.qty + delta <= 0) {
-        setSelected((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      }
-    }
-  };
-
-  const removeItem = (id) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-  };
-
-  // ✅ ADD FUNCTION TO OPEN EDIT MODAL
   const openEditModal = (item) => {
     setEditingItem(item);
     setTempColor(item.colorName);
@@ -99,7 +184,6 @@ export default function Cart() {
     setIsModalOpen(true);
   };
 
-  // ✅ ADD FUNCTION TO SAVE EDITED CHANGES
   const saveEditChanges = () => {
     if (editingItem) {
       const updatedColor = colorPalette.find(c => c.name === tempColor);
@@ -121,8 +205,8 @@ export default function Cart() {
     setEditingItem(null);
   };
 
-  const selectedItems = items.filter((item) => selected.has(item.id));
-  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const selectedItems = items.filter(item => selected.has(item.id));
+  const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const selectedTotalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
 
   const handleProceedToCheckout = () => {
@@ -139,10 +223,22 @@ export default function Cart() {
     navigate("/");
   };
 
+  if (loading) {
+    return (
+      <div className="cart-page-wrapper">
+        <header className="cart-header">
+          <img src="/logo.jpeg" alt="CLiCK" className="cart-logo-img" />
+        </header>
+        <main className="cart-main">
+          <div style={{ textAlign: 'center', padding: '50px' }}>Loading your cart...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="cart-page-wrapper">
-
-      {/* ── Header ── */}
       <header className="cart-header">
         <img src="/logo.jpeg" alt="CLiCK" className="cart-logo-img" />
         <div className="cart-icon-wrap">
@@ -152,20 +248,15 @@ export default function Cart() {
             <circle cx="20" cy="21" r="1" />
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
           </svg>
-          <span className="cart-icon-badge">{selectedTotalQty > 0 ? selectedTotalQty : "+"}</span>
+          <span className="cart-icon-badge">{selectedTotalQty > 0 ? selectedTotalQty : "0"}</span>
         </div>
       </header>
 
-      {/* ── Main ── */}
       <main className="cart-main">
         <h1 className="cart-page-title">Your Cart</h1>
 
         <div className="cart-layout">
-
-          {/* ── Cart Items ── */}
           <div className="cart-items-container">
-
-            {/* Column Header */}
             <div className="cart-table-header">
               <span>Product</span>
               <span className="th-center">Price</span>
@@ -174,70 +265,88 @@ export default function Cart() {
               <span />
             </div>
 
-            {/* Item Rows */}
-            {items.map((item) => (
-              <div className="cart-row" key={item.id}>
+            {items.length === 0 ? (
+              <div className="empty-cart-message" style={{ textAlign: 'center', padding: '50px' }}>
+                <p>Your cart is empty!</p>
+                <button 
+                  onClick={() => navigate('/trousers')} 
+                  style={{ 
+                    padding: '10px 20px', 
+                    cursor: 'pointer',
+                    backgroundColor: '#000',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '5px',
+                    marginTop: '10px'
+                  }}
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            ) : (
+              items.map((item) => (
+                <div className="cart-row" key={item.id}>
+                  <div
+                    className={`select-circle${selected.has(item.id) ? " selected" : ""}`}
+                    onClick={() => toggleSelect(item.id)}
+                  />
 
-                {/* Select Circle */}
-                <div
-                  className={`select-circle${selected.has(item.id) ? " selected" : ""}`}
-                  onClick={() => toggleSelect(item.id)}
-                />
-
-                {/* Product */}
-                <div className="product-cell">
-                  <div className="product-image">
-                    <ProductSVG />
-                  </div>
-                  <div className="product-meta">
-                    <span className="product-name">{item.name}</span>
-                    <div className="product-info-row">
-                      <span className="product-size">{item.sizeLabel || item.size}</span>
-                      <span
-                        className="product-color-swatch"
-                        style={{ background: item.color }}
-                      />
-                      {/* ✅ REPLACE the edit icon with a button that opens modal */}
-                      <button 
-                        className="edit-pencil-btn" 
-                        onClick={() => openEditModal(item)}
-                        aria-label="Edit product"
-                      >
-                        <svg className="pencil-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                          <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
+                  <div className="product-cell">
+                    <div className="product-image">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} style={{ width: '80px', height: '80px', objectFit: 'cover' }} />
+                      ) : (
+                        <ProductSVG />
+                      )}
+                    </div>
+                    <div className="product-meta">
+                      <span className="product-name">{item.name}</span>
+                      <div className="product-info-row">
+                        <span className="product-size">Size: {item.sizeLabel}</span>
+                        <span
+                          className="product-color-swatch"
+                          style={{ 
+                            background: item.color,
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            display: 'inline-block',
+                            marginLeft: '10px'
+                          }}
+                        />
+                        <button 
+                          className="edit-pencil-btn" 
+                          onClick={() => openEditModal(item)}
+                          style={{ marginLeft: '10px', cursor: 'pointer' }}
+                        >
+                          ✏️
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Price */}
-                <div className="price-cell">Rs.{item.price.toFixed(2)}</div>
+                  <div className="price-cell">Rs.{item.price.toFixed(2)}</div>
 
-                {/* Quantity */}
-                <div className="qty-cell">
-                  <div className="qty-control">
-                    <button onClick={() => changeQty(item.id, -1)}>−</button>
-                    <span className="qty-num">{item.qty}</span>
-                    <button onClick={() => changeQty(item.id, 1)}>+</button>
+                  <div className="qty-cell">
+                    <div className="qty-control">
+                      <button onClick={() => changeQty(item.id, -1)}>-</button>
+                      <span className="qty-num">{item.qty}</span>
+                      <button onClick={() => changeQty(item.id, 1)}>+</button>
+                    </div>
+                  </div>
+
+                  <div className="total-cell">
+                    Rs.{(item.price * item.qty).toFixed(2)}
+                  </div>
+
+                  <div className="remove-cell">
+                    <button className="remove-btn" onClick={() => removeItem(item.id)}>✕</button>
                   </div>
                 </div>
-
-                {/* Total */}
-                <div className="total-cell">
-                  Rs.{(item.price * item.qty).toFixed(2)}
-                </div>
-
-                {/* Remove */}
-                <div className="remove-cell">
-                  <button className="remove-btn" onClick={() => removeItem(item.id)}>✕</button>
-                </div>
-
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
-          {/* ── Order Summary ── */}
           <aside className="order-summary">
             <h2 className="summary-title">Order Summary</h2>
             <div className="summary-divider" />
@@ -257,11 +366,9 @@ export default function Cart() {
             </button>
             <button className="btn-continue" onClick={handleProceedToHome}>Continue Shopping</button>
           </aside>
-
         </div>
       </main>
 
-      {/* ✅ ADD EDIT MODAL COMPONENT -  */}
       <EditProductModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
