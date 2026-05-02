@@ -1,20 +1,21 @@
-const express = require('express');
-const cors = require('cors');  // UNCOMMENT THIS
-const app = express();
+require('dotenv').config();   // ← loads .env for Cloudinary keys
 
-app.use(cors());  // UNCOMMENT THIS
+const express = require('express');
+const cors    = require('cors');
+const app     = express();
+
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
-})
+});
 
 const db = require("./models");
 
 db.sequelize.authenticate()
   .then(() => {
     console.log("✅ Database connected successfully!");
-    // ADD THIS LINE TO CREATE TABLES
     return db.sequelize.sync({ alter: true });
   })
   .then(() => {
@@ -24,8 +25,11 @@ db.sequelize.authenticate()
     console.error("❌ Unable to connect to database:", err);
   });
 
-const userRoutes = require("./routes/UserRoutes");
-app.use("/api/users", userRoutes);
+const userRoutes    = require("./routes/UserRoutes");
+const productRoutes = require("./routes/productRoutes");   // ← added
+
+app.use("/api/users",    userRoutes);
+app.use("/api/products", productRoutes);                   // ← added
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
