@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from "../Components/header";
 import Footer from "../Components/footer";
@@ -10,7 +10,13 @@ import Settings from './userpages/Settings';
 
 const User = () => {
   const navigate = useNavigate();
-  const [user] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+  const [user] = useState(JSON.parse(sessionStorage.getItem('user') || '{}'));
+
+  useEffect(() => {
+    if (!user.email) {
+      navigate('/login');
+    }
+  }, []);
   const [activeSection, setActiveSection] = useState('wishlist');
   const [cartItems, setCartItems] = useState([
     { id: 1, name: 'Premium Headphones', price: 199.99, quantity: 1, emoji: '🎧' },
@@ -32,7 +38,7 @@ const User = () => {
   ]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     navigate('/login');
   };
 
