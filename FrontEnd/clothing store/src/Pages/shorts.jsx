@@ -1,242 +1,247 @@
-
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import WhatsAppButton from "../components/whatsappbtn";
-import "./Shirts.css";
+import "./shorts.css";
+import WhatsAppButton from "../Components/whatsappbtn";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
 const ALL_PRODUCTS = [
   {
     id: 1,
-    name: "Classic Oxford Shirt – White",
-    basePrice: 2495,
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    name: "Classic Denim Shorts – Blue",
+    basePrice: 2990,
+    sizes: [28, 30, 32, 34, 36],
     inStock: true,
-    colors: ["#ffffff", "#d4c5a9", "#1a3a5c"],
-    colorNames: { "#ffffff": "White", "#d4c5a9": "Beige", "#1a3a5c": "Navy" },
+    colors: ["#1a3a5c", "#111111", "#2c4a7c"],
+    colorNames: { "#1a3a5c": "Blue", "#111111": "Black", "#2c4a7c": "Dark Blue" },
     colorImages: {
-      "#ffffff": [
-        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80",
-        "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80",
-      ],
-      "#d4c5a9": [
-        "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=80",
-      ],
       "#1a3a5c": [
-        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+        "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
+        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&q=80",
+      ],
+      "#111111": [
+        "https://images.unsplash.com/photo-1580266467769-e6a0e9ecf9e6?w=600&q=80",
+      ],
+      "#2c4a7c": [
+        "https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80",
-    sku: "#COX-001-WHT",
-    material: "Oxford Cotton",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 5\'11", wearing size M',
-    stockCount: 15,
+    img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
+    sku: "#CDS-001-BLU",
+    material: "Denim",
+    composition: "98% Cotton, 2% Spandex",
+    modelInfo: 'Model Height 5\'11", wearing size 32',
+    stockCount: 12,
     freeShippingThreshold: 8000,
   },
   {
     id: 2,
-    name: "Slim Fit Formal Shirt – Sky Blue",
-    basePrice: 2890,
-    sizes: ["S", "M", "L", "XL"],
+    name: "Chino Shorts – Khaki",
+    basePrice: 2490,
+    sizes: [30, 32, 34, 36, 38],
     inStock: true,
-    colors: ["#87ceeb", "#ffffff", "#c4e0f3"],
-    colorNames: { "#87ceeb": "Sky Blue", "#ffffff": "White", "#c4e0f3": "Powder Blue" },
+    colors: ["#c3b091", "#a8987a", "#8a7a5a"],
+    colorNames: { "#c3b091": "Khaki", "#a8987a": "Tan", "#8a7a5a": "Brown" },
     colorImages: {
-      "#87ceeb": [
-        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
+      "#c3b091": [
+        "https://images.unsplash.com/photo-1580266467769-e6a0e9ecf9e6?w=600&q=80",
+        "https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?w=600&q=80",
       ],
-      "#ffffff": [
-        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80",
+      "#a8987a": [
+        "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
       ],
-      "#c4e0f3": [
-        "https://images.unsplash.com/photo-1512327536842-5aa37d1ba3e3?w=600&q=80",
+      "#8a7a5a": [
+        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
-    sku: "#SFF-002-SBL",
-    material: "Cotton Blend",
-    composition: "60% Cotton, 40% Polyester",
-    modelInfo: 'Model Height 6\'0", wearing size L',
+    img: "https://images.unsplash.com/photo-1580266467769-e6a0e9ecf9e6?w=600&q=80",
+    sku: "#CHS-002-KHK",
+    material: "Chino Cotton",
+    composition: "100% Cotton",
+    modelInfo: 'Model Height 6\'0", wearing size 34',
     stockCount: 8,
     freeShippingThreshold: 8000,
   },
   {
     id: 3,
-    name: "Linen Relaxed Shirt – Ecru",
-    basePrice: 3290,
-    sizes: ["M", "L", "XL", "XXL"],
+    name: "Sports Shorts – Black",
+    basePrice: 1890,
+    sizes: [28, 30, 32, 34, 36, 38],
     inStock: true,
-    colors: ["#ece8dc", "#d4c5a9", "#c4a882"],
-    colorNames: { "#ece8dc": "Ecru", "#d4c5a9": "Beige", "#c4a882": "Sand" },
+    colors: ["#111111", "#333333", "#555555"],
+    colorNames: { "#111111": "Black", "#333333": "Dark Grey", "#555555": "Grey" },
     colorImages: {
-      "#ece8dc": [
-        "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80",
+      "#111111": [
+        "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=600&q=80",
+        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
       ],
-      "#d4c5a9": [
-        "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80",
+      "#333333": [
+        "https://images.unsplash.com/photo-1565693413579-29622f4b0dee?w=600&q=80",
       ],
-      "#c4a882": [
-        "https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=80",
+      "#555555": [
+        "https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80",
-    sku: "#LRS-003-ECR",
-    material: "Pure Linen",
-    composition: "100% Linen",
-    modelInfo: 'Model Height 5\'10", wearing size L',
-    stockCount: 12,
+    img: "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=600&q=80",
+    sku: "#SPO-003-BLK",
+    material: "Polyester Blend",
+    composition: "90% Polyester, 10% Spandex",
+    modelInfo: 'Model Height 5\'10", wearing size 32',
+    stockCount: 25,
     freeShippingThreshold: 8000,
   },
   {
     id: 4,
-    name: "Plaid Flannel Shirt – Forest",
-    basePrice: 3490,
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    name: "Linen Casual Shorts – Beige",
+    basePrice: 3290,
+    sizes: [30, 32, 34, 36],
     inStock: false,
-    colors: ["#2e5e3e", "#6b3a2a", "#1a3a5c"],
-    colorNames: { "#2e5e3e": "Forest Green", "#6b3a2a": "Rust", "#1a3a5c": "Navy" },
+    colors: ["#f5f5dc", "#ece8dc", "#d4c5a9"],
+    colorNames: { "#f5f5dc": "Beige", "#ece8dc": "Ecru", "#d4c5a9": "Sand" },
     colorImages: {
-      "#2e5e3e": [
-        "https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=80",
+      "#f5f5dc": [
+        "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
       ],
-      "#6b3a2a": [
-        "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
+      "#ece8dc": [
+        "https://images.unsplash.com/photo-1580266467769-e6a0e9ecf9e6?w=600&q=80",
       ],
-      "#1a3a5c": [
-        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+      "#d4c5a9": [
+        "https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=80",
-    sku: "#PFS-004-FOR",
-    material: "Cotton Flannel",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 5\'11", wearing size M',
+    img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
+    sku: "#LCS-004-BEI",
+    material: "Linen",
+    composition: "55% Linen, 45% Cotton",
+    modelInfo: 'Model Height 5\'11", wearing size 34',
     stockCount: 0,
     freeShippingThreshold: 8000,
   },
   {
     id: 5,
-    name: "Classic Denim Shirt – Indigo",
-    basePrice: 3990,
-    sizes: ["S", "M", "L", "XL", "XXL", "XXXL"],
+    name: "Cargo Shorts – Olive",
+    basePrice: 3590,
+    sizes: [30, 32, 34, 36, 38],
     inStock: true,
-    colors: ["#3b5998", "#1a1a2e", "#5b7fa6"],
-    colorNames: { "#3b5998": "Indigo", "#1a1a2e": "Dark Navy", "#5b7fa6": "Light Denim" },
+    colors: ["#6b7a3e", "#5c6e3a", "#4a5e2e"],
+    colorNames: { "#6b7a3e": "Olive", "#5c6e3a": "Dark Olive", "#4a5e2e": "Army" },
     colorImages: {
-      "#3b5998": [
-        "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
+      "#6b7a3e": [
+        "https://images.unsplash.com/photo-1565693413579-29622f4b0dee?w=600&q=80",
+        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
       ],
-      "#1a1a2e": [
-        "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=80",
+      "#5c6e3a": [
+        "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=600&q=80",
       ],
-      "#5b7fa6": [
-        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
+      "#4a5e2e": [
+        "https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
-    sku: "#CDS-005-IND",
-    material: "Denim",
-    composition: "98% Cotton, 2% Spandex",
-    modelInfo: 'Model Height 6\'0", wearing size L',
+    img: "https://images.unsplash.com/photo-1565693413579-29622f4b0dee?w=600&q=80",
+    sku: "#CGO-005-OLV",
+    material: "Cotton Blend",
+    composition: "80% Cotton, 20% Polyester",
+    modelInfo: 'Model Height 6\'0", wearing size 34',
     stockCount: 7,
     freeShippingThreshold: 8000,
   },
   {
     id: 6,
-    name: "Casual Polo Shirt – Olive",
+    name: "Swim Shorts – Navy",
     basePrice: 2190,
-    sizes: ["S", "M", "L", "XL"],
+    sizes: [28, 30, 32, 34, 36],
     inStock: true,
-    colors: ["#6b7a3e", "#1a1a1a", "#8b3a2a"],
-    colorNames: { "#6b7a3e": "Olive", "#1a1a1a": "Black", "#8b3a2a": "Burgundy" },
+    colors: ["#1a3a5c", "#008080", "#2e8b57"],
+    colorNames: { "#1a3a5c": "Navy", "#008080": "Teal", "#2e8b57": "Seafoam" },
     colorImages: {
-      "#6b7a3e": [
-        "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=80",
+      "#1a3a5c": [
+        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
+        "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=600&q=80",
       ],
-      "#1a1a1a": [
-        "https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=80",
+      "#008080": [
+        "https://images.unsplash.com/photo-1565693413579-29622f4b0dee?w=600&q=80",
       ],
-      "#8b3a2a": [
-        "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=80",
+      "#2e8b57": [
+        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=80",
-    sku: "#CPS-006-OLV",
-    material: "Pique Cotton",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 5\'10", wearing size M',
-    stockCount: 20,
+    img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
+    sku: "#SWS-006-NAV",
+    material: "Polyester",
+    composition: "100% Polyester",
+    modelInfo: 'Model Height 5\'10", wearing size 32',
+    stockCount: 15,
     freeShippingThreshold: 8000,
   },
   {
     id: 7,
-    name: "Mandarin Collar Shirt – Black",
-    basePrice: 3190,
-    sizes: ["M", "L", "XL", "XXL"],
+    name: "Denim Shorts – Light Wash",
+    basePrice: 2790,
+    sizes: [28, 30, 32, 34],
     inStock: true,
-    colors: ["#111111", "#333333", "#555555"],
-    colorNames: { "#111111": "Black", "#333333": "Charcoal", "#555555": "Grey" },
+    colors: ["#5b7fa6", "#3b5998", "#7fa3c6"],
+    colorNames: { "#5b7fa6": "Light Blue", "#3b5998": "Medium Blue", "#7fa3c6": "Faded" },
     colorImages: {
-      "#111111": [
-        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
+      "#5b7fa6": [
+        "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&q=80",
+        "https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?w=600&q=80",
       ],
-      "#333333": [
-        "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=80",
+      "#3b5998": [
+        "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=600&q=80",
       ],
-      "#555555": [
-        "https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=80",
+      "#7fa3c6": [
+        "https://images.unsplash.com/photo-1580266467769-e6a0e9ecf9e6?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
-    sku: "#MCS-007-BLK",
-    material: "Cotton Blend",
-    composition: "65% Cotton, 35% Polyester",
-    modelInfo: 'Model Height 6\'1", wearing size L',
-    stockCount: 5,
+    img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&q=80",
+    sku: "#DLS-007-LBL",
+    material: "Denim",
+    composition: "100% Cotton",
+    modelInfo: 'Model Height 5\'11", wearing size 32',
+    stockCount: 6,
     freeShippingThreshold: 8000,
   },
   {
     id: 8,
-    name: "Premium Twill Shirt – Navy",
-    basePrice: 4490,
-    sizes: ["S", "M", "L", "XL", "XXL", "XXXL"],
+    name: "Jogger Shorts – Grey",
+    basePrice: 2390,
+    sizes: [28, 30, 32, 34, 36, 38],
     inStock: true,
-    colors: ["#1a3a5c", "#111111", "#2c4a7c"],
-    colorNames: { "#1a3a5c": "Navy", "#111111": "Black", "#2c4a7c": "Royal Blue" },
+    colors: ["#808080", "#a9a9a9", "#696969"],
+    colorNames: { "#808080": "Grey", "#a9a9a9": "Light Grey", "#696969": "Dark Grey" },
     colorImages: {
-      "#1a3a5c": [
-        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+      "#808080": [
+        "https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=80",
+        "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?w=600&q=80",
       ],
-      "#111111": [
-        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
+      "#a9a9a9": [
+        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&q=80",
       ],
-      "#2c4a7c": [
-        "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
+      "#696969": [
+        "https://images.unsplash.com/photo-1565693413579-29622f4b0dee?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
-    sku: "#PTS-008-NAV",
-    material: "Twill Cotton",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 6\'0", wearing size XL',
-    stockCount: 4,
+    img: "https://images.unsplash.com/photo-1571945153237-4929e783af4a?w=600&q=80",
+    sku: "#JGS-008-GRY",
+    material: "Cotton Blend",
+    composition: "60% Cotton, 40% Polyester",
+    modelInfo: 'Model Height 5\'10", wearing size 32',
+    stockCount: 18,
     freeShippingThreshold: 8000,
   },
 ];
 
-const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];
+const ALL_SIZES = [28, 30, 32, 34, 36, 38, 40];
 
 // ── Helper Functions ────────────────────────────────────────────────────────────
 const getReviews = (productId) => {
   const defaultReviews = {
     1: [
-      { id: 1, name: "Dinesh P.", rating: 5, text: "Excellent quality! Perfect fit.", date: "Mar 2025", verified: true },
-      { id: 2, name: "Nuwan K.", rating: 4, text: "Very comfortable fabric.", date: "Feb 2025", verified: true },
+      { id: 1, name: "Dinesh P.", rating: 5, text: "Perfect fit! Great quality denim.", date: "Mar 2025", verified: true },
+      { id: 2, name: "Nuwan K.", rating: 4, text: "Very comfortable for summer wear.", date: "Feb 2025", verified: true },
     ],
     2: [
-      { id: 1, name: "Kasun F.", rating: 5, text: "Love the color and feel.", date: "Apr 2025", verified: true },
+      { id: 1, name: "Kasun F.", rating: 5, text: "Love the fabric and color.", date: "Apr 2025", verified: true },
     ],
   };
   if (defaultReviews[productId]) return defaultReviews[productId];
@@ -246,7 +251,7 @@ const getReviews = (productId) => {
 // ── Star Rating ────────────────────────────────────────────────────────────────
 const StarRating = ({ rating, size = 14 }) => {
   return (
-    <div className="sh-stars">
+    <div className="st-stars">
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}
@@ -266,14 +271,14 @@ const StarRating = ({ rating, size = 14 }) => {
 
 // ── Color Swatch Component ─────────────────────────────────────────────────────
 const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
-  <div className="sh-color-row">
+  <div className="st-color-row">
     {colors.map((color) => (
       <button
         key={color}
-        className={`sh-color-swatch ${selectedColor === color ? "active" : ""}`}
+        className={`st-color-swatch ${selectedColor === color ? "active" : ""}`}
         style={{
           backgroundColor: color,
-          border: color === "#ffffff" || color === "#f5f5f0" ? "1.5px solid #ccc" : "none",
+          border: color === "#f5f5dc" || color === "#ece8dc" || color === "#ffffff" ? "1.5px solid #ccc" : "none",
         }}
         onClick={() => onSelect(color)}
         aria-label={`Select color ${color}`}
@@ -281,52 +286,6 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
     ))}
   </div>
 );
-
-// ── Product Card ───────────────────────────────────────────────────────────────
-const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const images = product.colorImages?.[selectedColor] || [product.img];
-  const currentImage = images[0];
-  const reviews = getReviews(product.id);
-  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-
-  return (
-    <div className="sh-product-card" onClick={() => onOpenModal(product)}>
-      <div className="sh-card-image">
-        <img src={currentImage} alt={product.name} loading="lazy" />
-        <button
-          className={`sh-wishlist-btn ${isWished ? "active" : ""}`}
-          onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }}
-          aria-label="Add to wishlist"
-        >
-          {isWished ? "❤️" : "🤍"}
-        </button>
-        {!product.inStock && <span className="sh-stock-badge out">Out of Stock</span>}
-      </div>
-      <div className="sh-card-body">
-        <h3 className="sh-product-name">{product.name}</h3>
-        <div className="sh-card-rating">
-          <StarRating rating={Math.round(avgRating)} size={12} />
-          <span>({reviews.length})</span>
-        </div>
-        <p className="sh-product-price">Rs {product.basePrice.toLocaleString()}.00</p>
-        <div className="sh-color-section">
-          <span className="sh-color-label">Colors:</span>
-          <ColorSwatches colors={product.colors} selectedColor={selectedColor} onSelect={(c) => { setSelectedColor(c); }} />
-        </div>
-        <div className="sh-size-row">
-          {product.sizes.slice(0, 4).map((size) => (
-            <span key={size} className="sh-size-badge">{size}</span>
-          ))}
-          {product.sizes.length > 4 && <span className="sh-size-more">+{product.sizes.length - 4}</span>}
-        </div>
-        <button className="sh-add-to-cart" disabled={!product.inStock}>
-          {product.inStock ? "Add to Cart" : "Unavailable"}
-        </button>
-      </div>
-    </div>
-  );
-};
 
 // ── Reviews Modal Component ─────────────────────────────────────────────────────
 const ReviewsModal = ({ product, onClose }) => {
@@ -344,33 +303,79 @@ const ReviewsModal = ({ product, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className="sh-reviews-modal-overlay" onClick={onClose}>
-      <div className="sh-reviews-modal-container" onClick={(e) => e.stopPropagation()}>
-        <button className="sh-reviews-modal-close" onClick={onClose}>✕</button>
+    <div className="st-reviews-modal-overlay" onClick={onClose}>
+      <div className="st-reviews-modal-container" onClick={(e) => e.stopPropagation()}>
+        <button className="st-reviews-modal-close" onClick={onClose}>✕</button>
         
-        <div className="sh-reviews-header">
+        <div className="st-reviews-header">
           <h2>Customer Reviews</h2>
-          <div className="sh-reviews-summary">
+          <div className="st-reviews-summary">
             <StarRating rating={Math.round(avgRating)} size={20} />
-            <span className="sh-reviews-total">{avgRating.toFixed(1)} out of 5 · {reviews.length} reviews</span>
+            <span className="st-reviews-total">{avgRating.toFixed(1)} out of 5 · {reviews.length} reviews</span>
           </div>
         </div>
 
-        <div className="sh-reviews-list">
+        <div className="st-reviews-list">
           {reviews.map((review) => (
-            <div key={review.id} className="sh-review-item-full">
-              <div className="sh-review-header-full">
+            <div key={review.id} className="st-review-item-full">
+              <div className="st-review-header-full">
                 <strong>{review.name}</strong>
                 <StarRating rating={review.rating} size={14} />
-                {review.verified && <span className="sh-verified-badge">✓ Verified Purchase</span>}
+                {review.verified && <span className="st-verified-badge">✓ Verified Purchase</span>}
               </div>
-              <p className="sh-review-text-full">{review.text}</p>
-              <span className="sh-review-date-full">{review.date}</span>
+              <p className="st-review-text-full">{review.text}</p>
+              <span className="st-review-date-full">{review.date}</span>
             </div>
           ))}
         </div>
 
-        <button className="sh-write-review-btn">Write a Review</button>
+        <button className="st-write-review-btn">Write a Review</button>
+      </div>
+    </div>
+  );
+};
+
+// ── Product Card ───────────────────────────────────────────────────────────────
+const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
+  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
+  const images = product.colorImages?.[selectedColor] || [product.img];
+  const currentImage = images[0];
+  const reviews = getReviews(product.id);
+  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+
+  return (
+    <div className="st-product-card" onClick={() => onOpenModal(product)}>
+      <div className="st-card-image">
+        <img src={currentImage} alt={product.name} loading="lazy" />
+        <button
+          className={`st-wishlist-btn ${isWished ? "active" : ""}`}
+          onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }}
+          aria-label="Add to wishlist"
+        >
+          {isWished ? "❤️" : "🤍"}
+        </button>
+        {!product.inStock && <span className="st-stock-badge out">Out of Stock</span>}
+      </div>
+      <div className="st-card-body">
+        <h3 className="st-product-name">{product.name}</h3>
+        <div className="st-card-rating">
+          <StarRating rating={Math.round(avgRating)} size={12} />
+          <span>({reviews.length})</span>
+        </div>
+        <p className="st-product-price">Rs {product.basePrice.toLocaleString()}.00</p>
+        <div className="st-color-section">
+          <span className="st-color-label">Colors:</span>
+          <ColorSwatches colors={product.colors} selectedColor={selectedColor} onSelect={(c) => { setSelectedColor(c); }} />
+        </div>
+        <div className="st-size-row">
+          {product.sizes.slice(0, 4).map((size) => (
+            <span key={size} className="st-size-badge">{size}</span>
+          ))}
+          {product.sizes.length > 4 && <span className="st-size-more">+{product.sizes.length - 4}</span>}
+        </div>
+        <button className="st-add-to-cart" disabled={!product.inStock}>
+          {product.inStock ? "Add to Cart" : "Unavailable"}
+        </button>
       </div>
     </div>
   );
@@ -420,18 +425,18 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 
   return (
     <>
-      <div className="sh-modal-overlay" onClick={onClose}>
-        <div className="sh-modal-container" onClick={(e) => e.stopPropagation()}>
-          <button className="sh-modal-close" onClick={onClose} aria-label="Close">✕</button>
+      <div className="st-modal-overlay" onClick={onClose}>
+        <div className="st-modal-container" onClick={(e) => e.stopPropagation()}>
+          <button className="st-modal-close" onClick={onClose} aria-label="Close">✕</button>
 
-          <div className="sh-modal-grid">
+          <div className="st-modal-grid">
             {/* LEFT: Image Gallery */}
-            <div className="sh-modal-gallery">
-              <div className="sh-modal-thumbnails">
+            <div className="st-modal-gallery">
+              <div className="st-modal-thumbnails">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
-                    className={`sh-thumb-btn ${activeImageIndex === idx ? "active" : ""}`}
+                    className={`st-thumb-btn ${activeImageIndex === idx ? "active" : ""}`}
                     onClick={() => setActiveImageIndex(idx)}
                   >
                     <img src={img} alt={`${product.name} view ${idx + 1}`} />
@@ -439,25 +444,25 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 ))}
               </div>
 
-              <div className="sh-modal-main-image">
+              <div className="st-modal-main-image">
                 <img src={currentImage} alt={product.name} />
                 <button
-                  className={`sh-modal-wishlist-float ${isWished ? "active" : ""}`}
+                  className={`st-modal-wishlist-float ${isWished ? "active" : ""}`}
                   onClick={() => onToggleWishlist(product.id)}
                   aria-label="Toggle wishlist"
                 >
                   {isWished ? "❤️" : "🤍"}
                 </button>
                 {images.length > 1 && (
-                  <div className="sh-image-nav">
+                  <div className="st-image-nav">
                     <button
-                      className="sh-img-nav-btn"
+                      className="st-img-nav-btn"
                       onClick={() => setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length)}
                       disabled={activeImageIndex === 0}
                     >‹</button>
                     <span>{activeImageIndex + 1} / {images.length}</span>
                     <button
-                      className="sh-img-nav-btn"
+                      className="st-img-nav-btn"
                       onClick={() => setActiveImageIndex((prev) => (prev + 1) % images.length)}
                       disabled={activeImageIndex === images.length - 1}
                     >›</button>
@@ -467,27 +472,27 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
             </div>
 
             {/* RIGHT: Product Details */}
-            <div className="sh-modal-details">
-              <h2 className="sh-modal-title">{product.name}</h2>
-              <p className="sh-modal-sku">{product.sku}</p>
+            <div className="st-modal-details">
+              <h2 className="st-modal-title">{product.name}</h2>
+              <p className="st-modal-sku">{product.sku}</p>
 
-              <div className="sh-modal-price-block">
-                <span className="sh-modal-price">Rs {product.basePrice.toLocaleString()}.00 <small>LKR</small></span>
+              <div className="st-modal-price-block">
+                <span className="st-modal-price">Rs {product.basePrice.toLocaleString()}.00 <small>LKR</small></span>
                 {product.basePrice >= 3000 && (
-                  <span className="sh-modal-installment">
+                  <span className="st-modal-installment">
                     or 3 × Rs {Math.round(product.basePrice / 3).toLocaleString()}.00 with <strong>Koko</strong>
                   </span>
                 )}
               </div>
 
               {/* Rating with View Reviews Button */}
-              <div className="sh-modal-rating-row">
-                <div className="sh-rating-info">
+              <div className="st-modal-rating-row">
+                <div className="st-rating-info">
                   <StarRating rating={Math.round(avgRating)} size={16} />
-                  <span className="sh-modal-rating-count">{avgRating.toFixed(1)} out of 5</span>
+                  <span className="st-modal-rating-count">{avgRating.toFixed(1)} out of 5</span>
                 </div>
                 <button 
-                  className="sh-view-reviews-btn"
+                  className="st-view-reviews-btn"
                   onClick={() => setShowReviews(true)}
                 >
                   View Reviews ({reviews.length})
@@ -495,20 +500,20 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
               </div>
 
               {/* Size Selector */}
-              <div className="sh-modal-section">
-                <div className="sh-modal-section-header">
-                  <label className="sh-modal-label">
-                    SIZE <span className="sh-selected-val">{selectedSize || "—"}</span>
+              <div className="st-modal-section">
+                <div className="st-modal-section-header">
+                  <label className="st-modal-label">
+                    SIZE <span className="st-selected-val">{selectedSize || "—"}</span>
                   </label>
-                  <button className="sh-size-chart-btn">📏 SIZE CHART</button>
+                  <button className="st-size-chart-btn">📏 SIZE CHART</button>
                 </div>
-                <div className="sh-modal-size-grid">
+                <div className="st-modal-size-grid">
                   {ALL_SIZES.map((size) => {
                     const avail = product.sizes.includes(size);
                     return (
                       <button
                         key={size}
-                        className={`sh-modal-size-btn ${!avail ? "unavailable" : ""} ${selectedSize === size ? "selected" : ""}`}
+                        className={`st-modal-size-btn ${!avail ? "unavailable" : ""} ${selectedSize === size ? "selected" : ""}`}
                         onClick={() => { if (avail) { setSelectedSize(size); setSizeError(false); } }}
                         disabled={!avail}
                       >
@@ -517,19 +522,19 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                     );
                   })}
                 </div>
-                {sizeError && <p className="sh-size-error">Please select a size before adding to cart.</p>}
+                {sizeError && <p className="st-size-error">Please select a size before adding to cart.</p>}
               </div>
 
               {/* Color Selector */}
-              <div className="sh-modal-section">
-                <label className="sh-modal-label">
-                  COLOR <span className="sh-selected-val">{colorName.toUpperCase()}</span>
+              <div className="st-modal-section">
+                <label className="st-modal-label">
+                  COLOR <span className="st-selected-val">{colorName.toUpperCase()}</span>
                 </label>
-                <div className="sh-modal-color-row">
+                <div className="st-modal-color-row">
                   {product.colors.map((color) => (
                     <button
                       key={color}
-                      className={`sh-modal-color-thumb ${selectedColor === color ? "active" : ""}`}
+                      className={`st-modal-color-thumb ${selectedColor === color ? "active" : ""}`}
                       onClick={() => handleColorChange(color)}
                       title={product.colorNames?.[color] || color}
                     >
@@ -543,50 +548,50 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
               </div>
 
               {/* Quantity + Cart */}
-              <div className="sh-modal-actions">
-                <div className="sh-quantity-control">
-                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="sh-qty-btn">−</button>
-                  <span className="sh-qty-display">{quantity}</span>
-                  <button onClick={() => setQuantity((q) => q + 1)} className="sh-qty-btn">+</button>
+              <div className="st-modal-actions">
+                <div className="st-quantity-control">
+                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="st-qty-btn">−</button>
+                  <span className="st-qty-display">{quantity}</span>
+                  <button onClick={() => setQuantity((q) => q + 1)} className="st-qty-btn">+</button>
                 </div>
-                <button className="sh-modal-cart-btn" onClick={handleAddToCart} disabled={!product.inStock}>
+                <button className="st-modal-cart-btn" onClick={handleAddToCart} disabled={!product.inStock}>
                   {product.inStock ? "ADD TO CART" : "OUT OF STOCK"}
                 </button>
               </div>
 
-              <button className="sh-modal-buy-now-btn" onClick={handleBuyNow} disabled={!product.inStock}>
+              <button className="st-modal-buy-now-btn" onClick={handleBuyNow} disabled={!product.inStock}>
                 BUY IT NOW
               </button>
 
               {/* Stock & Shipping Info */}
-              <div className="sh-modal-info-badges">
+              <div className="st-modal-info-badges">
                 {product.inStock && product.stockCount <= 5 && (
-                  <div className="sh-info-badge warning">
+                  <div className="st-info-badge warning">
                     <span>⏰</span> Only {product.stockCount} left in stock. Order soon.
                   </div>
                 )}
-                <div className="sh-info-badge">
+                <div className="st-info-badge">
                   <span>✓</span> Free delivery and shipping above Rs {product.freeShippingThreshold?.toLocaleString()}
                 </div>
-                <div className="sh-info-badge">
+                <div className="st-info-badge">
                   <span>✓</span> Secure online payment
                 </div>
               </div>
 
               {/* Product Details */}
-              <div className="sh-modal-product-info">
+              <div className="st-modal-product-info">
                 <ul>
                   <li><strong>Material:</strong> {product.material}</li>
                   <li><strong>Composition:</strong> {product.composition}</li>
                 </ul>
-                <p className="sh-model-info">{product.modelInfo}</p>
-                <p className="sh-color-disclaimer">
+                <p className="st-model-info">{product.modelInfo}</p>
+                <p className="st-color-disclaimer">
                   Please bear in mind that the photo may be slightly different from the actual item in terms of color due to lighting conditions or the display used to view.
                 </p>
               </div>
 
-              <div className="sh-modal-stock-indicator">
-                <span className={product.inStock ? "sh-in-stock" : "sh-out-stock"}>
+              <div className="st-modal-stock-indicator">
+                <span className={product.inStock ? "st-in-stock" : "st-out-stock"}>
                   {product.inStock ? "✓ In Stock" : "✕ Out of Stock"}
                 </span>
               </div>
@@ -603,9 +608,9 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   );
 };
 
-// ── Main Shirts Page Component ─────────────────────────────────────────────────
-const ShirtsPage = () => {
-  const [maxPrice, setMaxPrice] = useState(5000);
+// ── Main Shorts Page Component ─────────────────────────────────────────────────
+const ShortsPage = () => {
+  const [maxPrice, setMaxPrice] = useState(4000);
   const [wishlist, setWishlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -614,7 +619,7 @@ const ShirtsPage = () => {
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
   useEffect(() => {
-    const savedWishlist = JSON.parse(localStorage.getItem("shirt_wishlist")) || [];
+    const savedWishlist = JSON.parse(localStorage.getItem("shorts_wishlist")) || [];
     setWishlist(savedWishlist);
   }, []);
 
@@ -626,7 +631,7 @@ const ShirtsPage = () => {
       updated = [...wishlist, productId];
     }
     setWishlist(updated);
-    localStorage.setItem("shirt_wishlist", JSON.stringify(updated));
+    localStorage.setItem("shorts_wishlist", JSON.stringify(updated));
   };
 
   let filteredProducts = ALL_PRODUCTS.filter((product) => {
@@ -643,57 +648,57 @@ const ShirtsPage = () => {
   const hasMore = visibleCount < filteredProducts.length;
 
   return (
-    <div className="sh-page">
+    <div className="st-page">
       <Header />
 
-      <section className="sh-hero">
-        <h1>Premium Shirts<br /><span>For Every Occasion</span></h1>
+      <section className="st-hero">
+        <h1>Premium Shorts<br /><span>Summer Essential Collection</span></h1>
       </section>
 
-      <div className="sh-container">
-        <aside className="sh-filters">
+      <div className="st-container">
+        <aside className="st-filters">
           <h3>Filters</h3>
 
-          <div className="sh-filter-group">
+          <div className="st-filter-group">
             <label>Search</label>
             <input
               type="text"
               placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="sh-search-input"
+              className="st-search-input"
             />
           </div>
 
-          <div className="sh-filter-group">
+          <div className="st-filter-group">
             <label>Max Price: Rs. {maxPrice.toLocaleString()}</label>
             <input
               type="range"
-              min="2000"
-              max="5000"
+              min="1500"
+              max="4000"
               step="100"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="sh-price-slider"
+              className="st-price-slider"
             />
           </div>
 
-          <div className="sh-filter-group">
+          <div className="st-filter-group">
             <label>Sort By</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sh-sort-select">
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="st-sort-select">
               <option value="default">Default</option>
               <option value="low-high">Price: Low to High</option>
               <option value="high-low">Price: High to Low</option>
             </select>
           </div>
 
-          <div className="sh-filter-group">
+          <div className="st-filter-group">
             <label>Size</label>
-            <div className="sh-size-filters">
-              {["S", "M", "L", "XL", "XXL", "XXXL"].map((size) => (
+            <div className="st-size-filters">
+              {[28, 30, 32, 34, 36, 38, 40].map((size) => (
                 <button
                   key={size}
-                  className={`sh-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
+                  className={`st-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
                   onClick={() => setSelectedSizeFilter(selectedSizeFilter === size ? null : size)}
                 >
                   {size}
@@ -703,17 +708,17 @@ const ShirtsPage = () => {
           </div>
         </aside>
 
-        <main className="sh-products-main">
-          <div className="sh-products-header">
-            <h2>All Shirts</h2>
+        <main className="st-products-main">
+          <div className="st-products-header">
+            <h2>All Shorts</h2>
             <span>{filteredProducts.length} items found</span>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="sh-no-results">No products found. Try adjusting the filters.</div>
+            <div className="st-no-results">No products found. Try adjusting the filters.</div>
           ) : (
             <>
-              <div className="sh-products-grid">
+              <div className="st-products-grid">
                 {visibleProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -725,8 +730,8 @@ const ShirtsPage = () => {
                 ))}
               </div>
               {hasMore && (
-                <div className="sh-load-more">
-                  <button onClick={() => setVisibleCount((p) => p + 6)} className="sh-load-btn">
+                <div className="st-load-more">
+                  <button onClick={() => setVisibleCount((p) => p + 6)} className="st-load-btn">
                     Load More ({filteredProducts.length - visibleCount} remaining)
                   </button>
                 </div>
@@ -752,4 +757,4 @@ const ShirtsPage = () => {
   );
 };
 
-export default ShirtsPage;
+export default ShortsPage;
