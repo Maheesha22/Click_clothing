@@ -1,34 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Header from "../Components/header";
 import Footer from "../Components/footer";
 import './User.css';
 import Wishlist from './userpages/Wishlist';
 import OrderHistory from './userpages/OrderHistory';
 import Cart from './userpages/Cart';
+import cart from './cart';
 import Settings from './userpages/Settings';
 
 const User = () => {
   const navigate = useNavigate();
-  const [user] = useState(JSON.parse(sessionStorage.getItem('user') || '{}'));
+  const [searchParams] = useSearchParams();
 
-  useEffect(() => {
-    if (!user.email) {
-      navigate('/login');
-    }
-  }, []);
-  const [activeSection, setActiveSection] = useState('wishlist');
+  // Get user from session — null if not logged in
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = !!(storedUser?.email);
+
+  // Display info — show "Guest" if not logged in
+  const displayName = isLoggedIn ? `${storedUser.firstName} ${storedUser.lastName}` : 'Guest';
+  const displayEmail = isLoggedIn ? storedUser.email : 'Not signed in';
+
+  const initialTab = searchParams.get('tab') || 'wishlist';
+  const [activeSection, setActiveSection] = useState(initialTab);
+
   const [cartItems, setCartItems] = useState([
     { id: 1, name: 'Premium Headphones', price: 199.99, quantity: 1, emoji: '🎧' },
     { id: 2, name: 'Smart Watch', price: 299.99, quantity: 2, emoji: '⌚' },
     { id: 3, name: 'Laptop Bag', price: 79.99, quantity: 1, emoji: '💼' }
-  ]);
-
-  const [wishlistItems] = useState([
-    { id: 1, name: 'Wireless Keyboard', price: 89.99, emoji: '⌨️' },
-    { id: 2, name: 'Gaming Mouse', price: 59.99, emoji: '🖱️' },
-    { id: 3, name: 'USB-C Hub', price: 49.99, emoji: '🔌' },
-    { id: 4, name: 'Webcam HD', price: 129.99, emoji: '📷' }
   ]);
 
   const [orders] = useState([
@@ -101,17 +100,20 @@ const User = () => {
     </svg>
   );
 
+  const LoginIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+      <polyline points="10 17 15 12 10 7" />
+      <line x1="15" y1="12" x2="3" y2="12" />
+    </svg>
+  );
+
   const UserIcon = () => (
     <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
   );
-
-  if (!user.email) {
-    navigate('/login');
-    return null;
-  }
 
   return (
     <>
@@ -120,20 +122,21 @@ const User = () => {
         <aside className="sidebar">
           <div className="user-profile">
             <div className="user-avatar"><UserIcon /></div>
-            <h3 className="user-name">{user.firstName} {user.lastName}</h3>
-            <p className="user-email">{user.email}</p>
+            <h3 className="user-name">{displayName}</h3>
+            <p className="user-email">{displayEmail}</p>
           </div>
 
           <nav className="sidebar-nav">
+            {/* Wishlist — available to everyone */}
             <button
               className={`nav-item ${activeSection === 'wishlist' ? 'active' : ''}`}
               onClick={() => setActiveSection('wishlist')}
             >
               <span className="nav-icon"><WishlistIcon /></span>
               <span className="nav-label">Wishlist</span>
-              <span className="nav-badge">4</span>
             </button>
 
+            {/* Order History — shows login message for guests */}
             <button
               className={`nav-item ${activeSection === 'orders' ? 'active' : ''}`}
               onClick={() => setActiveSection('orders')}
@@ -142,33 +145,42 @@ const User = () => {
               <span className="nav-label">Order History</span>
             </button>
 
+            {/* Cart — logged-in only */}
             <button
               className={`nav-item ${activeSection === 'cart' ? 'active' : ''}`}
-              onClick={() => setActiveSection('cart')}
+              onClick={() => isLoggedIn ? setActiveSection('cart') : navigate('/login')}
             >
               <span className="nav-icon"><CartIcon /></span>
               <span className="nav-label">Cart</span>
-              <span className="nav-badge">3</span>
             </button>
 
+            {/* Settings — logged-in only */}
             <button
               className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveSection('settings')}
+              onClick={() => isLoggedIn ? setActiveSection('settings') : navigate('/login')}
             >
               <span className="nav-icon"><SettingsIcon /></span>
               <span className="nav-label">Settings</span>
             </button>
 
-            <button className="nav-item logout" onClick={handleLogout}>
-              <span className="nav-icon"><LogoutIcon /></span>
-              <span className="nav-label">Logout</span>
-            </button>
+            {/* Logout (logged-in) or Login (guest) */}
+            {isLoggedIn ? (
+              <button className="nav-item logout" onClick={handleLogout}>
+                <span className="nav-icon"><LogoutIcon /></span>
+                <span className="nav-label">Logout</span>
+              </button>
+            ) : (
+              <button className="nav-item" onClick={() => navigate('/login')}>
+                <span className="nav-icon"><LoginIcon /></span>
+                <span className="nav-label">Login</span>
+              </button>
+            )}
           </nav>
         </aside>
 
         <main className="main-content">
-          {activeSection === 'wishlist' && <Wishlist wishlistItems={wishlistItems} />}
-          {activeSection === 'orders' && <OrderHistory orders={orders} />}
+          {activeSection === 'wishlist' && <Wishlist user={storedUser} />}
+          {activeSection === 'orders' && <OrderHistory orders={orders} isLoggedIn={isLoggedIn} />}
           {activeSection === 'cart' && (
             <Cart
               cartItems={cartItems}
@@ -177,7 +189,7 @@ const User = () => {
               calculateTotal={calculateTotal}
             />
           )}
-          {activeSection === 'settings' && <Settings user={user} />}
+          {activeSection === 'settings' && <Settings user={storedUser} />}
         </main>
       </div>
       <Footer />
