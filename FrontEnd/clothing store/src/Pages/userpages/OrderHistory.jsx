@@ -1,52 +1,31 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 
-const OrderHistory = ({ orders, isLoggedIn }) => {
+const OrderHistory = () => {
+  const { orders, isLoggedIn } = useOutletContext();
   const navigate = useNavigate();
 
-  // Guest view — not logged in
   if (!isLoggedIn) {
     return (
       <div className="orders-section">
         <h2 className="section-title">Order History</h2>
         <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          background: '#fff',
-          border: '1px solid #ede9e4',
-          borderRadius: '2px'
+          textAlign: 'center', padding: '60px 20px', background: '#fff',
+          border: '1px solid #ede9e4', borderRadius: '2px'
         }}>
-          <p style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: '26px',
-            color: '#999',
-            marginBottom: '14px'
-          }}>
+          <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '26px', color: '#999', marginBottom: '14px' }}>
             You're not signed in
           </p>
-          <p style={{
-            fontFamily: "'Jost', sans-serif",
-            fontSize: '13px',
-            color: '#bbb',
-            letterSpacing: '0.3px',
-            marginBottom: '28px'
-          }}>
+          <p style={{ fontFamily: "'Jost', sans-serif", fontSize: '13px', color: '#bbb', letterSpacing: '0.3px', marginBottom: '28px' }}>
             Please login to view your order history.
           </p>
           <button
             onClick={() => navigate('/login')}
             style={{
-              fontFamily: "'Jost', sans-serif",
-              fontSize: '12px',
-              fontWeight: '500',
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-              color: '#fff',
-              background: '#111',
-              border: 'none',
-              padding: '12px 32px',
-              borderRadius: '1px',
-              cursor: 'pointer'
+              fontFamily: "'Jost', sans-serif", fontSize: '12px', fontWeight: '500',
+              letterSpacing: '1.5px', textTransform: 'uppercase', color: '#fff',
+              background: '#111', border: 'none', padding: '12px 32px',
+              borderRadius: '1px', cursor: 'pointer'
             }}
           >
             Login
@@ -56,7 +35,6 @@ const OrderHistory = ({ orders, isLoggedIn }) => {
     );
   }
 
-  // Logged-in view
   return (
     <div className="orders-section">
       <h2 className="section-title">Order History</h2>

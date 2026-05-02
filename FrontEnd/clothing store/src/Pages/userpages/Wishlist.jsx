@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import {
   getWishlistDB,
   removeFromWishlistDB,
@@ -6,34 +7,27 @@ import {
   removeFromGuestWishlist
 } from '../../services/wishlistService';
 
-const Wishlist = ({ user }) => {
-  const isLoggedIn = !!user?.id;
+const Wishlist = () => {
+  const { storedUser, isLoggedIn } = useOutletContext();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isLoggedIn) {
-      // Logged-in: fetch from database
-      getWishlistDB(user.id)
-        .then(res => {
-          setItems(res.data);
-          setError('');
-        })
+      getWishlistDB(storedUser.id)
+        .then(res => { setItems(res.data); setError(''); })
         .catch(err => {
-          if (!err.response) {
-            setError('⚠️ Cannot connect to server. Make sure the backend is running.');
-          } else {
-            setError('⚠️ Could not load wishlist.');
-          }
+          setError(!err.response
+            ? '⚠️ Cannot connect to server. Make sure the backend is running.'
+            : '⚠️ Could not load wishlist.');
         })
         .finally(() => setLoading(false));
     } else {
-      // Guest: read from sessionStorage
       setItems(getGuestWishlist());
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [storedUser?.id]);
 
   const handleRemove = async (item) => {
     if (isLoggedIn) {
@@ -44,8 +38,7 @@ const Wishlist = ({ user }) => {
         setError('Failed to remove item. Please try again.');
       }
     } else {
-      const updated = removeFromGuestWishlist(item.productId);
-      setItems(updated);
+      setItems(removeFromGuestWishlist(item.productId));
     }
   };
 
@@ -55,30 +48,17 @@ const Wishlist = ({ user }) => {
 
       {!isLoggedIn && (
         <div style={{
-          background: '#fffdf8',
-          border: '1px solid #ede9e4',
-          borderRadius: '2px',
-          padding: '14px 20px',
-          marginBottom: '24px',
-          fontFamily: "'Jost', sans-serif",
-          fontSize: '13px',
-          color: '#888',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
+          background: '#fffdf8', border: '1px solid #ede9e4', borderRadius: '2px',
+          padding: '14px 20px', marginBottom: '24px', fontFamily: "'Jost', sans-serif",
+          fontSize: '13px', color: '#888', display: 'flex',
+          justifyContent: 'space-between', alignItems: 'center'
         }}>
           <span>💡 Guest wishlist clears when the browser is closed.</span>
           <a href="/login" style={{
-            color: '#111',
-            fontWeight: '500',
-            fontSize: '11px',
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-            borderBottom: '1px solid #111'
-          }}>
-            Login to save permanently
-          </a>
+            color: '#111', fontWeight: '500', fontSize: '11px',
+            letterSpacing: '1px', textTransform: 'uppercase',
+            textDecoration: 'none', borderBottom: '1px solid #111'
+          }}>Login to save permanently</a>
         </div>
       )}
 
@@ -88,25 +68,15 @@ const Wishlist = ({ user }) => {
 
       {!loading && error && (
         <div style={{
-          background: '#fdf8f8',
-          border: '1px solid #f0d5d5',
-          padding: '16px 20px',
-          borderRadius: '2px',
-          fontFamily: "'Jost', sans-serif",
-          fontSize: '13px',
-          color: '#b05555'
-        }}>
-          {error}
-        </div>
+          background: '#fdf8f8', border: '1px solid #f0d5d5', padding: '16px 20px',
+          borderRadius: '2px', fontFamily: "'Jost', sans-serif", fontSize: '13px', color: '#b05555'
+        }}>{error}</div>
       )}
 
       {!loading && !error && items.length === 0 && (
         <div style={{
-          textAlign: 'center',
-          padding: '60px 20px',
-          background: '#fff',
-          border: '1px solid #ede9e4',
-          borderRadius: '2px'
+          textAlign: 'center', padding: '60px 20px', background: '#fff',
+          border: '1px solid #ede9e4', borderRadius: '2px'
         }}>
           <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '24px', color: '#999' }}>
             Your wishlist is empty
@@ -126,9 +96,7 @@ const Wishlist = ({ user }) => {
               <p className="item-price">${Number(item.price).toFixed(2)}</p>
               <div className="item-actions">
                 <button className="add-to-cart-btn">Add to Cart</button>
-                <button className="remove-btn" onClick={() => handleRemove(item)}>
-                  Remove
-                </button>
+                <button className="remove-btn" onClick={() => handleRemove(item)}>Remove</button>
               </div>
             </div>
           ))}
