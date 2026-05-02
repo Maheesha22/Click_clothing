@@ -8,22 +8,33 @@ import {
 /* ════════════════════════════════════════
    CLICK CLOTHING — CATEGORIES & MAPS
 ════════════════════════════════════════ */
-const CLOTHING_CATS = ['Sarong','Trousers','Shorts','T-shirts','Accessories'];
-const ACC_SUBS      = ['Cap','Perfume','Deodorant'];
+const CLOTHING_CATS = ['Sarong', 'Trousers', 'Shorts', 'T-shirts', 'Accessories'];
+const ACC_SUBS = ['Cap', 'Perfume', 'Deodorant'];
+
+/* Size options per category */
+const WAIST_SIZES = ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'];
+const SHIRT_SIZES = ['S', 'M', 'L', 'XL', '2XL'];
+const SIZE_OPTIONS = {
+  Trousers: WAIST_SIZES,
+  Shorts: WAIST_SIZES,
+  'T-shirts': SHIRT_SIZES,
+  Sarong: ['Free Size'],
+  Accessories: [],           // no size for accessories
+};
 const CAT_ICON = {
-  Sarong      : '',
-  Trousers    : '',
-  Shorts      : '',
-  'T-shirts'  : '',
-  Accessories : '',
+  Sarong: '',
+  Trousers: '',
+  Shorts: '',
+  'T-shirts': '',
+  Accessories: '',
 };
 const MY_CAT_CLS = {
   ...CAT_CLS,
-  Sarong      : 'cp-sarong',
-  Trousers    : 'cp-trousers',
-  Shorts      : 'cp-shorts',
-  'T-shirts'  : 'cp-tshirts',
-  Accessories : 'cp-accessories',
+  Sarong: 'cp-sarong',
+  Trousers: 'cp-trousers',
+  Shorts: 'cp-shorts',
+  'T-shirts': 'cp-tshirts',
+  Accessories: 'cp-accessories',
 };
 
 /* ════════════════════════════════════════
@@ -42,12 +53,12 @@ const API = 'http://localhost:3000/api/products';
 function ImageUploadBox({ imageUrl, onUpload, uploading, setUploading }) {
   const inputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
-  const [error,    setError]    = useState('');
+  const [error, setError] = useState('');
 
   const uploadFile = async (file) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) { setError('Please select an image file.'); return; }
-    if (file.size > 5 * 1024 * 1024)    { setError('Image must be under 5 MB.');    return; }
+    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5 MB.'); return; }
     setError('');
     setUploading(true);
     try {
@@ -57,7 +68,7 @@ function ImageUploadBox({ imageUrl, onUpload, uploading, setUploading }) {
       const fd = new FormData();
       fd.append('image', file);   // field name must match upload.single('image') in routes
 
-      const res  = await fetch(`${API}/upload-image`, { method: 'POST', body: fd });
+      const res = await fetch(`${API}/upload-image`, { method: 'POST', body: fd });
       const data = await res.json();
 
       if (res.ok && data.success && data.image_url) {
@@ -76,31 +87,31 @@ function ImageUploadBox({ imageUrl, onUpload, uploading, setUploading }) {
     <div className="f-full">
       <label className="f-lbl">Product Image</label>
       <div
-        className={`img-upload-box${dragOver?' drag-over':''}${imageUrl?' has-img':''}`}
+        className={`img-upload-box${dragOver ? ' drag-over' : ''}${imageUrl ? ' has-img' : ''}`}
         onClick={() => !uploading && inputRef.current?.click()}
-        onDragOver ={e => { e.preventDefault(); setDragOver(true);  }}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
-        onDrop     ={e => { e.preventDefault(); setDragOver(false); uploadFile(e.dataTransfer.files[0]); }}
+        onDrop={e => { e.preventDefault(); setDragOver(false); uploadFile(e.dataTransfer.files[0]); }}
       >
-        <input ref={inputRef} type="file" accept="image/*" style={{display:'none'}}
-               onChange={e => uploadFile(e.target.files[0])} />
+        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
+          onChange={e => uploadFile(e.target.files[0])} />
 
         {uploading ? (
-          <div className="img-state"><div className="img-spinner"/><span>Uploading…</span></div>
+          <div className="img-state"><div className="img-spinner" /><span>Uploading…</span></div>
         ) : imageUrl ? (
           <div className="img-preview-wrap">
-            <img src={imageUrl} alt="Product" className="img-preview"/>
+            <img src={imageUrl} alt="Product" className="img-preview" />
             <div className="img-overlay">🔄 Click to replace</div>
           </div>
         ) : (
           <div className="img-state">
-            <div style={{fontSize:32}}>☁️</div>
-            <div style={{fontSize:13}}><strong>Click to upload</strong> or drag & drop</div>
-            <div style={{fontSize:11,color:'#94a3b8'}}>PNG, JPG, WEBP — max 5 MB</div>
+            <div style={{ fontSize: 32 }}>☁️</div>
+            <div style={{ fontSize: 13 }}><strong>Click to upload</strong> or drag & drop</div>
+            <div style={{ fontSize: 11, color: '#94a3b8' }}>PNG, JPG, WEBP — max 5 MB</div>
           </div>
         )}
       </div>
-      {error     && <div className="img-error">{error}</div>}
+      {error && <div className="img-error">{error}</div>}
       {imageUrl && !uploading && (
         <div className="img-url-badge">
           ✅ Uploaded &nbsp;
@@ -115,22 +126,22 @@ function ImageUploadBox({ imageUrl, onUpload, uploading, setUploading }) {
    PRODUCTS PAGE
 ════════════════════════════════════════ */
 export default function Products({ toast }) {
-  const [products,  setProducts]  = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [search,    setSearch]    = useState('');
-  const [catF,      setCatF]      = useState('');
-  const [stF,       setStF]       = useState('');
-  const [page,      setPage]      = useState(1);
-  const [modal,     setModal]     = useState(false);
-  const [editId,    setEditId]    = useState(null);
-  const [delId,     setDelId]     = useState(null);
-  const [saving,    setSaving]    = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [catF, setCatF] = useState('');
+  const [stF, setStF] = useState('');
+  const [page, setPage] = useState(1);
+  const [modal, setModal] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [delId, setDelId] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const blank = {
-    product_name:'', category:'', price:'', quantity:'',
-    status:'Active', product_description:'', image_url:'',
-    color:'', size:'', acc_type:'',
+    product_name: '', category: '', price: '', quantity: '',
+    status: 'Active', product_description: '', image_url: '',
+    color: '', size: '', acc_type: '',
   };
   const [form, setForm] = useState(blank);
 
@@ -140,38 +151,38 @@ export default function Products({ toast }) {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const res  = await fetch(API);
+      const res = await fetch(API);
       const data = await res.json();
       if (data.success) setProducts(data.data);
-      else toast('⚠️','Could not load products.');
-    } catch { toast('⚠️','Server not reachable.'); }
-    finally  { setLoading(false); }
+      else toast('⚠️', 'Could not load products.');
+    } catch { toast('⚠️', 'Server not reachable.'); }
+    finally { setLoading(false); }
   };
 
   /* ── filter + paginate ── */
   const filtered = products.filter(p =>
-    (!search || (p.product_name||'').toLowerCase().includes(search.toLowerCase())) &&
-    (!catF   || p.category === catF) &&
-    (!stF    || (stF === 'Active' ? p.available : !p.available))
+    (!search || (p.product_name || '').toLowerCase().includes(search.toLowerCase())) &&
+    (!catF || p.category === catF) &&
+    (!stF || (stF === 'Active' ? p.available : !p.available))
   );
   const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const sp    = Math.min(page, pages);
-  const slice = filtered.slice((sp-1)*PER_PAGE, sp*PER_PAGE);
+  const sp = Math.min(page, pages);
+  const slice = filtered.slice((sp - 1) * PER_PAGE, sp * PER_PAGE);
 
   /* ── modal helpers ── */
-  const openAdd  = () => { setForm(blank); setEditId(null); setModal(true); };
-  const openEdit = p  => {
+  const openAdd = () => { setForm(blank); setEditId(null); setModal(true); };
+  const openEdit = p => {
     setForm({
-      product_name        : p.product_name        || '',
-      category            : p.category            || '',
-      price               : p.price               || '',
-      quantity            : p.quantity             ?? '',
-      status              : p.available ? 'Active' : 'Inactive',
-      product_description : p.product_description || '',
-      image_url           : p.image_url           || '',
-      color               : p.color               || '',
-      size                : p.size                || '',
-      acc_type            : p.acc_type            || '',
+      product_name: p.product_name || '',
+      category: p.category || '',
+      price: p.price || '',
+      quantity: p.quantity ?? '',
+      status: p.available ? 'Active' : 'Inactive',
+      product_description: p.product_description || '',
+      image_url: p.image_url || '',
+      color: p.color || '',
+      size: p.size || '',
+      acc_type: p.acc_type || '',
     });
     setEditId(p.id);
     setModal(true);
@@ -181,54 +192,54 @@ export default function Products({ toast }) {
   /* ── save ── */
   const save = async () => {
     if (!form.product_name || !form.category || form.price === '' || form.quantity === '') {
-      toast('⚠️','Please fill all required fields.'); return;
+      toast('⚠️', 'Please fill all required fields.'); return;
     }
     setSaving(true);
     const payload = {
-      product_name        : form.product_name,
-      category            : form.category,
-      price               : parseFloat(form.price),
-      quantity            : parseInt(form.quantity, 10),
-      available           : form.status === 'Active',
-      product_description : form.product_description,
-      image_url           : form.image_url,
-      color               : form.color,
-      size                : form.size,
+      product_name: form.product_name,
+      category: form.category,
+      price: parseFloat(form.price),
+      quantity: parseInt(form.quantity, 10),
+      available: form.status === 'Active',
+      product_description: form.product_description,
+      image_url: form.image_url,
+      color: form.color,
+      size: form.size,
     };
     try {
-      const url    = editId ? `${API}/${editId}` : API;
+      const url = editId ? `${API}/${editId}` : API;
       const method = editId ? 'PUT' : 'POST';
-      const res    = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-      const data   = await res.json();
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json();
       if (data.success) {
         await fetchProducts();
         toast('✅', editId ? 'Product updated!' : 'Product added!');
         closeM();
       } else toast('❌', data.message || 'Save failed.');
-    } catch { toast('❌','Network error.'); }
-    finally  { setSaving(false); }
+    } catch { toast('❌', 'Network error.'); }
+    finally { setSaving(false); }
   };
 
   /* ── delete ── */
   const confirmDel = async () => {
     try {
-      const res  = await fetch(`${API}/${delId}`, { method:'DELETE' });
+      const res = await fetch(`${API}/${delId}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.success) { await fetchProducts(); toast('🗑️','Product deleted.'); }
+      if (data.success) { await fetchProducts(); toast('🗑️', 'Product deleted.'); }
       else toast('❌', data.message || 'Delete failed.');
-    } catch { toast('❌','Network error.'); }
+    } catch { toast('❌', 'Network error.'); }
     setDelId(null);
   };
 
   const ms = {
-    total  : products.length,
-    active : products.filter(p => p.available).length,
-    low    : products.filter(p => p.quantity > 0 && p.quantity <= 10).length,
-    out    : products.filter(p => p.quantity === 0).length,
+    total: products.length,
+    active: products.filter(p => p.available).length,
+    low: products.filter(p => p.quantity > 0 && p.quantity <= 10).length,
+    out: products.filter(p => p.quantity === 0).length,
   };
 
   /* ── price formatter ── */
-  const fmtPrice = v => `RS ${parseFloat(v||0).toLocaleString('en-LK',{minimumFractionDigits:2})}`;
+  const fmtPrice = v => `RS ${parseFloat(v || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="view">
@@ -258,36 +269,36 @@ export default function Products({ toast }) {
 
       <div className="ph">
         <div><h1 className="ph-title">Products</h1><p className="ph-sub">Manage your clothing catalogue.</p></div>
-        <button className="btn-primary" onClick={openAdd}><IcoPlus/> Add New Product</button>
+        <button className="btn-primary" onClick={openAdd}><IcoPlus /> Add New Product</button>
       </div>
 
       <MiniStats items={[
-        ['📦', ms.total,  'Total Products'],
+        ['📦', ms.total, 'Total Products'],
         ['✅', ms.active, 'Active'],
-        ['⚠️', ms.low,   'Low Stock'],
-        ['🚫', ms.out,   'Out of Stock'],
-      ]}/>
+        ['⚠️', ms.low, 'Low Stock'],
+        ['🚫', ms.out, 'Out of Stock'],
+      ]} />
 
       <div className="toolbar">
         <div className="tb-search">
-          <IcoSearch w={13}/>
+          <IcoSearch w={13} />
           <input className="tb-inp" placeholder="Search product name…" value={search}
-                 onChange={e=>{ setSearch(e.target.value); setPage(1); }}/>
+            onChange={e => { setSearch(e.target.value); setPage(1); }} />
         </div>
-        <select className="tb-sel" value={catF} onChange={e=>{ setCatF(e.target.value); setPage(1); }}>
+        <select className="tb-sel" value={catF} onChange={e => { setCatF(e.target.value); setPage(1); }}>
           <option value="">All Categories</option>
-          {CLOTHING_CATS.map(c=><option key={c}>{c}</option>)}
+          {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
         </select>
-        <select className="tb-sel" value={stF} onChange={e=>{ setStF(e.target.value); setPage(1); }}>
+        <select className="tb-sel" value={stF} onChange={e => { setStF(e.target.value); setPage(1); }}>
           <option value="">All Status</option>
           <option>Active</option><option>Inactive</option>
         </select>
         <span className="tb-count">{filtered.length} products</span>
       </div>
 
-      <div className="admin_card" style={{overflow:'hidden'}}>
+      <div className="admin_card" style={{ overflow: 'hidden' }}>
         <div className="tbl-wrap">
-          <table className="tbl" style={{minWidth:900}}>
+          <table className="tbl" style={{ minWidth: 900 }}>
             <thead><tr>
               <th>Product</th><th>Category</th>
               <th>Price (RS)</th><th>Stock</th><th>Status</th><th>Actions</th>
@@ -302,8 +313,8 @@ export default function Products({ toast }) {
                       <td>
                         <div className="prod-cell">
                           {p.image_url
-                            ? <img src={p.image_url} alt={p.product_name} className="prod-img"/>
-                            : <div className="prod-thumb-ico">{CAT_ICON[p.category]||'📦'}</div>
+                            ? <img src={p.image_url} alt={p.product_name} className="prod-img" />
+                            : <div className="prod-thumb-ico">{CAT_ICON[p.category] || '📦'}</div>
                           }
                           <div>
                             <div className="cell-nm">{p.product_name}</div>
@@ -311,13 +322,13 @@ export default function Products({ toast }) {
                           </div>
                         </div>
                       </td>
-                      <td><span className={`cat-pill ${MY_CAT_CLS[p.category]||''}`}>{p.category}</span></td>
+                      <td><span className={`cat-pill ${MY_CAT_CLS[p.category] || ''}`}>{p.category}</span></td>
                       <td className="cell-price">{fmtPrice(p.price)}</td>
-                      <td><StockBar stock={p.quantity||0}/></td>
-                      <td><Badge label={p.available?'Active':'Inactive'} cls={p.available?'b-active':'b-inactive'}/></td>
+                      <td><StockBar stock={p.quantity || 0} /></td>
+                      <td><Badge label={p.available ? 'Active' : 'Inactive'} cls={p.available ? 'b-active' : 'b-inactive'} /></td>
                       <td><div className="act-grp">
-                        <button className="ab ab-edit" onClick={()=>openEdit(p)}>✏️ Edit</button>
-                        <button className="ab ab-del"  onClick={()=>setDelId(p.id)}>🗑️</button>
+                        <button className="ab ab-edit" onClick={() => openEdit(p)}>✏️ Edit</button>
+                        <button className="ab ab-del" onClick={() => setDelId(p.id)}>🗑️</button>
                       </div></td>
                     </tr>
                   ))
@@ -327,24 +338,24 @@ export default function Products({ toast }) {
         </div>
         <div className="tbl-foot">
           <span className="tbl-info">
-            Showing {filtered.length===0?0:(sp-1)*PER_PAGE+1}–{Math.min(sp*PER_PAGE,filtered.length)} of {filtered.length}
+            Showing {filtered.length === 0 ? 0 : (sp - 1) * PER_PAGE + 1}–{Math.min(sp * PER_PAGE, filtered.length)} of {filtered.length}
           </span>
           <div className="pg-btns">
-            <button className="pg-btn" onClick={()=>setPage(p=>p-1)} disabled={sp<=1}>← Prev</button>
-            {Array.from({length:Math.min(pages,5)},(_,i)=>(
-              <button key={i} className={`pg-btn${sp===i+1?' active':''}`} onClick={()=>setPage(i+1)}>{i+1}</button>
+            <button className="pg-btn" onClick={() => setPage(p => p - 1)} disabled={sp <= 1}>← Prev</button>
+            {Array.from({ length: Math.min(pages, 5) }, (_, i) => (
+              <button key={i} className={`pg-btn${sp === i + 1 ? ' active' : ''}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
             ))}
-            <button className="pg-btn" onClick={()=>setPage(p=>p+1)} disabled={sp>=pages}>Next →</button>
+            <button className="pg-btn" onClick={() => setPage(p => p + 1)} disabled={sp >= pages}>Next →</button>
           </div>
         </div>
       </div>
 
       {/* ── Add / Edit Modal ── */}
-      <Modal open={modal} onClose={closeM} title={editId?'Edit Product':'Add New Product'}
+      <Modal open={modal} onClose={closeM} title={editId ? 'Edit Product' : 'Add New Product'}
         footer={<>
-          <button className="btn-secondary" onClick={closeM} disabled={saving||uploading}>Cancel</button>
-          <button className="btn-primary"   onClick={save}   disabled={saving||uploading}>
-            {saving?'Saving…':'Save Product'}
+          <button className="btn-secondary" onClick={closeM} disabled={saving || uploading}>Cancel</button>
+          <button className="btn-primary" onClick={save} disabled={saving || uploading}>
+            {saving ? 'Saving…' : 'Save Product'}
           </button>
         </>}>
         <div className="m-body">
@@ -352,7 +363,7 @@ export default function Products({ toast }) {
 
             <ImageUploadBox
               imageUrl={form.image_url}
-              onUpload={url=>setForm(f=>({...f,image_url:url}))}
+              onUpload={url => setForm(f => ({ ...f, image_url: url }))}
               uploading={uploading}
               setUploading={setUploading}
             />
@@ -360,15 +371,15 @@ export default function Products({ toast }) {
             <div className="f-full">
               <label className="f-lbl">Product Name *</label>
               <input className="f-inp" placeholder="e.g. Classic Batik Sarong"
-                     value={form.product_name} onChange={e=>setForm(f=>({...f,product_name:e.target.value}))}/>
+                value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))} />
             </div>
 
             <div>
               <label className="f-lbl">Category *</label>
               <select className="f-sel" value={form.category}
-                      onChange={e=>setForm(f=>({...f,category:e.target.value,acc_type:''}))}>
+                onChange={e => setForm(f => ({ ...f, category: e.target.value, acc_type: '', size: '' }))}>
                 <option value="">Select…</option>
-                {CLOTHING_CATS.map(c=><option key={c}>{c}</option>)}
+                {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
 
@@ -376,9 +387,9 @@ export default function Products({ toast }) {
               <div>
                 <label className="f-lbl">Accessory Type</label>
                 <select className="f-sel" value={form.acc_type}
-                        onChange={e=>setForm(f=>({...f,acc_type:e.target.value}))}>
+                  onChange={e => setForm(f => ({ ...f, acc_type: e.target.value }))}>
                   <option value="">Select type…</option>
-                  {ACC_SUBS.map(s=><option key={s}>{s}</option>)}
+                  {ACC_SUBS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
             )}
@@ -386,31 +397,58 @@ export default function Products({ toast }) {
             <div>
               <label className="f-lbl">Price (RS) *</label>
               <input className="f-inp" type="number" min="0" step="0.01" placeholder="0.00"
-                     value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))}/>
+                value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
             </div>
 
             <div>
               <label className="f-lbl">Stock Qty *</label>
               <input className="f-inp" type="number" min="0" placeholder="0"
-                     value={form.quantity} onChange={e=>setForm(f=>({...f,quantity:e.target.value}))}/>
+                value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
             </div>
 
-            <div>
-              <label className="f-lbl">Size</label>
-              <input className="f-inp" placeholder="S, M, L, XL or Free Size"
-                     value={form.size} onChange={e=>setForm(f=>({...f,size:e.target.value}))}/>
-            </div>
+            {/* Size — dropdown changes based on selected category */}
+            {form.category === 'Sarong' && (
+              <div>
+                <label className="f-lbl">Size</label>
+                <input className="f-inp" value="Free Size" readOnly
+                  style={{ background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }} />
+              </div>
+            )}
+            {(form.category === 'Trousers' || form.category === 'Shorts') && (
+              <div>
+                <label className="f-lbl">Waist Size (inches)</label>
+                <select className="f-sel" value={form.size}
+                  onChange={e => setForm(f => ({ ...f, size: e.target.value }))}>
+                  <option value="">Select waist size…</option>
+                  {['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'].map(s => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {form.category === 'T-shirts' && (
+              <div>
+                <label className="f-lbl">Size</label>
+                <select className="f-sel" value={form.size}
+                  onChange={e => setForm(f => ({ ...f, size: e.target.value }))}>
+                  <option value="">Select size…</option>
+                  {['S', 'M', 'L', 'XL', '2XL'].map(s => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="f-lbl">Color</label>
               <input className="f-inp" placeholder="e.g. Blue, Red, Multicolor"
-                     value={form.color} onChange={e=>setForm(f=>({...f,color:e.target.value}))}/>
+                value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} />
             </div>
 
             <div>
               <label className="f-lbl">Status</label>
               <select className="f-sel" value={form.status}
-                      onChange={e=>setForm(f=>({...f,status:e.target.value}))}>
+                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
                 <option>Active</option><option>Inactive</option>
               </select>
             </div>
@@ -418,18 +456,18 @@ export default function Products({ toast }) {
             <div className="f-full">
               <label className="f-lbl">Description</label>
               <textarea className="f-ta" placeholder="Brief product description…"
-                        value={form.product_description}
-                        onChange={e=>setForm(f=>({...f,product_description:e.target.value}))}/>
+                value={form.product_description}
+                onChange={e => setForm(f => ({ ...f, product_description: e.target.value }))} />
             </div>
           </div>
         </div>
       </Modal>
 
       {/* ── Delete Confirm ── */}
-      <Modal open={!!delId} onClose={()=>setDelId(null)} compact
+      <Modal open={!!delId} onClose={() => setDelId(null)} compact
         footer={<>
-          <button className="btn-secondary" onClick={()=>setDelId(null)}>Cancel</button>
-          <button className="btn-danger"    onClick={confirmDel}>Yes, Delete</button>
+          <button className="btn-secondary" onClick={() => setDelId(null)}>Cancel</button>
+          <button className="btn-danger" onClick={confirmDel}>Yes, Delete</button>
         </>}>
         <div className="m-body del-body">
           <div className="del-icon">🗑️</div>
