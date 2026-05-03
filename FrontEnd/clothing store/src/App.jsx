@@ -15,6 +15,7 @@ import Sarong from "./Pages/sarong";
 import Shirts from "./Pages/shirts";
 import FeedbackForm from "./Pages/FeedbackForm";
 import FAQPage from "./Pages/FAQ";
+import AboutUs from "./Pages/AboutUs";
 
 function App() {
   const handleForgotSuccess = () => {
@@ -31,11 +32,13 @@ function App() {
         <Route path="/Contactus" element={<ContactUs />} />
         <Route path="/feedback" element={<FeedbackForm />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/about" element={<AboutUs />} />
 
         {/*Login pages */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
+        
 
         {/*Admin & User */}
         <Route path="/dashboard" element={<Dashboard />} />
