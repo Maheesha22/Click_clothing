@@ -58,7 +58,14 @@ export default function Footer() {
             </div>
           </div>
           <ul>
-            <li>About Us</li>
+            
+            {/* ONLY ADDED THIS LINE */}
+            <li>
+              <Link to="/about" style={{ textDecoration: 'none', color: 'inherit' }}>
+                About Us
+              </Link>
+            </li>
+
             <li>
               <Link to="/Contactus" style={{ textDecoration: 'none', color: 'inherit' }}>
                 Contact Us
