@@ -29,11 +29,13 @@ const userRoutes    = require("./routes/UserRoutes");
 const productRoutes = require("./routes/productRoutes");   // ← added
 const cartRoutes = require("./routes/CartRoutes");
 const contactRoutes = require('./routes/contactRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);                   // ← added
 app.use("/api/cart", cartRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
