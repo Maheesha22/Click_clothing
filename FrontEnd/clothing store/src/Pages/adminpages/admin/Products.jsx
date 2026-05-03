@@ -8,7 +8,7 @@ import {
 /* ════════════════════════════════════════
    CLICK CLOTHING — CATEGORIES & MAPS
 ════════════════════════════════════════ */
-const CLOTHING_CATS = ['Sarong', 'Trousers', 'Shorts', 'T-shirts', 'Accessories'];
+const CLOTHING_CATS = ['Shirts', 'Trousers', 'Shorts', 'T-shirts', 'Accessories'];
 const ACC_SUBS = ['Cap', 'Perfume', 'Deodorant'];
 
 /* Size options per category */
@@ -18,11 +18,11 @@ const SIZE_OPTIONS = {
   Trousers: WAIST_SIZES,
   Shorts: WAIST_SIZES,
   'T-shirts': SHIRT_SIZES,
-  Sarong: ['Free Size'],
+  Shirts: SHIRT_SIZES,
   Accessories: [],           // no size for accessories
 };
 const CAT_ICON = {
-  Sarong: '',
+  Shirts: '',
   Trousers: '',
   Shorts: '',
   'T-shirts': '',
@@ -30,7 +30,7 @@ const CAT_ICON = {
 };
 const MY_CAT_CLS = {
   ...CAT_CLS,
-  Sarong: 'cp-sarong',
+  Shirts: 'cp-sarong',
   Trousers: 'cp-trousers',
   Shorts: 'cp-shorts',
   'T-shirts': 'cp-tshirts',
@@ -141,7 +141,7 @@ export default function Products({ toast }) {
   const blank = {
     product_name: '', category: '', price: '', quantity: '',
     status: 'Active', product_description: '', image_url: '',
-    color: '', size: '', acc_type: '',
+    color: '', size: '', acc_type: '', sizes_quantities: {}
   };
   const [form, setForm] = useState(blank);
 
@@ -172,6 +172,14 @@ export default function Products({ toast }) {
   /* ── modal helpers ── */
   const openAdd = () => { setForm(blank); setEditId(null); setModal(true); };
   const openEdit = p => {
+    let parsedSQ = {};
+    let parsedSize = p.size || '';
+    if (p.size && p.size.startsWith('{')) {
+      try {
+        parsedSQ = JSON.parse(p.size);
+        parsedSize = '';
+      } catch (e) { }
+    }
     setForm({
       product_name: p.product_name || '',
       category: p.category || '',
@@ -181,8 +189,9 @@ export default function Products({ toast }) {
       product_description: p.product_description || '',
       image_url: p.image_url || '',
       color: p.color || '',
-      size: p.size || '',
+      size: parsedSize,
       acc_type: p.acc_type || '',
+      sizes_quantities: parsedSQ,
     });
     setEditId(p.id);
     setModal(true);
@@ -191,20 +200,34 @@ export default function Products({ toast }) {
 
   /* ── save ── */
   const save = async () => {
-    if (!form.product_name || !form.category || form.price === '' || form.quantity === '') {
+    const hasSizeQtys = ['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category);
+    if (!form.product_name || !form.category || form.price === '' || (!hasSizeQtys && form.quantity === '')) {
       toast('⚠️', 'Please fill all required fields.'); return;
     }
     setSaving(true);
+
+    let finalQuantity = parseInt(form.quantity, 10);
+    let finalSize = form.size;
+
+    if (hasSizeQtys) {
+      let totalQty = 0;
+      Object.values(form.sizes_quantities).forEach(q => {
+        totalQty += parseInt(q || 0, 10);
+      });
+      finalQuantity = totalQty;
+      finalSize = Object.keys(form.sizes_quantities).length > 0 ? JSON.stringify(form.sizes_quantities) : '';
+    }
+
     const payload = {
       product_name: form.product_name,
       category: form.category,
       price: parseFloat(form.price),
-      quantity: parseInt(form.quantity, 10),
+      quantity: finalQuantity || 0,
       available: form.status === 'Active',
       product_description: form.product_description,
       image_url: form.image_url,
       color: form.color,
-      size: form.size,
+      size: finalSize,
     };
     try {
       const url = editId ? `${API}/${editId}` : API;
@@ -370,14 +393,14 @@ export default function Products({ toast }) {
 
             <div className="f-full">
               <label className="f-lbl">Product Name *</label>
-              <input className="f-inp" placeholder="e.g. Classic Batik Sarong"
+              <input className="f-inp" placeholder="e.g. Classic Checkered Shirt"
                 value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))} />
             </div>
 
             <div>
               <label className="f-lbl">Category *</label>
               <select className="f-sel" value={form.category}
-                onChange={e => setForm(f => ({ ...f, category: e.target.value, acc_type: '', size: '' }))}>
+                onChange={e => setForm(f => ({ ...f, category: e.target.value, acc_type: '', size: '', sizes_quantities: {} }))}>
                 <option value="">Select…</option>
                 {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
               </select>
@@ -400,42 +423,52 @@ export default function Products({ toast }) {
                 value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
             </div>
 
-            <div>
-              <label className="f-lbl">Stock Qty *</label>
-              <input className="f-inp" type="number" min="0" placeholder="0"
-                value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-            </div>
+            {!['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category) && (
+              <div>
+                <label className="f-lbl">Stock Qty *</label>
+                <input className="f-inp" type="number" min="0" placeholder="0"
+                  value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
+              </div>
+            )}
 
             {/* Size — dropdown changes based on selected category */}
-            {form.category === 'Sarong' && (
-              <div>
-                <label className="f-lbl">Size</label>
-                <input className="f-inp" value="Free Size" readOnly
-                  style={{ background: '#f1f5f9', color: '#64748b', cursor: 'not-allowed' }} />
-              </div>
-            )}
-            {(form.category === 'Trousers' || form.category === 'Shorts') && (
-              <div>
-                <label className="f-lbl">Waist Size (inches)</label>
-                <select className="f-sel" value={form.size}
-                  onChange={e => setForm(f => ({ ...f, size: e.target.value }))}>
-                  <option value="">Select waist size…</option>
-                  {['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'].map(s => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {form.category === 'T-shirts' && (
-              <div>
-                <label className="f-lbl">Size</label>
-                <select className="f-sel" value={form.size}
-                  onChange={e => setForm(f => ({ ...f, size: e.target.value }))}>
-                  <option value="">Select size…</option>
-                  {['S', 'M', 'L', 'XL', '2XL'].map(s => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
+            {['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category) && (
+              <div className="f-full">
+                <label className="f-lbl">Select Sizes & Quantities *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px', marginTop: '6px' }}>
+                  {SIZE_OPTIONS[form.category]?.map(s => {
+                    const isChecked = form.sizes_quantities && form.sizes_quantities[s] !== undefined;
+                    return (
+                      <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={e => {
+                            const newSQ = { ...(form.sizes_quantities || {}) };
+                            if (e.target.checked) newSQ[s] = 1;
+                            else delete newSQ[s];
+                            setForm(f => ({ ...f, sizes_quantities: newSQ }));
+                          }}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px', margin: 0 }}
+                        />
+                        <label style={{ cursor: 'pointer', fontSize: '14px', flex: 1, userSelect: 'none' }} onClick={() => {
+                          const newSQ = { ...(form.sizes_quantities || {}) };
+                          if (!isChecked) newSQ[s] = 1; else delete newSQ[s];
+                          setForm(f => ({ ...f, sizes_quantities: newSQ }));
+                        }}>{s}</label>
+                        <input
+                          className="f-inp"
+                          type="number"
+                          min="1"
+                          disabled={!isChecked}
+                          value={isChecked ? form.sizes_quantities[s] : ''}
+                          onChange={e => setForm(f => ({ ...f, sizes_quantities: { ...f.sizes_quantities, [s]: e.target.value === '' ? '' : parseInt(e.target.value, 10) } }))}
+                          style={{ width: '60px', padding: '4px 6px', opacity: isChecked ? 1 : 0.4 }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
