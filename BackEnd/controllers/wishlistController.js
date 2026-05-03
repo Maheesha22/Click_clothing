@@ -41,4 +41,16 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
-module.exports = { getWishlist, addToWishlist, removeFromWishlist };
+// DELETE /api/wishlist/by-product/:userId/:productId
+const removeFromWishlistByProduct = async (req, res) => {
+  try {
+    const { userId, productId } = req.params;
+    const deleted = await Wishlist.destroy({ where: { userId, productId } });
+    if (!deleted) return res.status(404).json({ message: 'Item not found' });
+    res.json({ message: 'Removed from wishlist' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error removing from wishlist', error: err.message });
+  }
+};
+
+module.exports = { getWishlist, addToWishlist, removeFromWishlist, removeFromWishlistByProduct };

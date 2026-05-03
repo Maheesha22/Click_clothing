@@ -3,6 +3,14 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Trousers.css";
 import WhatsAppButton from "../Components/whatsappbtn";
+import {
+  getWishlistDB,
+  addToWishlistDB,
+  removeFromWishlistByProductDB,
+  getGuestWishlist,
+  addToGuestWishlist,
+  removeFromGuestWishlist,
+} from "../services/wishlistService";
 
 // ── Color Utility ────────────────────────────────────────────────────────────────
 // Maps common color names (as stored in DB) to hex values for swatches
@@ -378,7 +386,7 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
         <img src={getCardImage()} alt={product.name} loading="lazy" />
         <button
           className={`tr-wishlist-btn ${isWished ? "active" : ""}`}
-          onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }}
+          onClick={(e) => { e.stopPropagation(); onToggleWishlist(); }}
           aria-label="Add to wishlist"
         >
           {isWished ? "❤️" : "🤍"}
@@ -553,7 +561,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 <img src={currentImage} alt={product.name} />
                 <button
                   className={`tr-modal-wishlist-float ${isWished ? "active" : ""}`}
-                  onClick={() => onToggleWishlist(product.id)}
+                  onClick={() => onToggleWishlist()}
                   aria-label="Toggle wishlist"
                 >
                   {isWished ? "❤️" : "🤍"}
@@ -755,6 +763,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 // ── Main Trousers Page Component ───────────────────────────────────────────────
 const TrousersPage = () => {
   const [maxPrice, setMaxPrice] = useState(6000);
+  // wishlist stores product IDs (numbers) for fast isWished lookup
   const [wishlist, setWishlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -762,25 +771,79 @@ const TrousersPage = () => {
   const [visibleCount, setVisibleCount] = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
+  // Resolve current user from sessionStorage
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = !!(storedUser?.email);
+
   // Collect all unique sizes across all products for the filter panel
   const allUniqueSizes = [...new Set(
     ALL_PRODUCTS.flatMap((p) => parseSizes(p.size))
   )].sort((a, b) => Number(a) - Number(b));
 
+  // ── On mount: load wishlist (DB or sessionStorage) ────────────────
   useEffect(() => {
-    const savedWishlist = JSON.parse(localStorage.getItem("trouser_wishlist")) || [];
-    setWishlist(savedWishlist);
-  }, []);
-
-  const toggleWishlist = (productId) => {
-    let updated;
-    if (wishlist.includes(productId)) {
-      updated = wishlist.filter((id) => id !== productId);
+    if (isLoggedIn) {
+      getWishlistDB(storedUser.id)
+        .then(res => {
+          // DB items have productId as string; convert to number for comparison
+          const ids = res.data.map(item => Number(item.productId));
+          setWishlist(ids);
+        })
+        .catch(() => {
+          // Backend unavailable — fall back silently
+          setWishlist([]);
+        });
     } else {
-      updated = [...wishlist, productId];
+      const guestItems = getGuestWishlist();
+      setWishlist(guestItems.map(item => Number(item.productId)));
     }
-    setWishlist(updated);
-    localStorage.setItem("trouser_wishlist", JSON.stringify(updated));
+  }, [storedUser?.id]);
+
+  // ── Toggle heart icon ─────────────────────────────────────────────
+  const toggleWishlist = async (product) => {
+    const productId = product.id;
+    const isWished = wishlist.includes(productId);
+
+    // Optimistic UI update
+    setWishlist(prev =>
+      isWished ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+
+    if (isLoggedIn) {
+      try {
+        if (isWished) {
+          await removeFromWishlistByProductDB(storedUser.id, String(productId));
+        } else {
+          await addToWishlistDB({
+            userId: storedUser.id,
+            productId: String(productId),
+            productName: product.name,
+            price: product.price,
+            emoji: '👖',
+            imageUrl: product.image_url,
+          });
+        }
+      } catch (err) {
+        // Revert optimistic update on failure
+        setWishlist(prev =>
+          isWished ? [...prev, productId] : prev.filter(id => id !== productId)
+        );
+        console.error('Wishlist error:', err);
+      }
+    } else {
+      // Guest: use sessionStorage
+      if (isWished) {
+        removeFromGuestWishlist(String(productId));
+      } else {
+        addToGuestWishlist({
+          productId: String(productId),
+          productName: product.name,
+          price: product.price,
+          emoji: '👖',
+          imageUrl: product.image_url,
+        });
+      }
+    }
   };
 
   let filteredProducts = ALL_PRODUCTS.filter((product) => {
@@ -874,7 +937,7 @@ const TrousersPage = () => {
                     key={product.id}
                     product={product}
                     isWished={wishlist.includes(product.id)}
-                    onToggleWishlist={toggleWishlist}
+                    onToggleWishlist={() => toggleWishlist(product)}
                     onOpenModal={setSelectedProduct}
                   />
                 ))}
@@ -897,7 +960,7 @@ const TrousersPage = () => {
         <ProductModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
-          onToggleWishlist={toggleWishlist}
+          onToggleWishlist={() => toggleWishlist(selectedProduct)}
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
