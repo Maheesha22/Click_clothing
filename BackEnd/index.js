@@ -28,10 +28,12 @@ db.sequelize.authenticate()
 const userRoutes    = require("./routes/UserRoutes");
 const productRoutes = require("./routes/productRoutes");   // ← added
 const cartRoutes = require("./routes/CartRoutes");
+const contactRoutes = require('./routes/contactRoutes');
 
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);                   // ← added
 app.use("/api/cart", cartRoutes);
+app.use("/api/contact", contactRoutes);
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 app.use("/api/wishlist", wishlistRoutes);
