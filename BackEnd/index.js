@@ -28,10 +28,12 @@ db.sequelize.authenticate()
 const userRoutes    = require("./routes/UserRoutes");
 const productRoutes = require("./routes/productRoutes");   // ← added
 const cartRoutes = require("./routes/CartRoutes");
+const contactRoutes = require('./routes/contactRoutes');
 
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);                   // ← added
 app.use("/api/cart", cartRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
