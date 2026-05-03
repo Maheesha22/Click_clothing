@@ -11,8 +11,10 @@ import ForgotPage from "./Pages/forgot";
 import Dashboard from "./Pages/Admindashboard";
 import UserPage from "./Pages/user";
 import Trousers from './Pages/Trousers';
-import Sarong from "./Pages/sarong";
 import Shirts from "./Pages/shirts";
+import FormalShirtsPage from "./Pages/formal-shirts";
+import TShirtsPage from "./Pages/tshirts";
+import ShortsPage from "./Pages/shorts";
 import FeedbackForm from "./Pages/FeedbackForm";
 import FAQPage from "./Pages/FAQ";
 
@@ -29,6 +31,7 @@ function App() {
       <Routes>
         {/*MAIN PAGES */}
         <Route path="/" element={<HomePage />} />
+          <Route path="/Category" element={<HomePage />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/Contactus" element={<ContactUs />} />
@@ -53,8 +56,10 @@ function App() {
 
         {/*PRODUCT PAGES */}
         <Route path="/trousers" element={<Trousers />} />
-        <Route path="/sarong" element={<Sarong />} />
         <Route path="/shirts" element={<Shirts />} />
+        <Route path="/formal-shirts" element={<FormalShirtsPage />} />
+        <Route path="/tshirts" element={<TShirtsPage />} />
+        <Route path="/shorts" element={<ShortsPage />} />
       </Routes>
     </BrowserRouter>
   );

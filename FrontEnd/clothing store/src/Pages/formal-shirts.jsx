@@ -1,260 +1,251 @@
+
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import WhatsAppButton from "../components/whatsappbtn";
-import "./Shirts.css";
+import "./formal-shirts.css";
+import WhatsAppButton from "../Components/whatsappbtn";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
 const ALL_PRODUCTS = [
   {
     id: 1,
-    name: "Classic Oxford Shirt – White",
-    basePrice: 2495,
+    name: "Classic White Formal Shirt",
+    basePrice: 3800,
     sizes: ["S", "M", "L", "XL", "XXL"],
     inStock: true,
-    colors: ["#ffffff", "#d4c5a9", "#1a3a5c"],
-    colorNames: { "#ffffff": "White", "#d4c5a9": "Beige", "#1a3a5c": "Navy" },
+    colors: ["#ffffff", "#d4e8ff"],
+    colorNames: { "#ffffff": "White", "#d4e8ff": "Light Blue" },
     colorImages: {
       "#ffffff": [
-        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80",
-        "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80",
+        "/Formal_Shirts_ath_diga/1.jpeg",
+       "/Formal_Shirts_ath_diga/2.jpeg",
+        "/Formal_Shirts_ath_diga/3.jpeg",
       ],
-      "#d4c5a9": [
-        "https://images.unsplash.com/photo-1603252109303-2751441dd157?w=600&q=80",
-      ],
-      "#1a3a5c": [
-        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+      "#d4e8ff": [
+         "/Formal_Shirts_ath_diga/shirt1.jpeg",
+        "https://images.unsplash.com/photo-1602810316693-3667c854239a?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80",
-    sku: "#COX-001-WHT",
-    material: "Oxford Cotton",
-    composition: "100% Cotton",
+    img: "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
+    sku: "#CWF-S-WHT",
+    material: "Premium Cotton",
+    composition: "100% Egyptian Cotton",
     modelInfo: 'Model Height 5\'11", wearing size M',
-    stockCount: 15,
+    stockCount: 6,
     freeShippingThreshold: 8000,
   },
   {
     id: 2,
-    name: "Slim Fit Formal Shirt – Sky Blue",
-    basePrice: 2890,
+    name: "Slim Fit Oxford Shirt",
+    basePrice: 4500,
     sizes: ["S", "M", "L", "XL"],
     inStock: true,
-    colors: ["#87ceeb", "#ffffff", "#c4e0f3"],
-    colorNames: { "#87ceeb": "Sky Blue", "#ffffff": "White", "#c4e0f3": "Powder Blue" },
+    colors: ["#1a3a5c", "#ffffff"],
+    colorNames: { "#1a3a5c": "Navy", "#ffffff": "White" },
     colorImages: {
-      "#87ceeb": [
-        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
+      "#1a3a5c": [
+        "https://images.unsplash.com/photo-1602810316693-3667c854239a?w=600&q=80",
+        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
       ],
       "#ffffff": [
-        "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&q=80",
-      ],
-      "#c4e0f3": [
-        "https://images.unsplash.com/photo-1512327536842-5aa37d1ba3e3?w=600&q=80",
+        "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
-    sku: "#SFF-002-SBL",
-    material: "Cotton Blend",
-    composition: "60% Cotton, 40% Polyester",
-    modelInfo: 'Model Height 6\'0", wearing size L',
-    stockCount: 8,
+    img: "https://images.unsplash.com/photo-1602810316693-3667c854239a?w=600&q=80",
+    sku: "#SFO-M-NAV",
+    material: "Oxford Weave Cotton",
+    composition: "100% Cotton Oxford",
+    modelInfo: 'Model Height 6\'0", wearing size M',
+    stockCount: 9,
     freeShippingThreshold: 8000,
   },
   {
     id: 3,
-    name: "Linen Relaxed Shirt – Ecru",
-    basePrice: 3290,
-    sizes: ["M", "L", "XL", "XXL"],
-    inStock: true,
-    colors: ["#ece8dc", "#d4c5a9", "#c4a882"],
-    colorNames: { "#ece8dc": "Ecru", "#d4c5a9": "Beige", "#c4a882": "Sand" },
+    name: "Striped Business Shirt",
+    basePrice: 4200,
+    sizes: ["M", "L", "XL"],
+    inStock: false,
+    colors: ["#aecbeb"],
+    colorNames: { "#aecbeb": "Blue Stripe" },
     colorImages: {
-      "#ece8dc": [
+      "#aecbeb": [
         "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80",
-      ],
-      "#d4c5a9": [
-        "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&q=80",
-      ],
-      "#c4a882": [
-        "https://images.unsplash.com/photo-1519058082700-08a0b56da9b4?w=600&q=80",
       ],
     },
     img: "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80",
-    sku: "#LRS-003-ECR",
-    material: "Pure Linen",
-    composition: "100% Linen",
-    modelInfo: 'Model Height 5\'10", wearing size L',
-    stockCount: 12,
-    freeShippingThreshold: 8000,
-  },
-  {
-    id: 4,
-    name: "Plaid Flannel Shirt – Forest",
-    basePrice: 3490,
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    inStock: false,
-    colors: ["#2e5e3e", "#6b3a2a", "#1a3a5c"],
-    colorNames: { "#2e5e3e": "Forest Green", "#6b3a2a": "Rust", "#1a3a5c": "Navy" },
-    colorImages: {
-      "#2e5e3e": [
-        "https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=80",
-      ],
-      "#6b3a2a": [
-        "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
-      ],
-      "#1a3a5c": [
-        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
-      ],
-    },
-    img: "https://images.unsplash.com/photo-1589310243389-96a5483213a8?w=600&q=80",
-    sku: "#PFS-004-FOR",
-    material: "Cotton Flannel",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 5\'11", wearing size M',
+    sku: "#SBS-M-BLS",
+    material: "Poplin Cotton",
+    composition: "100% Cotton Poplin",
+    modelInfo: 'Model Height 5\'10", wearing size M',
     stockCount: 0,
     freeShippingThreshold: 8000,
   },
   {
-    id: 5,
-    name: "Classic Denim Shirt – Indigo",
-    basePrice: 3990,
-    sizes: ["S", "M", "L", "XL", "XXL", "XXXL"],
+    id: 4,
+    name: "Regular Fit Dress Shirt",
+    basePrice: 3500,
+    sizes: ["S", "M", "L", "XL", "XXL"],
     inStock: true,
-    colors: ["#3b5998", "#1a1a2e", "#5b7fa6"],
-    colorNames: { "#3b5998": "Indigo", "#1a1a2e": "Dark Navy", "#5b7fa6": "Light Denim" },
+    colors: ["#111111", "#808080"],
+    colorNames: { "#111111": "Black", "#808080": "Charcoal" },
     colorImages: {
-      "#3b5998": [
-        "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
+      "#111111": [
+        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+        "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
       ],
-      "#1a1a2e": [
-        "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=80",
-      ],
-      "#5b7fa6": [
-        "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
+      "#808080": [
+        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
-    sku: "#CDS-005-IND",
-    material: "Denim",
-    composition: "98% Cotton, 2% Spandex",
-    modelInfo: 'Model Height 6\'0", wearing size L',
+    img: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+    sku: "#RFD-S-BLK",
+    material: "Twill Cotton",
+    composition: "97% Cotton, 3% Elastane",
+    modelInfo: 'Model Height 5\'11", wearing size M',
+    stockCount: 14,
+    freeShippingThreshold: 8000,
+  },
+  {
+    id: 5,
+    name: "Tito Men's Formal Shirt",
+    basePrice: 2795,
+    sizes: ["S", "M", "L", "XL", "XXL"],
+    inStock: true,
+    colors: ["#ffffff", "#111111", "#1a3a5c"],
+    colorNames: { "#ffffff": "White", "#111111": "Black", "#1a3a5c": "Navy" },
+    colorImages: {
+      "#ffffff": [
+        "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
+      ],
+      "#111111": [
+        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
+      ],
+      "#1a3a5c": [
+        "https://images.unsplash.com/photo-1602810316693-3667c854239a?w=600&q=80",
+      ],
+    },
+    img: "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
+    sku: "#TMF-M-WHT",
+    material: "Blended Cotton",
+    composition: "60% Cotton, 40% Polyester",
+    modelInfo: 'Model Height 5\'10", wearing size M',
     stockCount: 7,
     freeShippingThreshold: 8000,
   },
   {
     id: 6,
-    name: "Casual Polo Shirt – Olive",
-    basePrice: 2190,
-    sizes: ["S", "M", "L", "XL"],
+    name: "Textured Herringbone Shirt",
+    basePrice: 4900,
+    sizes: ["M", "L", "XL"],
     inStock: true,
-    colors: ["#6b7a3e", "#1a1a1a", "#8b3a2a"],
-    colorNames: { "#6b7a3e": "Olive", "#1a1a1a": "Black", "#8b3a2a": "Burgundy" },
+    colors: ["#d3d3c7", "#111111"],
+    colorNames: { "#d3d3c7": "Stone", "#111111": "Black" },
     colorImages: {
-      "#6b7a3e": [
-        "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=80",
+      "#d3d3c7": [
+        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
       ],
-      "#1a1a1a": [
-        "https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=80",
-      ],
-      "#8b3a2a": [
-        "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=600&q=80",
+      "#111111": [
+        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&q=80",
-    sku: "#CPS-006-OLV",
-    material: "Pique Cotton",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 5\'10", wearing size M',
-    stockCount: 20,
+    img: "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
+    sku: "#THB-M-STN",
+    material: "Herringbone Weave",
+    composition: "100% Cotton Herringbone",
+    modelInfo: 'Model Height 5\'11", wearing size M',
+    stockCount: 3,
     freeShippingThreshold: 8000,
   },
   {
     id: 7,
-    name: "Mandarin Collar Shirt – Black",
-    basePrice: 3190,
-    sizes: ["M", "L", "XL", "XXL"],
+    name: "Spread Collar Slim Shirt",
+    basePrice: 4100,
+    sizes: ["S", "M", "L", "XL"],
     inStock: true,
-    colors: ["#111111", "#333333", "#555555"],
-    colorNames: { "#111111": "Black", "#333333": "Charcoal", "#555555": "Grey" },
+    colors: ["#ffffff", "#aecbeb"],
+    colorNames: { "#ffffff": "White", "#aecbeb": "Sky Blue" },
     colorImages: {
-      "#111111": [
-        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
+      "#ffffff": [
+        "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
+        "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80",
       ],
-      "#333333": [
-        "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&q=80",
-      ],
-      "#555555": [
-        "https://images.unsplash.com/photo-1630329374405-28f8a96fbc74?w=600&q=80",
+      "#aecbeb": [
+        "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
-    sku: "#MCS-007-BLK",
-    material: "Cotton Blend",
-    composition: "65% Cotton, 35% Polyester",
-    modelInfo: 'Model Height 6\'1", wearing size L',
-    stockCount: 5,
+    img: "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
+    sku: "#SCS-S-WHT",
+    material: "Satin Weave Cotton",
+    composition: "100% Combed Cotton",
+    modelInfo: 'Model Height 6\'0", wearing size M',
+    stockCount: 10,
     freeShippingThreshold: 8000,
   },
   {
     id: 8,
-    name: "Premium Twill Shirt – Navy",
-    basePrice: 4490,
-    sizes: ["S", "M", "L", "XL", "XXL", "XXXL"],
+    name: "Premium Non-Iron Dress Shirt",
+    basePrice: 5800,
+    sizes: ["M", "L", "XL", "XXL"],
     inStock: true,
-    colors: ["#1a3a5c", "#111111", "#2c4a7c"],
-    colorNames: { "#1a3a5c": "Navy", "#111111": "Black", "#2c4a7c": "Royal Blue" },
+    colors: ["#ffffff", "#1a3a5c", "#111111"],
+    colorNames: { "#ffffff": "White", "#1a3a5c": "Navy", "#111111": "Black" },
     colorImages: {
-      "#1a3a5c": [
+      "#ffffff": [
+        "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
         "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
       ],
-      "#111111": [
-        "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?w=600&q=80",
+      "#1a3a5c": [
+        "https://images.unsplash.com/photo-1602810316693-3667c854239a?w=600&q=80",
       ],
-      "#2c4a7c": [
-        "https://images.unsplash.com/photo-1563630423918-b58f07336ac9?w=600&q=80",
+      "#111111": [
+        "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
       ],
     },
-    img: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=600&q=80",
-    sku: "#PTS-008-NAV",
-    material: "Twill Cotton",
-    composition: "100% Cotton",
-    modelInfo: 'Model Height 6\'0", wearing size XL',
-    stockCount: 4,
+    img: "https://images.unsplash.com/photo-1594938298603-c8148c4b5d5a?w=600&q=80",
+    sku: "#PNI-M-WHT",
+    material: "Non-Iron Cotton",
+    composition: "80% Cotton, 20% Polyester",
+    modelInfo: 'Model Height 6\'0", wearing size L',
+    stockCount: 5,
     freeShippingThreshold: 8000,
   },
 ];
 
-const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];
+const ALL_SIZES = ["S", "M", "L", "XL", "XXL"];
 
 // ── Helper Functions ────────────────────────────────────────────────────────────
 const getReviews = (productId) => {
   const defaultReviews = {
     1: [
-      { id: 1, name: "Dinesh P.", rating: 5, text: "Excellent quality! Perfect fit.", date: "Mar 2025", verified: true },
-      { id: 2, name: "Nuwan K.", rating: 4, text: "Very comfortable fabric.", date: "Feb 2025", verified: true },
+      { id: 1, name: "Kasun P.", rating: 5, text: "Excellent quality, very crisp and professional!", date: "Mar 2025", verified: true },
+      { id: 2, name: "Dinesh K.", rating: 4, text: "Great fit and comfortable for long office days.", date: "Feb 2025", verified: true },
     ],
     2: [
-      { id: 1, name: "Kasun F.", rating: 5, text: "Love the color and feel.", date: "Apr 2025", verified: true },
+      { id: 1, name: "Nuwan S.", rating: 5, text: "Perfect navy shade, the Oxford weave is top notch.", date: "Apr 2025", verified: true },
     ],
   };
   if (defaultReviews[productId]) return defaultReviews[productId];
-  return [{ id: 1, name: "Customer", rating: 4, text: "Nice product. Satisfied with the purchase.", date: "Feb 2025", verified: false }];
+  return [{ id: 1, name: "Customer", rating: 4, text: "Nice shirt. Satisfied with the quality and fit.", date: "Feb 2025", verified: false }];
 };
 
 // ── Star Rating ────────────────────────────────────────────────────────────────
-const StarRating = ({ rating, size = 14 }) => {
+const StarRating = ({ rating, size = 14, interactive = false, onRate }) => {
+  const [hovered, setHovered] = useState(0);
   return (
-    <div className="sh-stars">
+    <div className="fs-stars">
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}
           width={size}
           height={size}
           viewBox="0 0 24 24"
-          fill={i <= rating ? "#c8982a" : "none"}
+          fill={i <= (interactive ? hovered || rating : rating) ? "#c8982a" : "none"}
           stroke="#c8982a"
           strokeWidth="2"
+          style={interactive ? { cursor: "pointer" } : {}}
+          onMouseEnter={interactive ? () => setHovered(i) : undefined}
+          onMouseLeave={interactive ? () => setHovered(0) : undefined}
+          onClick={interactive && onRate ? () => onRate(i) : undefined}
         >
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
         </svg>
@@ -265,14 +256,17 @@ const StarRating = ({ rating, size = 14 }) => {
 
 // ── Color Swatch Component ─────────────────────────────────────────────────────
 const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
-  <div className="sh-color-row">
+  <div className="fs-color-row">
     {colors.map((color) => (
       <button
         key={color}
-        className={`sh-color-swatch ${selectedColor === color ? "active" : ""}`}
+        className={`fs-color-swatch ${selectedColor === color ? "active" : ""}`}
         style={{
           backgroundColor: color,
-          border: color === "#ffffff" || color === "#f5f5f0" ? "1.5px solid #ccc" : "none",
+          border:
+            color === "#ffffff" || color === "#d4e8ff" || color === "#aecbeb" || color === "#d3d3c7"
+              ? "1.5px solid #ccc"
+              : "none",
         }}
         onClick={() => onSelect(color)}
         aria-label={`Select color ${color}`}
@@ -290,36 +284,40 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
   const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
 
   return (
-    <div className="sh-product-card" onClick={() => onOpenModal(product)}>
-      <div className="sh-card-image">
+    <div className="fs-product-card" onClick={() => onOpenModal(product)}>
+      <div className="fs-card-image">
         <img src={currentImage} alt={product.name} loading="lazy" />
         <button
-          className={`sh-wishlist-btn ${isWished ? "active" : ""}`}
+          className={`fs-wishlist-btn ${isWished ? "active" : ""}`}
           onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }}
           aria-label="Add to wishlist"
         >
           {isWished ? "❤️" : "🤍"}
         </button>
-        {!product.inStock && <span className="sh-stock-badge out">Out of Stock</span>}
+        {!product.inStock && <span className="fs-stock-badge out">Out of Stock</span>}
       </div>
-      <div className="sh-card-body">
-        <h3 className="sh-product-name">{product.name}</h3>
-        <div className="sh-card-rating">
+      <div className="fs-card-body">
+        <h3 className="fs-product-name">{product.name}</h3>
+        <div className="fs-card-rating">
           <StarRating rating={Math.round(avgRating)} size={12} />
           <span>({reviews.length})</span>
         </div>
-        <p className="sh-product-price">Rs {product.basePrice.toLocaleString()}.00</p>
-        <div className="sh-color-section">
-          <span className="sh-color-label">Colors:</span>
-          <ColorSwatches colors={product.colors} selectedColor={selectedColor} onSelect={(c) => { setSelectedColor(c); }} />
+        <p className="fs-product-price">Rs {product.basePrice.toLocaleString()}.00</p>
+        <div className="fs-color-section">
+          <span className="fs-color-label">Colors:</span>
+          <ColorSwatches
+            colors={product.colors}
+            selectedColor={selectedColor}
+            onSelect={(c) => { setSelectedColor(c); }}
+          />
         </div>
-        <div className="sh-size-row">
+        <div className="fs-size-row">
           {product.sizes.slice(0, 4).map((size) => (
-            <span key={size} className="sh-size-badge">{size}</span>
+            <span key={size} className="fs-size-badge">{size}</span>
           ))}
-          {product.sizes.length > 4 && <span className="sh-size-more">+{product.sizes.length - 4}</span>}
+          {product.sizes.length > 4 && <span className="fs-size-more">+{product.sizes.length - 4}</span>}
         </div>
-        <button className="sh-add-to-cart" disabled={!product.inStock}>
+        <button className="fs-add-to-cart" disabled={!product.inStock}>
           {product.inStock ? "Add to Cart" : "Unavailable"}
         </button>
       </div>
@@ -327,7 +325,7 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
   );
 };
 
-// ── Reviews Modal Component ─────────────────────────────────────────────────────
+// ── Reviews Modal ──────────────────────────────────────────────────────────────
 const ReviewsModal = ({ product, onClose }) => {
   const reviews = getReviews(product.id);
   const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
@@ -343,33 +341,33 @@ const ReviewsModal = ({ product, onClose }) => {
   }, [onClose]);
 
   return (
-    <div className="sh-reviews-modal-overlay" onClick={onClose}>
-      <div className="sh-reviews-modal-container" onClick={(e) => e.stopPropagation()}>
-        <button className="sh-reviews-modal-close" onClick={onClose}>✕</button>
-        
-        <div className="sh-reviews-header">
+    <div className="fs-reviews-modal-overlay" onClick={onClose}>
+      <div className="fs-reviews-modal-container" onClick={(e) => e.stopPropagation()}>
+        <button className="fs-reviews-modal-close" onClick={onClose}>✕</button>
+
+        <div className="fs-reviews-header">
           <h2>Customer Reviews</h2>
-          <div className="sh-reviews-summary">
+          <div className="fs-reviews-summary">
             <StarRating rating={Math.round(avgRating)} size={20} />
-            <span className="sh-reviews-total">{avgRating.toFixed(1)} out of 5 · {reviews.length} reviews</span>
+            <span className="fs-reviews-total">{avgRating.toFixed(1)} out of 5 · {reviews.length} reviews</span>
           </div>
         </div>
 
-        <div className="sh-reviews-list">
+        <div className="fs-reviews-list">
           {reviews.map((review) => (
-            <div key={review.id} className="sh-review-item-full">
-              <div className="sh-review-header-full">
+            <div key={review.id} className="fs-review-item-full">
+              <div className="fs-review-header-full">
                 <strong>{review.name}</strong>
                 <StarRating rating={review.rating} size={14} />
-                {review.verified && <span className="sh-verified-badge">✓ Verified Purchase</span>}
+                {review.verified && <span className="fs-verified-badge">✓ Verified Purchase</span>}
               </div>
-              <p className="sh-review-text-full">{review.text}</p>
-              <span className="sh-review-date-full">{review.date}</span>
+              <p className="fs-review-text-full">{review.text}</p>
+              <span className="fs-review-date-full">{review.date}</span>
             </div>
           ))}
         </div>
 
-        <button className="sh-write-review-btn">Write a Review</button>
+        <button className="fs-write-review-btn">Write a Review</button>
       </div>
     </div>
   );
@@ -419,18 +417,18 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 
   return (
     <>
-      <div className="sh-modal-overlay" onClick={onClose}>
-        <div className="sh-modal-container" onClick={(e) => e.stopPropagation()}>
-          <button className="sh-modal-close" onClick={onClose} aria-label="Close">✕</button>
+      <div className="fs-modal-overlay" onClick={onClose}>
+        <div className="fs-modal-container" onClick={(e) => e.stopPropagation()}>
+          <button className="fs-modal-close" onClick={onClose} aria-label="Close">✕</button>
 
-          <div className="sh-modal-grid">
+          <div className="fs-modal-grid">
             {/* LEFT: Image Gallery */}
-            <div className="sh-modal-gallery">
-              <div className="sh-modal-thumbnails">
+            <div className="fs-modal-gallery">
+              <div className="fs-modal-thumbnails">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
-                    className={`sh-thumb-btn ${activeImageIndex === idx ? "active" : ""}`}
+                    className={`fs-thumb-btn ${activeImageIndex === idx ? "active" : ""}`}
                     onClick={() => setActiveImageIndex(idx)}
                   >
                     <img src={img} alt={`${product.name} view ${idx + 1}`} />
@@ -438,25 +436,25 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 ))}
               </div>
 
-              <div className="sh-modal-main-image">
+              <div className="fs-modal-main-image">
                 <img src={currentImage} alt={product.name} />
                 <button
-                  className={`sh-modal-wishlist-float ${isWished ? "active" : ""}`}
+                  className={`fs-modal-wishlist-float ${isWished ? "active" : ""}`}
                   onClick={() => onToggleWishlist(product.id)}
                   aria-label="Toggle wishlist"
                 >
                   {isWished ? "❤️" : "🤍"}
                 </button>
                 {images.length > 1 && (
-                  <div className="sh-image-nav">
+                  <div className="fs-image-nav">
                     <button
-                      className="sh-img-nav-btn"
+                      className="fs-img-nav-btn"
                       onClick={() => setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length)}
                       disabled={activeImageIndex === 0}
                     >‹</button>
                     <span>{activeImageIndex + 1} / {images.length}</span>
                     <button
-                      className="sh-img-nav-btn"
+                      className="fs-img-nav-btn"
                       onClick={() => setActiveImageIndex((prev) => (prev + 1) % images.length)}
                       disabled={activeImageIndex === images.length - 1}
                     >›</button>
@@ -466,27 +464,28 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
             </div>
 
             {/* RIGHT: Product Details */}
-            <div className="sh-modal-details">
-              <h2 className="sh-modal-title">{product.name}</h2>
-              <p className="sh-modal-sku">{product.sku}</p>
+            <div className="fs-modal-details">
+              <h2 className="fs-modal-title">{product.name}</h2>
+              <p className="fs-modal-sku">{product.sku}</p>
 
-              <div className="sh-modal-price-block">
-                <span className="sh-modal-price">Rs {product.basePrice.toLocaleString()}.00 <small>LKR</small></span>
+              {/* Price */}
+              <div className="fs-modal-price-block">
+                <span className="fs-modal-price">Rs {product.basePrice.toLocaleString()}.00 <small>LKR</small></span>
                 {product.basePrice >= 3000 && (
-                  <span className="sh-modal-installment">
+                  <span className="fs-modal-installment">
                     or 3 × Rs {Math.round(product.basePrice / 3).toLocaleString()}.00 with <strong>Koko</strong>
                   </span>
                 )}
               </div>
 
-              {/* Rating with View Reviews Button */}
-              <div className="sh-modal-rating-row">
-                <div className="sh-rating-info">
+              {/* Rating row */}
+              <div className="fs-modal-rating-row">
+                <div className="fs-rating-info">
                   <StarRating rating={Math.round(avgRating)} size={16} />
-                  <span className="sh-modal-rating-count">{avgRating.toFixed(1)} out of 5</span>
+                  <span className="fs-modal-rating-count">{avgRating.toFixed(1)} out of 5</span>
                 </div>
-                <button 
-                  className="sh-view-reviews-btn"
+                <button
+                  className="fs-view-reviews-btn"
                   onClick={() => setShowReviews(true)}
                 >
                   View Reviews ({reviews.length})
@@ -494,20 +493,20 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
               </div>
 
               {/* Size Selector */}
-              <div className="sh-modal-section">
-                <div className="sh-modal-section-header">
-                  <label className="sh-modal-label">
-                    SIZE <span className="sh-selected-val">{selectedSize || "—"}</span>
+              <div className="fs-modal-section">
+                <div className="fs-modal-section-header">
+                  <label className="fs-modal-label">
+                    SIZE <span className="fs-selected-val">{selectedSize || "—"}</span>
                   </label>
-                  <button className="sh-size-chart-btn">📏 SIZE CHART</button>
+                  <button className="fs-size-chart-btn">📏 SIZE CHART</button>
                 </div>
-                <div className="sh-modal-size-grid">
+                <div className="fs-modal-size-grid">
                   {ALL_SIZES.map((size) => {
                     const avail = product.sizes.includes(size);
                     return (
                       <button
                         key={size}
-                        className={`sh-modal-size-btn ${!avail ? "unavailable" : ""} ${selectedSize === size ? "selected" : ""}`}
+                        className={`fs-modal-size-btn ${!avail ? "unavailable" : ""} ${selectedSize === size ? "selected" : ""}`}
                         onClick={() => { if (avail) { setSelectedSize(size); setSizeError(false); } }}
                         disabled={!avail}
                       >
@@ -516,19 +515,19 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                     );
                   })}
                 </div>
-                {sizeError && <p className="sh-size-error">Please select a size before adding to cart.</p>}
+                {sizeError && <p className="fs-size-error">Please select a size before adding to cart.</p>}
               </div>
 
               {/* Color Selector */}
-              <div className="sh-modal-section">
-                <label className="sh-modal-label">
-                  COLOR <span className="sh-selected-val">{colorName.toUpperCase()}</span>
+              <div className="fs-modal-section">
+                <label className="fs-modal-label">
+                  COLOR <span className="fs-selected-val">{colorName.toUpperCase()}</span>
                 </label>
-                <div className="sh-modal-color-row">
+                <div className="fs-modal-color-row">
                   {product.colors.map((color) => (
                     <button
                       key={color}
-                      className={`sh-modal-color-thumb ${selectedColor === color ? "active" : ""}`}
+                      className={`fs-modal-color-thumb ${selectedColor === color ? "active" : ""}`}
                       onClick={() => handleColorChange(color)}
                       title={product.colorNames?.[color] || color}
                     >
@@ -542,50 +541,51 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
               </div>
 
               {/* Quantity + Cart */}
-              <div className="sh-modal-actions">
-                <div className="sh-quantity-control">
-                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="sh-qty-btn">−</button>
-                  <span className="sh-qty-display">{quantity}</span>
-                  <button onClick={() => setQuantity((q) => q + 1)} className="sh-qty-btn">+</button>
+              <div className="fs-modal-actions">
+                <div className="fs-quantity-control">
+                  <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} className="fs-qty-btn">−</button>
+                  <span className="fs-qty-display">{quantity}</span>
+                  <button onClick={() => setQuantity((q) => q + 1)} className="fs-qty-btn">+</button>
                 </div>
-                <button className="sh-modal-cart-btn" onClick={handleAddToCart} disabled={!product.inStock}>
+                <button className="fs-modal-cart-btn" onClick={handleAddToCart} disabled={!product.inStock}>
                   {product.inStock ? "ADD TO CART" : "OUT OF STOCK"}
                 </button>
               </div>
 
-              <button className="sh-modal-buy-now-btn" onClick={handleBuyNow} disabled={!product.inStock}>
+              <button className="fs-modal-buy-now-btn" onClick={handleBuyNow} disabled={!product.inStock}>
                 BUY IT NOW
               </button>
 
               {/* Stock & Shipping Info */}
-              <div className="sh-modal-info-badges">
+              <div className="fs-modal-info-badges">
                 {product.inStock && product.stockCount <= 5 && (
-                  <div className="sh-info-badge warning">
+                  <div className="fs-info-badge warning">
                     <span>⏰</span> Only {product.stockCount} left in stock. Order soon.
                   </div>
                 )}
-                <div className="sh-info-badge">
+                <div className="fs-info-badge">
                   <span>✓</span> Free delivery and shipping above Rs {product.freeShippingThreshold?.toLocaleString()}
                 </div>
-                <div className="sh-info-badge">
+                <div className="fs-info-badge">
                   <span>✓</span> Secure online payment
                 </div>
               </div>
 
               {/* Product Details */}
-              <div className="sh-modal-product-info">
+              <div className="fs-modal-product-info">
                 <ul>
                   <li><strong>Material:</strong> {product.material}</li>
                   <li><strong>Composition:</strong> {product.composition}</li>
                 </ul>
-                <p className="sh-model-info">{product.modelInfo}</p>
-                <p className="sh-color-disclaimer">
+                <p className="fs-model-info">{product.modelInfo}</p>
+                <p className="fs-color-disclaimer">
                   Please bear in mind that the photo may be slightly different from the actual item in terms of color due to lighting conditions or the display used to view.
                 </p>
               </div>
 
-              <div className="sh-modal-stock-indicator">
-                <span className={product.inStock ? "sh-in-stock" : "sh-out-stock"}>
+              {/* Stock indicator */}
+              <div className="fs-modal-stock-indicator">
+                <span className={product.inStock ? "fs-in-stock" : "fs-out-stock"}>
                   {product.inStock ? "✓ In Stock" : "✕ Out of Stock"}
                 </span>
               </div>
@@ -594,7 +594,6 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
         </div>
       </div>
 
-      {/* Reviews Modal */}
       {showReviews && (
         <ReviewsModal product={product} onClose={() => setShowReviews(false)} />
       )}
@@ -602,9 +601,9 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   );
 };
 
-// ── Main Shirts Page Component ─────────────────────────────────────────────────
-const ShirtsPage = () => {
-  const [maxPrice, setMaxPrice] = useState(5000);
+// ── Main Formal Shirts Page Component ─────────────────────────────────────────
+const FormalShirtsPage = () => {
+  const [maxPrice, setMaxPrice] = useState(6000);
   const [wishlist, setWishlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -613,7 +612,7 @@ const ShirtsPage = () => {
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
   useEffect(() => {
-    const savedWishlist = JSON.parse(localStorage.getItem("shirt_wishlist")) || [];
+    const savedWishlist = JSON.parse(localStorage.getItem("formalshirt_wishlist")) || [];
     setWishlist(savedWishlist);
   }, []);
 
@@ -625,7 +624,7 @@ const ShirtsPage = () => {
       updated = [...wishlist, productId];
     }
     setWishlist(updated);
-    localStorage.setItem("shirt_wishlist", JSON.stringify(updated));
+    localStorage.setItem("formalshirt_wishlist", JSON.stringify(updated));
   };
 
   let filteredProducts = ALL_PRODUCTS.filter((product) => {
@@ -642,57 +641,57 @@ const ShirtsPage = () => {
   const hasMore = visibleCount < filteredProducts.length;
 
   return (
-    <div className="sh-page">
+    <div className="fs-page">
       <Header />
 
-      <section className="sh-hero">
-        <h1>Premium Shirts<br /><span>For Every Occasion</span></h1>
+      <section className="fs-hero">
+        <h1>Formal Shirts<br /><span>Dressed for Every Occasion</span></h1>
       </section>
 
-      <div className="sh-container">
-        <aside className="sh-filters">
+      <div className="fs-container">
+        <aside className="fs-filters">
           <h3>Filters</h3>
 
-          <div className="sh-filter-group">
+          <div className="fs-filter-group">
             <label>Search</label>
             <input
               type="text"
               placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="sh-search-input"
+              className="fs-search-input"
             />
           </div>
 
-          <div className="sh-filter-group">
+          <div className="fs-filter-group">
             <label>Max Price: Rs. {maxPrice.toLocaleString()}</label>
             <input
               type="range"
               min="2000"
-              max="5000"
+              max="6000"
               step="100"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="sh-price-slider"
+              className="fs-price-slider"
             />
           </div>
 
-          <div className="sh-filter-group">
+          <div className="fs-filter-group">
             <label>Sort By</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="sh-sort-select">
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="fs-sort-select">
               <option value="default">Default</option>
               <option value="low-high">Price: Low to High</option>
               <option value="high-low">Price: High to Low</option>
             </select>
           </div>
 
-          <div className="sh-filter-group">
+          <div className="fs-filter-group">
             <label>Size</label>
-            <div className="sh-size-filters">
-              {["S", "M", "L", "XL", "XXL", "XXXL"].map((size) => (
+            <div className="fs-size-filters">
+              {["S", "M", "L", "XL", "XXL"].map((size) => (
                 <button
                   key={size}
-                  className={`sh-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
+                  className={`fs-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
                   onClick={() => setSelectedSizeFilter(selectedSizeFilter === size ? null : size)}
                 >
                   {size}
@@ -702,17 +701,17 @@ const ShirtsPage = () => {
           </div>
         </aside>
 
-        <main className="sh-products-main">
-          <div className="sh-products-header">
-            <h2>All Shirts</h2>
+        <main className="fs-products-main">
+          <div className="fs-products-header">
+            <h2>All Formal Shirts</h2>
             <span>{filteredProducts.length} items found</span>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className="sh-no-results">No products found. Try adjusting the filters.</div>
+            <div className="fs-no-results">No products found. Try adjusting the filters.</div>
           ) : (
             <>
-              <div className="sh-products-grid">
+              <div className="fs-products-grid">
                 {visibleProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -724,8 +723,8 @@ const ShirtsPage = () => {
                 ))}
               </div>
               {hasMore && (
-                <div className="sh-load-more">
-                  <button onClick={() => setVisibleCount((p) => p + 6)} className="sh-load-btn">
+                <div className="fs-load-more">
+                  <button onClick={() => setVisibleCount((p) => p + 6)} className="fs-load-btn">
                     Load More ({filteredProducts.length - visibleCount} remaining)
                   </button>
                 </div>
@@ -737,8 +736,6 @@ const ShirtsPage = () => {
 
       <Footer />
 
-      <WhatsAppButton />
-
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
@@ -747,8 +744,9 @@ const ShirtsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
+      <WhatsAppButton />
     </div>
   );
 };
 
-export default ShirtsPage;
+export default FormalShirtsPage;
