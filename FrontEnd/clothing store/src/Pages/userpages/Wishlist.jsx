@@ -91,9 +91,23 @@ const Wishlist = () => {
         <div className="wishlist-grid">
           {items.map(item => (
             <div key={item.id ?? item.productId} className="wishlist-item">
-              <div className="item-emoji">{item.emoji || '🛍️'}</div>
+              {/* Product image or emoji fallback */}
+              {item.imageUrl ? (
+                <div className="item-image" style={{
+                  width: '100%', aspectRatio: '3/4', overflow: 'hidden',
+                  borderRadius: '2px', marginBottom: '12px', background: '#f5f5f0'
+                }}>
+                  <img
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+              ) : (
+                <div className="item-emoji">{item.emoji || '🛍️'}</div>
+              )}
               <h3 className="item-name">{item.productName}</h3>
-              <p className="item-price">${Number(item.price).toFixed(2)}</p>
+              <p className="item-price">Rs {Number(item.price).toLocaleString()}.00</p>
               <div className="item-actions">
                 <button className="add-to-cart-btn">Add to Cart</button>
                 <button className="remove-btn" onClick={() => handleRemove(item)}>Remove</button>
