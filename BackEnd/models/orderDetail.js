@@ -5,30 +5,17 @@ module.exports = (sequelize, DataTypes) => {
   class OrderDetail extends Model {
     static associate(models) {
       OrderDetail.belongsTo(models.Order, { foreignKey: 'orderId' });
-      OrderDetail.belongsTo(models.Customer, { foreignKey: 'customerId' });
     }
   }
-  
+
   OrderDetail.init({
     orderId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'orders',
-        key: 'id'
-      }
+      allowNull: false
     },
     barcode: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
-    customerId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'customers',
-        key: 'id'
-      }
+      type: DataTypes.STRING(255),
+      allowNull: false
     }
   }, {
     sequelize,
@@ -36,6 +23,6 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'order_details',
     timestamps: true
   });
-  
+
   return OrderDetail;
 };
