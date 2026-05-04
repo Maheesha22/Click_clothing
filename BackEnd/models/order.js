@@ -1,89 +1,45 @@
-'use strict'; 
+'use strict';
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class Order extends Model {
     static associate(models) {
-      Order.belongsTo(models.Customer, { foreignKey: 'customerId' });
-      Order.hasMany(models.OrderItem, { foreignKey: 'orderId' });
-      Order.hasOne(models.OrderDetail, { foreignKey: 'orderId' });
+      Order.belongsTo(models.User, {
+        foreignKey: 'userId'
+      });
+
+      Order.hasMany(models.OrderItem, {
+        foreignKey: 'orderId',
+        as: 'items'
+      });
+
+      Order.hasOne(models.OrderDetail, {
+        foreignKey: 'orderId',
+        as: 'detail'
+      });
     }
   }
-  
+
   Order.init({
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    orderNumber: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      unique: true,
-      field: 'order_number'
-    },
-    customerId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'customers',
-        key: 'id'
-      }
-    },
-    productId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'products',
-        key: 'id'
-      }
-    },
-    size: {
-      type: DataTypes.STRING(10),
-      allowNull: false
-    },
-    color: {
-      type: DataTypes.STRING(30),
-      allowNull: false
-    },
-    quantity: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false
-    },
-    deliveryCharges: {
-      type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 0,
-      field: 'delivery_charges'
-    },
-    totalBill: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      field: 'total_bill'
-    },
-    paymentMethod: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      field: 'payment_method'
-    },
-    paymentSlip: {
-      type: DataTypes.STRING(500),
-      allowNull: true,
-      field: 'payment_slip'
-    },
+    order_number: DataTypes.STRING,
+    userId: DataTypes.INTEGER,
     status: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING,
       defaultValue: 'pending'
-    }
+    },
+    payment_method: DataTypes.STRING,
+    payment_slip: DataTypes.STRING,
+    delivery_charges: {
+      type: DataTypes.DECIMAL(10,2),
+      defaultValue: 0
+    },
+    total_bill: DataTypes.DECIMAL(10,2)
   }, {
     sequelize,
     modelName: 'Order',
     tableName: 'orders',
     timestamps: true
   });
-  
+
   return Order;
 };
