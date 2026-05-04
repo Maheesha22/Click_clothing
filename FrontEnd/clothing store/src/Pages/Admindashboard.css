@@ -360,7 +360,7 @@ input, select, textarea { font-family: inherit; }
 .ls-row  { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--g1); border-radius: 9px; border: 1px solid var(--g3); transition: border-color .15s; }
 .ls-row:hover { border-color: var(--black); }
 .ls-l    { display: flex; align-items: center; gap: 9px; }
-.ls-th   { width: 32px; height: 32px; background: var(--white); border-radius: 8px; border: 1px solid var(--g3); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+.ls-th   { width: 32px; height: 32px; background: var(--white); border-radius: 8px; border: 1px solid var(--g3); display: flex; align-items: center; justify-content: center; font-size: 15px; filter: grayscale(100%); }
 .ls-nm   { font-size: 12px; font-weight: 700; color: var(--black); }
 .ls-sk   { font-size: 10.5px; color: var(--g5); }
 .ls-cnt  { font-size: 13px; font-weight: 800; }
@@ -617,7 +617,7 @@ input, select, textarea { font-family: inherit; }
   align-items: center;
   gap: 12px;
 }
-.mini-ico { width: 38px; height: 38px; border-radius: 10px; background: var(--g2); border: 1px solid var(--g3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.mini-ico { width: 38px; height: 38px; border-radius: 10px; background: var(--g2); border: 1px solid var(--g3); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; filter: grayscale(100%); }
 .mini-val { font-size: 20px; font-weight: 800; color: var(--black); line-height: 1; }
 .mini-lbl { font-size: 11px; color: var(--g5); margin-top: 2px; font-weight: 500; }
 
