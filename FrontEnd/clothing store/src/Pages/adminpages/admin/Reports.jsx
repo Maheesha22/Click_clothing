@@ -124,19 +124,19 @@ export default function Reports({ toast }) {
       </div>
       <MiniStats items={[['💰','$12,840',"Today's Revenue"],['🛒','94','Orders Today'],['👥','+12','New Customers'],['🔄','3.4%','Return Rate']]}/>
       <div className="charts-grid">
-        <div className="card chart-panel">
+        <div className="admin-card chart-panel">
           <div className="c-hdr"><div><div className="c-title">Sales Over Time</div><div className="c-sub">Monthly revenue trend</div></div></div>
           <ChartSalesLine/>
         </div>
-        <div className="card chart-panel">
+        <div className="admin-card chart-panel">
           <div className="c-hdr"><div><div className="c-title">Top Selling Products</div><div className="c-sub">Units sold this month</div></div></div>
           <ChartTopProducts/>
         </div>
-        <div className="card chart-panel">
+        <div className="admin-card chart-panel">
           <div className="c-hdr"><div><div className="c-title">Customer Growth</div><div className="c-sub">New customers per month</div></div></div>
           <ChartCustomerGrowth/>
         </div>
-        <div className="card chart-panel">
+        <div className="admin-card chart-panel">
           <div className="c-hdr"><div><div className="c-title">Payments Summary</div><div className="c-sub">Paid vs Pending vs Failed</div></div></div>
           <ChartPaymentDonut/>
         </div>
