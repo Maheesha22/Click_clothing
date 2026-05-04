@@ -319,7 +319,7 @@ export default function Products({ toast }) {
         <span className="tb-count">{filtered.length} products</span>
       </div>
 
-      <div className="admin_card" style={{ overflow: 'hidden' }}>
+      <div className="admin-card" style={{ overflow: 'hidden' }}>
         <div className="tbl-wrap">
           <table className="tbl" style={{ minWidth: 900 }}>
             <thead><tr>
