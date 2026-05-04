@@ -10,11 +10,6 @@ module.exports = (sequelize, DataTypes) => {
   }
   
   ProductWithSizeColor.init({
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
     productId: {
       type: DataTypes.INTEGER,
       allowNull: false,
