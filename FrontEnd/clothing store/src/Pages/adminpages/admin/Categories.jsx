@@ -266,7 +266,7 @@ export default function Categories({ toast }) {
 
         /* ── Accessories sub badge ── */
         .acc-sub-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-        .acc-sub { font-size: 10px; background: rgba(139, 92, 246, 0.15); color: #6d28d9; border-radius: 99px; padding: 4px 10px; font-weight: 700; letter-spacing: 0.02em; border: 1px solid rgba(139, 92, 246, 0.2); }
+        .acc-sub { font-size: 10px; background: #f1f5f9; color: #000; border-radius: 99px; padding: 4px 10px; font-weight: 700; letter-spacing: 0.02em; border: 1px solid #cbd5e1; }
 
         /* ── Premium Modal ── */
         .overlay {
@@ -352,11 +352,11 @@ export default function Categories({ toast }) {
                   <div className="cat-stat-lbl">Products</div>
                 </div>
                 <div className="cat-stat">
-                  <div className="cat-stat-val" style={{ color: '#16a34a' }}>{cat.active}</div>
+                  <div className="cat-stat-val" style={{ color: '#000000' }}>{cat.active}</div>
                   <div className="cat-stat-lbl">Active</div>
                 </div>
                 <div className="cat-stat">
-                  <div className="cat-stat-val" style={{ color: '#ef4444' }}>{cat.total - cat.active}</div>
+                  <div className="cat-stat-val" style={{ color: '#64748b' }}>{cat.total - cat.active}</div>
                   <div className="cat-stat-lbl">Inactive</div>
                 </div>
               </div>
