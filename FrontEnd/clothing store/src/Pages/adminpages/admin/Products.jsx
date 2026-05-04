@@ -283,11 +283,11 @@ export default function Products({ toast }) {
         .img-url-badge{font-size:12px;color:#16a34a;margin-top:6px;}
         .img-url-link{color:#6366f1;text-decoration:underline;}
         .prod-img{width:38px;height:38px;object-fit:cover;border-radius:6px;}
-        .prod-thumb-ico{width:38px;height:38px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px;}
-        .cp-sarong{background:#fef9c3;color:#854d0e;}
-        .cp-trousers{background:#dbeafe;color:#1d4ed8;}
-        .cp-shorts{background:#d1fae5;color:#065f46;}
-        .cp-tshirts{background:#fce7f3;color:#9d174d;}
+        .prod-thumb-ico{width:38px;height:38px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px;filter:grayscale(100%);}
+        .cp-sarong{background:#e2e8f0;color:#0f172a;}
+        .cp-trousers{background:#cbd5e1;color:#0f172a;}
+        .cp-shorts{background:#f1f5f9;color:#0f172a;}
+        .cp-tshirts{background:#f8fafc;color:#0f172a;border:1px solid #e2e8f0;}
       `}</style>
 
       <div className="ph">
