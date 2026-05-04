@@ -4,36 +4,14 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Wishlist extends Model {
     static associate(models) {
-      Wishlist.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-      Wishlist.belongsTo(models.Product, { foreignKey: 'productId', as: 'product' });  // ← ADD THIS
+      Wishlist.belongsTo(models.User, { foreignKey: 'userId' });
+      Wishlist.belongsTo(models.Product, { foreignKey: 'productId' });
     }
   }
 
   Wishlist.init({
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'user_id'
-    },
-    productId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: 'product_id'
-    },
-    productName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'product_name'
-    },
-    price: {
-      type: DataTypes.FLOAT,
-      allowNull: false
-    },
-    imageUrl: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      field: 'image_url'
-    }
+    userId: DataTypes.INTEGER,
+    productId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Wishlist',
