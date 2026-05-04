@@ -329,7 +329,7 @@ export default function Categories({ toast }) {
       ]} />
 
       {loading ? (
-        <div className="admin_card" style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>Loading categories…</div>
+        <div className="admin-card" style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>Loading categories…</div>
       ) : (
         <div className="cat-grid">
           {cats.map(cat => (

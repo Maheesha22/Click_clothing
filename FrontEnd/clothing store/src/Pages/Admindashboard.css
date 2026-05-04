@@ -20,7 +20,7 @@
   --black4: #222;
   --black5: #2d2d2d;
   --white:  #fff;
-
+ 
   --g1: #f7f7f7;
   --g2: #f0f0f0;
   --g3: #e4e4e4;
@@ -56,19 +56,36 @@
   --shadow: 0 1px 4px rgba(0,0,0,.07);
 }
 
-body {
+/* body {
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
   background: var(--g1);
   color: var(--g7);
   font-size: 14px;
   min-height: 100vh;
+  display: block !important;
 }
+
+#root {
+  min-height: 100vh;
+  display: block !important;
+} */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'DM Sans', sans-serif;
+  background: var(--g1);
+  overflow-x: hidden;
+}
+
+html, body {
+  height: 100%;
+} 
 
 button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; }
 
-/* ── SIDEBAR ────────────────────────────────────────── */
-.sidebar {
+.admin-sidebar {
   position: fixed;
   top: 0; left: 0; bottom: 0;
   width: var(--sw);
@@ -80,7 +97,7 @@ input, select, textarea { font-family: inherit; }
   border-right: 1px solid #a0adb2;
   transition: width .3s cubic-bezier(.4,0,.2,1);
 }
-.sidebar.collapsed { width: var(--sc); }
+.admin-sidebar.collapsed { width: var(--sc); }
 
 .s-logo {
   display: flex;
@@ -126,7 +143,7 @@ input, select, textarea { font-family: inherit; }
   overflow: hidden;
   transition: opacity .2s, height .2s, padding .2s;
 }
-.sidebar.collapsed .s-grp { opacity: 0; height: 0; padding: 0; margin: 0; }
+.admin-sidebar.collapsed .s-grp { opacity: 0; height: 0; padding: 0; margin: 0; }
 
 .nav-item {
   display: flex;
@@ -179,13 +196,13 @@ input, select, textarea { font-family: inherit; }
   border-radius: 50%;
   display: none;
 }
-.sidebar.collapsed .n-dot-nav { display: block; }
+.admin-sidebar.collapsed .n-dot-nav { display: block; }
 
 /* hide labels when collapsed */
 .lbl { transition: opacity .18s; overflow: hidden; }
-.sidebar.collapsed .lbl,
-.sidebar.collapsed .n-badge,
-.sidebar.collapsed .s-text { opacity: 0; pointer-events: none; width: 0; }
+.admin-sidebar.collapsed .lbl,
+.admin-sidebar.collapsed .n-badge,
+.admin-sidebar.collapsed .s-text { opacity: 0; pointer-events: none; width: 0; }
 
 .s-div  { height: 1px; background: #a0adb2; margin: 6px 4px; }
 .s-foot {
@@ -308,7 +325,7 @@ input, select, textarea { font-family: inherit; }
 .ph-badge  { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-left: 8px; background: var(--black); color: var(--white); vertical-align: middle; letter-spacing: .06em; }
 
 /* ── CARD ───────────────────────────────────────────── */
-.card     { background: var(--white); border-radius: var(--r); border: 1px solid var(--g3); box-shadow: var(--shadow); }
+.admin-card     { background: var(--white); border-radius: var(--r); border: 1px solid var(--g3); box-shadow: var(--shadow); }
 .c-hdr    { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
 .c-title  { font-size: 14px; font-weight: 700; color: var(--black); }
 .c-sub    { font-size: 12px; color: var(--g5); margin-top: 2px; }
