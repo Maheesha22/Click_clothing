@@ -82,6 +82,8 @@
   letter-spacing: 0.5px;
   color: #555;
   text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .nav-item:hover {
