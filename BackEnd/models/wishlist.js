@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
   class Wishlist extends Model {
     static associate(models) {
       Wishlist.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+      Wishlist.belongsTo(models.Product, { foreignKey: 'productId', as: 'product' });  // ← ADD THIS
     }
   }
 
