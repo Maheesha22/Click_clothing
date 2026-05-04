@@ -10,48 +10,45 @@ module.exports = (sequelize, DataTypes) => {
   }
   
   OrderItem.init({
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
     orderId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'orders',
-        key: 'id'
-      }
+      allowNull: false
     },
     productId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'products',
-        key: 'id'
-      }
+      allowNull: false
+    },
+    productName: {
+      type: DataTypes.STRING(200),
+      allowNull: false
     },
     size: {
-      type: DataTypes.STRING(10),
-      allowNull: false
+      type: DataTypes.STRING(20),
+      allowNull: true
     },
     color: {
-      type: DataTypes.STRING(30),
-      allowNull: false
+      type: DataTypes.STRING(50),
+      allowNull: true
     },
     quantity: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      defaultValue: 1,
+      validate: {
+        min: 1
+      }
     },
     price: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false
+      allowNull: false,
+      validate: {
+        min: 0
+      }
     }
   }, {
     sequelize,
     modelName: 'OrderItem',
-    tableName: 'order_items',
-    timestamps: true
+    tableName: 'OrderItems'
   });
   
   return OrderItem;
