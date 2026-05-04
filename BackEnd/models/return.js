@@ -21,8 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: 'products',
         key: 'id'
-      },
-      field: 'product_id'
+      }
     },
     categoryId: {
       type: DataTypes.INTEGER,
@@ -30,8 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: 'categories',
         key: 'id'
-      },
-      field: 'category_id'
+      }
     },
     size: {
       type: DataTypes.STRING(10),
