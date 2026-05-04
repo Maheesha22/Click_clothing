@@ -21,8 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: 'orders',
         key: 'id'
-      },
-      field: 'order_id'
+      }
     },
     barcode: {
       type: DataTypes.STRING(100),
@@ -34,8 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       references: {
         model: 'customers',
         key: 'id'
-      },
-      field: 'customer_id'
+      }
     }
   }, {
     sequelize,
