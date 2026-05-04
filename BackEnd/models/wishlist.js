@@ -29,10 +29,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       allowNull: false
     },
-    emoji: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     imageUrl: {
       type: DataTypes.STRING,
       allowNull: true,
