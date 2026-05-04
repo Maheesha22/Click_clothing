@@ -7,7 +7,7 @@ export default function Settings({ toast }) {
     <div className="view">
       <div className="ph"><div><h1 className="ph-title">Settings</h1><p className="ph-sub">Configure your store preferences.</p></div></div>
       <div className="settings-grid">
-        <div className="card" style={{padding:22}}>
+        <div className="admin-card" style={{padding:22}}>
           <div className="c-title" style={{marginBottom:18}}>🏪 Store Information</div>
           <div className="settings-fields">
             {[['Store Name','Click Clothing Store'],['Contact Email','admin@clickclothing.com'],['Phone','+1 (555) 000-0000']].map(([lbl,val])=>(
@@ -19,7 +19,7 @@ export default function Settings({ toast }) {
             <button className="btn-primary" style={{alignSelf:'flex-start',marginTop:4}} onClick={()=>toast('✅','Store settings saved!')}>Save Changes</button>
           </div>
         </div>
-        <div className="card" style={{padding:22}}>
+        <div className="admin-card" style={{padding:22}}>
           <div className="c-title" style={{marginBottom:18}}>🔔 Notifications</div>
           <div className="notif-list">
             {[
