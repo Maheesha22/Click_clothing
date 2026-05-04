@@ -4,92 +4,87 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Order extends Model {
     static associate(models) {
-      Order.belongsTo(models.User, { foreignKey: 'userId' });
-      Order.hasMany(models.OrderItem, { foreignKey: 'orderId', as: 'items' });
+      Order.belongsTo(models.Customer, { foreignKey: 'customerId' });
+      Order.hasMany(models.OrderItem, { foreignKey: 'orderId' });
+      Order.hasOne(models.OrderDetail, { foreignKey: 'orderId' });
     }
   }
   
   Order.init({
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
     orderNumber: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      unique: true
+      unique: true,
+      field: 'order_number'
     },
-    barcode: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      unique: true
+    customerId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'customers',
+        key: 'id'
+      },
+      field: 'customerId'
     },
-    userId: {
+    productId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'products',
+        key: 'id'
+      },
+      field: 'productId'
+    },
+    size: {
+      type: DataTypes.STRING(10),
+      allowNull: false
+    },
+    color: {
+      type: DataTypes.STRING(30),
+      allowNull: false
+    },
+    quantity: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    totalAmount: {
+    price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false
     },
-    subtotal: {
+    deliveryCharges: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: true
+      defaultValue: 0,
+      field: 'delivery_charges'
     },
-    shippingCost: {
+    totalBill: {
       type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 400.00
-    },
-    status: {
-      type: DataTypes.ENUM('pending', 'processing', 'confirmed', 'shipped', 'delivered', 'cancelled'),
-      defaultValue: 'pending'
+      allowNull: false,
+      field: 'total_bill'
     },
     paymentMethod: {
-      type: DataTypes.ENUM('cod', 'bank'),
-      allowNull: false
-    },
-    paymentStatus: {
-      type: DataTypes.ENUM('pending', 'paid', 'failed'),
-      defaultValue: 'pending'
-    },
-    bankSlip: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
-    email: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(50),
       allowNull: false,
-      validate: {
-        isEmail: true
-      }
+      field: 'payment_method'
     },
-    firstName: {
-      type: DataTypes.STRING(100),
-      allowNull: false
+    paymentSlip: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      field: 'payment_slip'
     },
-    lastName: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    phone: {
-      type: DataTypes.STRING(20),
-      allowNull: false
-    },
-    address: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    city: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    district: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    province: {
-      type: DataTypes.STRING(100),
-      allowNull: false
+    status: {
+      type: DataTypes.STRING(50),
+      defaultValue: 'pending'
     }
   }, {
     sequelize,
     modelName: 'Order',
+    tableName: 'orders',
+    timestamps: true
   });
   
   return Order;
