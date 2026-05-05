@@ -18,13 +18,6 @@ const PROVINCES = [
   "Southern Province", "Uva Province", "Western Province",
 ];
 
-const BANK_DETAILS = [
-  { label: "Bank Name", value: "Bank of Ceylon" },
-  { label: "Account Name", value: "Click Pvt Ltd" },
-  { label: "Account Number", value: "1234 5678 9012" },
-  { label: "Branch", value: "Colombo 03" },
-];
-
 const SHIPPING = 400;
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
@@ -89,11 +82,35 @@ export default function CheckoutPage() {
   const [toastMessage, setToastMessage] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [orderData, setOrderData] = useState(null);
+  const [bankDetails, setBankDetails] = useState([]);
 
   const phoneRef = useRef(null);
   const slipInputRef = useRef(null);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Fetch bank details
+  useEffect(() => {
+    const fetchBankDetails = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/bank-details');
+        const data = await response.json();
+        if (data.success && data.data.length > 0) {
+          const detail = data.data[0]; // Assuming we use the first active one
+          setBankDetails([
+            { label: "Bank Name", value: detail.bankName },
+            { label: "Account Name", value: detail.accountName },
+            { label: "Account Number", value: detail.accountNumber },
+            { label: "Branch", value: detail.branch },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching bank details:', error);
+      }
+    };
+
+    fetchBankDetails();
+  }, []);
 
   // Get user from sessionStorage
   const getUserFromSession = () => {
@@ -584,12 +601,16 @@ export default function CheckoutPage() {
             <div className="bank-section show">
               <div className="bank-section-title">Account Details</div>
               <div className="bank-details-card">
-                {BANK_DETAILS.map(({ label, value }) => (
-                  <div className="bank-detail-row" key={label}>
-                    <span className="bank-detail-label">{label}</span>
-                    <span className="bank-detail-value">{value}</span>
-                  </div>
-                ))}
+                {bankDetails.length > 0 ? (
+                  bankDetails.map(({ label, value }) => (
+                    <div className="bank-detail-row" key={label}>
+                      <span className="bank-detail-label">{label}</span>
+                      <span className="bank-detail-value">{value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ color: "#9a958d", fontSize: "14px", padding: "10px" }}>Loading bank details...</p>
+                )}
               </div>
 
               {/* Upload Slip */}
