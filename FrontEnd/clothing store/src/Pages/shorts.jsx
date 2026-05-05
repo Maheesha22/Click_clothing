@@ -743,7 +743,7 @@ const ShortsPage = () => {
 
       <Footer />
 
-      <WhatsAppButton />
+      
 
       {selectedProduct && (
         <ProductModal
@@ -753,6 +753,17 @@ const ShortsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
+
+     <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "shorts",
+              productName: selectedProduct.name,
+              category: "Shorts",
+              price: selectedProduct.basePrice,
+            }
+          : { page: "shorts" }
+      } />
     </div>
   );
 };
