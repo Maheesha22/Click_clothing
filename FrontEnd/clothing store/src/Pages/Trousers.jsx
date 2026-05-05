@@ -964,7 +964,17 @@ const TrousersPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
-      <WhatsAppButton />
+      <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "trousers",
+              productName: selectedProduct.name,
+              category: selectedProduct.category,
+              price: selectedProduct.price,
+            }
+          : { page: "trousers" }
+      } />
+
     </div>
   );
 };
