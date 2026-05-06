@@ -6,133 +6,139 @@ exports.uploadImage = (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file received.' });
   }
-
   res.status(200).json({
-    success   : true,
-    image_url : req.file.path,
-    public_id : req.file.filename,
-    message   : 'Image uploaded successfully',
+    success: true,
+    image_url: req.file.path,
+    public_id: req.file.filename,
+    message: 'Image uploaded successfully',
   });
 };
 
-/* ─── POST /api/products ──────────────────────────────────── */
+/* ─── POST /api/products (handles simple or advanced payload) ── */
 exports.createProduct = async (req, res) => {
   try {
+    const { product_name, description, categoryId, price, variants } = req.body;
+
+    // Validate required fields
+    const name = product_name || req.body.name;
+    const catId = parseInt(categoryId || req.body.categoryId, 10);
+    const priceVal = parseFloat(price || req.body.price);
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Product name is required' });
+    }
+    if (!catId || isNaN(catId)) {
+      return res.status(400).json({ success: false, message: 'Valid category is required' });
+    }
+    if (!priceVal || isNaN(priceVal) || priceVal <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid price is required' });
+    }
+
+    // Create the product first
     const product = await Product.create({
-      name: req.body.product_name || req.body.name,
-      description: req.body.product_description || req.body.description,
-      price: req.body.price,
-      categoryId: req.body.categoryId
+      name: name.trim(),
+      description: (description || req.body.product_description || '').trim(),
+      price: priceVal,
+      categoryId: catId,
     });
-    
-    res.status(201).json({ success: true, data: product, message: 'Product created successfully' });
+
+    // If variants provided, create them
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      const validVariants = variants.filter(v =>
+        v.color && v.color.trim() &&
+        v.size && v.size.trim() &&
+        parseInt(v.quantity, 10) >= 0
+      );
+
+      if (validVariants.length === 0) {
+        await product.destroy();
+        return res.status(400).json({ success: false, message: 'At least one valid variant (color + size + quantity) is required' });
+      }
+
+      const variantRecords = validVariants.map(v => ({
+        productId: product.id,
+        color: v.color.trim(),
+        size: v.size.trim(),
+        quantity: parseInt(v.quantity, 10),
+        imageUrl: v.image_url || null,
+      }));
+
+      // Use ignoreDuplicates to avoid unique constraint crash
+      await ProductVariant.bulkCreate(variantRecords, { ignoreDuplicates: true });
+    }
+
+    return res.status(201).json({ success: true, data: { id: product.id }, message: 'Product created successfully' });
   } catch (error) {
     console.error('Create product error:', error);
-    res.status(400).json({ success: false, message: error.message });
+    // Return a clear message for unique constraint violations
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ success: false, message: 'Duplicate variant: same color + size combination already exists for this product' });
+    }
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 /* ─── GET /api/products ───────────────────────────────────── */
 exports.getAllProducts = async (req, res) => {
   try {
-    // Get all products
     const products = await Product.findAll({
-      attributes: ['id', 'name', 'price', 'categoryId']
+      attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
     });
+    const categories = await Category.findAll({ attributes: ['id', 'name'] });
+    const categoryMap = Object.fromEntries(categories.map(c => [c.id, c.name]));
 
-    // Get all categories
-    const categories = await Category.findAll({
-      attributes: ['id', 'name']
-    });
-
-    // Get all variants
     const variants = await ProductVariant.findAll({
-      attributes: ['productId', 'imageUrl', 'quantity']
+      attributes: ['productId', 'color', 'size', 'quantity', 'imageUrl'],
     });
 
-    // Create category lookup map
-    const categoryMap = {};
-    categories.forEach(cat => {
-      categoryMap[cat.id] = cat.name;
+    const variantsByProduct = {};
+    variants.forEach(v => {
+      if (!variantsByProduct[v.productId]) variantsByProduct[v.productId] = [];
+      variantsByProduct[v.productId].push(v);
     });
 
-    // Group variants by productId
-    const variantsMap = {};
-    variants.forEach(variant => {
-      if (!variantsMap[variant.productId]) {
-        variantsMap[variant.productId] = [];
-      }
-      variantsMap[variant.productId].push(variant);
-    });
+    const result = products.map(product => {
+      const productVariants = variantsByProduct[product.id] || [];
+      let totalQty = 0;
+      let firstImage = null;
+      const colorsSet = new Set();
 
-    // Format response
-    const formattedProducts = products.map(product => {
-      const productVariants = variantsMap[product.id] || [];
-      
-      let totalQuantity = 0;
-      let productImage = null;
-      
-      productVariants.forEach(variant => {
-        totalQuantity += Number(variant.quantity) || 0;
-        if (!productImage && variant.imageUrl) {
-          productImage = variant.imageUrl;
-        }
+      productVariants.forEach(v => {
+        totalQty += v.quantity;
+        if (!firstImage && v.imageUrl) firstImage = v.imageUrl;
+        if (v.color) colorsSet.add(v.color);
       });
-      
-      if (!productImage) {
-        productImage = `https://picsum.photos/id/${(product.id % 80) + 1}/100/100`;
-      }
-      
+
       return {
         id: product.id,
         product_name: product.name,
-        price: Number(product.price) || 0,
-        image_url: productImage,
-        quantity: totalQuantity,
-        available: totalQuantity > 0,
+        product_description: product.description,
+        price: parseFloat(product.price),
+        image_url: firstImage,
+        quantity: totalQty,
+        available: totalQty > 0,
         categoryId: product.categoryId,
         category: {
           id: product.categoryId,
-          name: categoryMap[product.categoryId] || 'Uncategorized'
-        }
+          name: categoryMap[product.categoryId] || 'Uncategorized',
+        },
+        color: Array.from(colorsSet).join(', ') || '—',
+        variant_count: productVariants.length,
       };
     });
 
-    res.status(200).json({
-      success: true,
-      data: formattedProducts
-    });
-    
+    res.json({ success: true, data: result });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.message 
-    });
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 /* ─── GET /api/products/categories/all ───────────────────── */
 exports.getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.findAll({
-      order: [['name', 'ASC']],
-      attributes: ['id', 'name']
-    });
-    res.status(200).json({ success: true, data: categories });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-/* ─── GET /api/products/category/:category ───────────────── */
-exports.getProductsByCategory = async (req, res) => {
-  try {
-    const products = await Product.findAll({
-      where: { categoryId: req.params.category },
-      attributes: ['id', 'name', 'price', 'categoryId']
-    });
-    res.status(200).json({ success: true, count: products.length, data: products });
+    const categories = await Category.findAll({ order: [['name', 'ASC']], attributes: ['id', 'name'] });
+    res.json({ success: true, data: categories });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -142,29 +148,18 @@ exports.getProductsByCategory = async (req, res) => {
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id, {
-      attributes: ['id', 'name', 'price', 'categoryId']
+      attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
     });
-    
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-    
-    const variants = await ProductVariant.findAll({
-      where: { productId: product.id },
-      attributes: ['id', 'size', 'color', 'quantity', 'imageUrl']
-    });
-    
-    const category = await Category.findByPk(product.categoryId, {
-      attributes: ['id', 'name']
-    });
-    
-    res.status(200).json({ 
-      success: true, 
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    const variants = await ProductVariant.findAll({ where: { productId: product.id } });
+    const category = await Category.findByPk(product.categoryId);
+    res.json({
+      success: true,
       data: {
         ...product.toJSON(),
         variants,
-        category
-      }
+        category: category ? { id: category.id, name: category.name } : null,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -175,20 +170,18 @@ exports.getProductById = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
     const updates = {};
     if (req.body.product_name || req.body.name) updates.name = req.body.product_name || req.body.name;
+    if (req.body.product_description || req.body.description) updates.description = req.body.product_description || req.body.description;
     if (req.body.price !== undefined) updates.price = req.body.price;
     if (req.body.categoryId !== undefined) updates.categoryId = req.body.categoryId;
 
     await product.update(updates);
-    
-    res.status(200).json({ success: true, data: product, message: 'Product updated successfully' });
+    res.json({ success: true, data: product, message: 'Product updated' });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -196,14 +189,10 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-    
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
     await ProductVariant.destroy({ where: { productId: product.id } });
     await product.destroy();
-    
-    res.status(200).json({ success: true, message: 'Product deleted successfully' });
+    res.json({ success: true, message: 'Product deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -211,57 +200,13 @@ exports.deleteProduct = async (req, res) => {
 
 /* ─── PATCH /api/products/:id/availability ───────────────── */
 exports.updateAvailability = async (req, res) => {
-  try {
-    const { available } = req.body;
-    if (typeof available !== 'boolean') {
-      return res.status(400).json({ success: false, message: 'available must be boolean' });
-    }
-    
-    const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-    
-    product.available = available;
-    await product.save();
-    
-    res.status(200).json({ success: true, data: product, message: 'Availability updated' });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+  // This endpoint is kept for compatibility – availability is now computed from variants
+  res.status(200).json({ success: true, message: 'Availability is auto-calculated from variant quantities' });
 };
 
 /* ─── PATCH /api/products/:id/quantity ───────────────────── */
 exports.updateQuantity = async (req, res) => {
-  try {
-    const { quantity, operation } = req.body;
-    if (typeof quantity !== 'number' || quantity < 0) {
-      return res.status(400).json({ success: false, message: 'quantity must be non-negative number' });
-    }
-    
-    const product = await Product.findByPk(req.params.id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-
-    if (operation === 'add') {
-      product.quantity += quantity;
-    } else if (operation === 'subtract') {
-      if (product.quantity - quantity < 0) {
-        return res.status(400).json({ success: false, message: 'Insufficient quantity' });
-      }
-      product.quantity -= quantity;
-    } else {
-      product.quantity = quantity;
-    }
-
-    product.available = product.quantity > 0;
-    await product.save();
-    
-    res.status(200).json({ success: true, data: product, message: 'Quantity updated' });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+  res.status(501).json({ success: false, message: 'Update variant quantities directly' });
 };
 
 /* ─── POST /api/products/bulk ────────────────────────────── */
@@ -269,12 +214,21 @@ exports.bulkCreateProducts = async (req, res) => {
   try {
     const { products } = req.body;
     if (!Array.isArray(products) || products.length === 0) {
-      return res.status(400).json({ success: false, message: 'products must be non-empty array' });
+      return res.status(400).json({ success: false, message: 'products must be a non-empty array' });
     }
-    
     const created = await Product.bulkCreate(products);
     res.status(201).json({ success: true, data: created, message: `${created.length} products created` });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/* ─── GET /api/products/category/:category ───────────────── */
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const products = await Product.findAll({ where: { categoryId: req.params.category } });
+    res.json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
