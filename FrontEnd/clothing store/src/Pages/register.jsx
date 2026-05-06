@@ -47,7 +47,7 @@ export default function RegisterPage() {
       
       console.log("Auto-login success:", loginResponse.data);
       
-      localStorage.setItem('user', JSON.stringify(loginResponse.data.user));
+      sessionStorage.setItem('user', JSON.stringify(loginResponse.data.user));
       
       if (loginResponse.data.user.isAdmin) {
         navigate("/dashboard");

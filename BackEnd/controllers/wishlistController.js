@@ -14,7 +14,7 @@ const getWishlist = async (req, res) => {
 // POST /api/wishlist
 const addToWishlist = async (req, res) => {
   try {
-    const { userId, productId, productName, price, emoji, imageUrl } = req.body;
+    const { userId, productId, productName, price, imageUrl } = req.body;
 
     // Prevent duplicates
     const existing = await Wishlist.findOne({ where: { userId, productId } });
@@ -22,7 +22,7 @@ const addToWishlist = async (req, res) => {
       return res.status(409).json({ message: 'Item already in wishlist' });
     }
 
-    const item = await Wishlist.create({ userId, productId, productName, price, emoji, imageUrl });
+    const item = await Wishlist.create({ userId, productId, productName, price, imageUrl });
     res.status(201).json(item);
   } catch (err) {
     res.status(500).json({ message: 'Error adding to wishlist', error: err.message });
@@ -41,4 +41,16 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
-module.exports = { getWishlist, addToWishlist, removeFromWishlist };
+// DELETE /api/wishlist/by-product/:userId/:productId
+const removeFromWishlistByProduct = async (req, res) => {
+  try {
+    const { userId, productId } = req.params;
+    const deleted = await Wishlist.destroy({ where: { userId, productId } });
+    if (!deleted) return res.status(404).json({ message: 'Item not found' });
+    res.json({ message: 'Removed from wishlist' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error removing from wishlist', error: err.message });
+  }
+};
+
+module.exports = { getWishlist, addToWishlist, removeFromWishlist, removeFromWishlistByProduct };

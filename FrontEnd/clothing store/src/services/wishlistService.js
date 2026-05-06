@@ -10,6 +10,10 @@ export const addToWishlistDB = (item) =>
 export const removeFromWishlistDB = (id) =>
   API.delete(`/wishlist/${id}`);
 
+// Remove by userId + productId (no need to know the DB row id)
+export const removeFromWishlistByProductDB = (userId, productId) =>
+  API.delete(`/wishlist/by-product/${userId}/${productId}`);
+
 // ── Guest user: sessionStorage helpers ───────────────────────────
 const GUEST_KEY = 'guestWishlist';
 

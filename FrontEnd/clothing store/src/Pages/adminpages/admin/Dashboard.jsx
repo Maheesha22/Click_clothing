@@ -50,7 +50,7 @@ export default function Dashboard({ goOrders }) {
           { lbl:'Customers',      val:'3,920',    chg:'↗ +52 new today',        ico:'👥' },
           { lbl:'Total Revenue',  val:'$284,920', chg:'↗ +12.4% vs last month', ico:'📈' },
         ].map(s => (
-          <div key={s.lbl} className="card stat-card">
+          <div key={s.lbl} className="admin-card stat-card">
             <div className="stat-body">
               <div>
                 <div className="stat-lbl">{s.lbl}</div>
@@ -104,7 +104,7 @@ export default function Dashboard({ goOrders }) {
       </div>
 
       {/* Recent Orders table */}
-      <div className="admin_card" style={{ padding:'20px 22px' }}>
+      <div className="admin-card" style={{ padding:'20px 22px' }}>
         <div className="c-hdr">
           <div><div className="c-title">Recent Orders</div><div className="c-sub">Latest 6 transactions</div></div>
           <button className="btn-secondary" style={{ fontSize:12, padding:'7px 14px' }} onClick={goOrders}>View All</button>

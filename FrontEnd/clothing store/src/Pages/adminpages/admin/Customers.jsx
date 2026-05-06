@@ -8,7 +8,7 @@ export default function Customers() {
         <div className="tb-search"><IcoSearch w={13}/><input className="tb-inp" placeholder="Search customers…"/></div>
         <select className="tb-sel"><option value="">All Status</option><option>Active</option><option>Inactive</option></select>
       </div>
-      <div className="admin_card" style={{overflow:'hidden'}}>
+      <div className="admin-card" style={{overflow:'hidden'}}>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:900}}>
             <thead><tr><th>Customer</th><th>Email</th><th>Orders</th><th>Total Spent</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
