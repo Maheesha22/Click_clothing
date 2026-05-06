@@ -1,5 +1,4 @@
-require('dotenv').config();   // ← loads .env for Cloudinary keys
-
+require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
 const app     = express();
@@ -26,22 +25,26 @@ db.sequelize.authenticate()
   });
 
 const userRoutes    = require("./routes/UserRoutes");
-const productRoutes = require("./routes/productRoutes");   // ← added
+const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/CartRoutes");
 const contactRoutes = require('./routes/contactRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const categoryRoutes = require("./routes/categoryRoutes");   // ✅ Added
 
 app.use("/api/users",    userRoutes);
-app.use("/api/products", productRoutes);                   // ← added
+app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/categories", categoryRoutes);                  // ✅ Added
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
+const selectedItemsRoutes = require("./routes/SelectedItemsRoutes");
 
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/bank-details", bankDetailRoutes);
+app.use("/api/selected-items", selectedItemsRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
