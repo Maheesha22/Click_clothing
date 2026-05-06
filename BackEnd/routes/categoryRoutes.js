@@ -1,17 +1,21 @@
+// BackEnd/routes/categoryRoutes.js
 const express = require('express');
-const router = express.Router();
-const db = require("../models");
+const router  = express.Router();
+const ctrl    = require('../controllers/categoryController');
 
-router.get('/', async (req, res) => {
-  try {
-    const categories = await db.Category.findAll({
-      attributes: ['id', 'name'],
-      order: [['name', 'ASC']]
-    });
-    res.json(categories);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// GET  /api/categories              → list all with product counts
+// POST /api/categories              → create new category
+router.route('/')
+  .get(ctrl.getAllCategories)
+  .post(ctrl.createCategory);
+
+// GET    /api/categories/:id/products  → products + variants in category
+router.get('/:id/products', ctrl.getProductsByCategory);
+
+// PUT    /api/categories/:id        → rename category
+// DELETE /api/categories/:id        → delete (only if empty)
+router.route('/:id')
+  .put(ctrl.updateCategory)
+  .delete(ctrl.deleteCategory);
 
 module.exports = router;
