@@ -4,7 +4,16 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NavBar from "../components/navsidebar";
 import WhatsAppButton from "../components/whatsappbtn";
-import "./ProductPage.css"; // same styles as Shirts.css
+import "./ProductPage.css"; 
+
+import {
+  getWishlistDB,
+  addToWishlistDB,
+  removeFromWishlistByProductDB,
+  getGuestWishlist,
+  addToGuestWishlist,
+  removeFromGuestWishlist,
+} from "../services/wishlistService";
 
 // Helper: reviews mock (can be replaced with API call)
 const getReviews = (productId) => {
@@ -353,11 +362,26 @@ const ProductPage = () => {
   const [visibleCount, setVisibleCount] = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
-  // Load wishlist from localStorage
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = storedUser && storedUser.id ? true : false;
+
+  // Load wishlist from DB or guest sessionStorage
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(`wishlist_${category}`)) || [];
-    setWishlist(saved);
-  }, [category]);
+    if (isLoggedIn) {
+      getWishlistDB(storedUser.id)
+        .then(res => {
+          const ids = res.data.map(item => Number(item.productId));
+          setWishlist(ids);
+        })
+        .catch(err => {
+          console.error("Error fetching wishlist:", err);
+          setWishlist([]);
+        });
+    } else {
+      const guestItems = getGuestWishlist();
+      setWishlist(guestItems.map(item => Number(item.productId)));
+    }
+  }, [category, isLoggedIn, storedUser?.id]);
 
   // Transform API response to match ProductCard expectations
   const transformProduct = (apiProduct) => {
@@ -469,15 +493,46 @@ const ProductPage = () => {
       });
   }, [category]);
 
-  const toggleWishlist = (productId) => {
-    let updated;
-    if (wishlist.includes(productId)) {
-      updated = wishlist.filter(id => id !== productId);
+  const toggleWishlist = async (product) => {
+    const productId = product.id;
+    const isWished = wishlist.includes(productId);
+
+    // Optimistic UI update
+    setWishlist(prev =>
+      isWished ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+
+    if (isLoggedIn) {
+      try {
+        if (isWished) {
+          await removeFromWishlistByProductDB(storedUser.id, String(productId));
+        } else {
+          await addToWishlistDB({
+            userId: storedUser.id,
+            productId: String(productId),
+            productName: product.name,
+            price: product.basePrice,
+            imageUrl: product.img,
+          });
+        }
+      } catch (err) {
+        setWishlist(prev =>
+          isWished ? [...prev, productId] : prev.filter(id => id !== productId)
+        );
+        console.error('Wishlist error:', err);
+      }
     } else {
-      updated = [...wishlist, productId];
+      if (isWished) {
+        removeFromGuestWishlist(String(productId));
+      } else {
+        addToGuestWishlist({
+          productId: String(productId),
+          productName: product.name,
+          price: product.basePrice,
+          imageUrl: product.img,
+        });
+      }
     }
-    setWishlist(updated);
-    localStorage.setItem(`wishlist_${category}`, JSON.stringify(updated));
   };
 
   // Filtering & Sorting
