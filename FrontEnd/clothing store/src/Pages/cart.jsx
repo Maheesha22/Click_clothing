@@ -73,6 +73,7 @@ export default function Cart() {
         if (cartItems.length > 0) {
           const formattedItems = cartItems.map(item => ({
             id: item.id,
+            productId: item.productId,
             name: item.name || 'Product',
             size: item.size ? parseInt(item.size) : 32,
             sizeLabel: item.size || '32',
@@ -80,7 +81,8 @@ export default function Cart() {
             qty: item.quantity || 1,
             color: item.color || '#000000',
             colorName: item.color || 'Black',
-            imageUrl: item.imageUrl || ''
+            imageUrl: item.imageUrl || '',
+            availableVariants: item.availableVariants || []
           }));
           
           console.log('Cart - Formatted items:', formattedItems);
@@ -205,22 +207,25 @@ export default function Cart() {
     setIsModalOpen(true);
   };
 
-  const saveEditChanges = () => {
+  const saveEditChanges = async () => {
     if (editingItem) {
-      const updatedColor = colorPalette.find(c => c.name === tempColor);
-      setItems(prev =>
-        prev.map(item =>
-          item.id === editingItem.id
-            ? {
-                ...item,
-                colorName: tempColor,
-                color: updatedColor ? updatedColor.value : item.color,
-                sizeLabel: tempSize,
-                size: tempSize,
-              }
-            : item
-        )
-      );
+      try {
+        const response = await cartService.updateCartItem(editingItem.id, {
+          color: tempColor,
+          size: tempSize
+        });
+        
+        if (response.success) {
+          // Instead of updating the local state with mocked data, 
+          // let's fetch the entire cart again to get the true image and price 
+          // (or if it merged, the quantities will be updated).
+          fetchCartItems();
+        } else {
+          console.error('Failed to update cart item details');
+        }
+      } catch (error) {
+        console.error('Error updating cart item details:', error);
+      }
     }
     setIsModalOpen(false);
     setEditingItem(null);
