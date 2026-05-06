@@ -347,7 +347,7 @@ export default function Categories({ toast }) {
                       <div className="cat-pname">{prod.product_name}</div>
                       <div className="cat-pprice">{fmt(prod.price)}</div>
                       <div className="cat-pmeta">
-                        {(prod.variants?.length || 0)} SKUs
+                        {(prod.variants?.length || 0)} units
                         {prod.colors?.length > 0 && ` · ${prod.colors.join(', ')}`}
                       </div>
                     </div>
@@ -363,7 +363,7 @@ export default function Categories({ toast }) {
                     <div className="cat-var-wrap">
                       <div className="cat-var-title">Inventory Breakdown</div>
                       {!prod.variants?.length ? (
-                        <div style={{ color:'rgba(0,0,0,0.3)', fontSize:13, fontWeight:600 }}>No SKU data available.</div>
+                        <div style={{ color:'rgba(0,0,0,0.3)', fontSize:13, fontWeight:600 }}>No units data available.</div>
                       ) : Object.entries(byColor).map(([color, sizes]) => {
                         const el = document.createElement('div');
                         el.style.color = color.toLowerCase();
@@ -374,7 +374,7 @@ export default function Categories({ toast }) {
                               <span className="cat-cdot" style={{ background:dotBg }} />
                               {color}
                               <span style={{ fontSize:11, color:'rgba(0,0,0,0.3)', fontWeight:700 }}>
-                                ({sizes.reduce((s,v) => s+(v.quantity||0), 0)} PCS)
+                                ({sizes.reduce((s,v) => s+(v.quantity||0), 0)} units)
                               </span>
                             </div>
                             <div className="cat-sizes">
