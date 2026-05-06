@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; 
 import API from '../../../services/api';
 import { IcoSearch, Avatar, Modal } from './shared';
 
