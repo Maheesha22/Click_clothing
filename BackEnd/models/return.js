@@ -30,11 +30,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Return reason for all products'
     },
-    status: {
+    /*status: {
       type: DataTypes.STRING,
       defaultValue: 'pending',
       comment: 'pending, approved, rejected, completed'
-    }
+    }*/
   }, {
     sequelize,
     modelName: 'Return',
