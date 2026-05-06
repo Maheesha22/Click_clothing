@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import API from "../services/api";
 import "./EditProduct.css";
 
 const EditProductModal = ({ 
@@ -11,20 +12,79 @@ const EditProductModal = ({
   setTempSize, 
   onSave 
 }) => {
+  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && product?.productId) {
+      setLoading(true);
+      API.get(`/products/${product.productId}`)
+        .then(res => {
+          if (res.data?.success && res.data.data?.variants) {
+            setVariants(res.data.data.variants);
+          } else if (product.availableVariants) {
+            setVariants(product.availableVariants);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching product variants:", err);
+          if (product.availableVariants) {
+            setVariants(product.availableVariants);
+          }
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setVariants([]);
+    }
+  }, [isOpen, product]);
+
   if (!isOpen) return null;
 
-  // Color palette with actual color values and names
-  const colorPalette = [
-    { name: "Black", value: "#1F1F1F" },
-    { name: "White", value: "#F5F5F5" },
-    { name: "Gray", value: "#9E9E9E" },
-    { name: "Navy", value: "#1B2A4A" },
-    { name: "Sand", value: "#D6C5A9" },
-  ];
+  // Extract unique colors (case-insensitive) and sizes from variants
+  const colorMap = new Map();
+  variants.forEach(v => {
+    if (v.color && !colorMap.has(v.color.toLowerCase())) {
+      colorMap.set(v.color.toLowerCase(), v.color);
+    }
+  });
+  const uniqueColors = Array.from(colorMap.values());
+  
+  const sizeSet = new Set();
+  variants.forEach(v => {
+    if (v.size) sizeSet.add(String(v.size));
+  });
+  const uniqueSizes = Array.from(sizeSet);
 
-  const sizeOptions = ["XS", "S", "M", "L", "XL"];
+  // If variants aren't loaded properly or empty, fallback to original dummy data so the UI doesn't break completely
+  const colorOptions = uniqueColors.length > 0 ? uniqueColors : ["Black", "White", "Gray", "Navy", "Sand"];
+  const sizeOptions = uniqueSizes.length > 0 ? uniqueSizes : ["XS", "S", "M", "L", "XL"];
 
-  // Product SVG component (same as your existing one)
+  // Helper to get hex colors for swatches
+  const getHexForColor = (colorName) => {
+    const predefined = [
+      { name: "Black", value: "#1F1F1F" },
+      { name: "White", value: "#F5F5F5" },
+      { name: "Gray", value: "#9E9E9E" },
+      { name: "Grey", value: "#9E9E9E" },
+      { name: "Navy", value: "#1B2A4A" },
+      { name: "Sand", value: "#D6C5A9" },
+      { name: "Red", value: "#D32F2F" },
+      { name: "Blue", value: "#1976D2" },
+      { name: "Green", value: "#388E3C" },
+      { name: "Olive", value: "#3d4a2e" },
+      { name: "Beige", value: "#f5f5dc" },
+      { name: "Brown", value: "#8b4513" }
+    ];
+    const match = predefined.find(p => p.name.toLowerCase() === colorName.toLowerCase());
+    return match ? match.value : colorName;
+  };
+
+  // Find image matching the selected color, or fallback to main product image
+  const matchingVariant = variants.find(v => v.color?.toLowerCase() === tempColor?.toLowerCase() && v.imageUrl);
+  const displayImage = matchingVariant ? matchingVariant.imageUrl : product?.imageUrl;
+
   const ProductSVG = () => (
     <svg viewBox="0 0 82 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="82" height="100" fill="#e8ddd5" />
@@ -49,10 +109,14 @@ const EditProductModal = ({
           {/* Product Preview Section */}
           <div className="product-preview-row">
             <div className="preview-image">
-              <ProductSVG />
+              {displayImage ? (
+                <img src={displayImage} alt={product?.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+              ) : (
+                <ProductSVG />
+              )}
             </div>
             <div className="preview-info">
-              <div className="product-title">{product?.name || "Long Sleeve"}</div>
+              <div className="product-title">{product?.name || "Product"}</div>
               <div className="current-vs-new">
                 <span>Current: {product?.colorName || product?.color} / {product?.sizeLabel || product?.size}</span>
                 <span>→ New: {tempColor} / {tempSize}</span>
@@ -62,16 +126,16 @@ const EditProductModal = ({
 
           {/* Color Selection with Actual Swatches */}
           <div className="edit-group">
-            <div className="edit-label">Color · actual swatches</div>
+            <div className="edit-label">Color</div>
             <div className="color-options">
-              {colorPalette.map((color) => (
+              {colorOptions.map((colorName) => (
                 <div
-                  key={color.name}
-                  className={`color-badge ${tempColor === color.name ? "selected" : ""}`}
-                  onClick={() => setTempColor(color.name)}
+                  key={colorName}
+                  className={`color-badge ${tempColor === colorName ? "selected" : ""}`}
+                  onClick={() => setTempColor(colorName)}
                 >
-                  <div className="color-swatch" style={{ backgroundColor: color.value }}></div>
-                  <span>{color.name}</span>
+                  <div className="color-swatch" style={{ backgroundColor: getHexForColor(colorName) }}></div>
+                  <span>{colorName}</span>
                 </div>
               ))}
             </div>
