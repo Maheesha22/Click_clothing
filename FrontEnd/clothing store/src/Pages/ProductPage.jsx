@@ -151,6 +151,15 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const reviews = getReviews(product.id);
   const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
   const colorName = product.colorNames?.[selectedColor] || selectedColor;
+  
+  // Get variant details for selected color
+  const colorHexToName = Object.entries(product.colorNames || {}).reduce((acc, [hex, name]) => {
+    acc[hex] = name;
+    return acc;
+  }, {});
+  const selectedColorName = colorHexToName[selectedColor] || colorName;
+  const variantDetails = product.variantDetails?.[selectedColorName] || 
+    product.variants?.filter(v => v.color === selectedColorName) || [];
 
   useEffect(() => {
     const handleKey = (e) => e.key === "Escape" && onClose();
@@ -165,13 +174,23 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const handleAddToCart = () => {
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
-    alert(`Added to cart: ${product.name} | Size: ${selectedSize} | Color: ${colorName} | Qty: ${quantity}`);
+    const variant = variantDetails.find(v => v.size === selectedSize);
+    const details = `${product.name} | Size: ${selectedSize} | Color: ${colorName} | Qty: ${quantity}`;
+    if (variant) {
+      console.log(`Added to cart with variant details:`, { ...variant, selectedQuantity: quantity });
+    }
+    alert(`Added to cart: ${details}`);
   };
 
   const handleBuyNow = () => {
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
-    alert(`Buy now: ${product.name} | Size: ${selectedSize} | Color: ${colorName} | Qty: ${quantity}`);
+    const variant = variantDetails.find(v => v.size === selectedSize);
+    const details = `${product.name} | Size: ${selectedSize} | Color: ${colorName} | Qty: ${quantity}`;
+    if (variant) {
+      console.log(`Buy now with variant details:`, { ...variant, selectedQuantity: quantity });
+    }
+    alert(`Buy now: ${details}`);
   };
 
   const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];
@@ -187,12 +206,12 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
               <div className="sh-modal-thumbnails">
                 {images.map((img, idx) => (
                   <button key={idx} className={`sh-thumb-btn ${activeImageIndex === idx ? "active" : ""}`} onClick={() => setActiveImageIndex(idx)}>
-                    <img src={img} alt={`view ${idx+1}`} />
+                    <img src={img} alt={`view ${idx+1}`} onError={(e) => e.target.src = '/placeholder.jpg'} />
                   </button>
                 ))}
               </div>
               <div className="sh-modal-main-image">
-                <img src={currentImage} alt={product.name} />
+                <img src={currentImage} alt={product.name} onError={(e) => e.target.src = '/placeholder.jpg'} />
                 <button className={`sh-modal-wishlist-float ${isWished ? "active" : ""}`} onClick={() => onToggleWishlist(product.id)}>
                   {isWished ? "❤️" : "🤍"}
                 </button>
@@ -220,7 +239,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 </div>
                 <button className="sh-view-reviews-btn" onClick={() => setShowReviews(true)}>View Reviews ({reviews.length})</button>
               </div>
-              {/* Size */}
+              {/* Size with Variant Details */}
               <div className="sh-modal-section">
                 <div className="sh-modal-section-header">
                   <label className="sh-modal-label">SIZE <span className="sh-selected-val">{selectedSize || "—"}</span></label>
@@ -228,9 +247,19 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 </div>
                 <div className="sh-modal-size-grid">
                   {ALL_SIZES.map((size) => {
-                    const avail = product.sizes?.includes(size);
+                    const variantInfo = variantDetails.find(v => v.size === size);
+                    const avail = variantInfo && variantInfo.quantity > 0;
                     return (
-                      <button key={size} className={`sh-modal-size-btn ${!avail ? "unavailable" : ""} ${selectedSize === size ? "selected" : ""}`} onClick={() => { if (avail) { setSelectedSize(size); setSizeError(false); } }} disabled={!avail}>{size}</button>
+                      <button 
+                        key={size} 
+                        className={`sh-modal-size-btn ${!avail ? "unavailable" : ""} ${selectedSize === size ? "selected" : ""}`} 
+                        onClick={() => { if (avail) { setSelectedSize(size); setSizeError(false); } }} 
+                        disabled={!avail}
+                        title={variantInfo ? `${variantInfo.quantity} in stock` : "Not available"}
+                      >
+                        {size}
+                        {variantInfo && <span className="sh-size-stock">{variantInfo.quantity}</span>}
+                      </button>
                     );
                   })}
                 </div>
@@ -241,12 +270,38 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 <label className="sh-modal-label">COLOR <span className="sh-selected-val">{colorName.toUpperCase()}</span></label>
                 <div className="sh-modal-color-row">
                   {product.colors?.map((color) => (
-                    <button key={color} className={`sh-modal-color-thumb ${selectedColor === color ? "active" : ""}`} onClick={() => { setSelectedColor(color); setActiveImageIndex(0); }} title={product.colorNames?.[color]}>
-                      <img src={(product.colorImages?.[color] || [product.img])[0]} alt={product.colorNames?.[color]} />
+                    <button 
+                      key={color} 
+                      className={`sh-modal-color-thumb ${selectedColor === color ? "active" : ""}`} 
+                      onClick={() => { 
+                        setSelectedColor(color); 
+                        setActiveImageIndex(0);
+                        setSelectedSize(null); // Reset size when color changes
+                      }} 
+                      title={product.colorNames?.[color]}
+                    >
+                      <img src={(product.colorImages?.[color] || [product.img])[0]} alt={product.colorNames?.[color]} onError={(e) => e.target.src = '/placeholder.jpg'} />
                     </button>
                   ))}
                 </div>
               </div>
+              {/* Variant Details Display */}
+              {variantDetails.length > 0 && (
+                <div className="sh-variant-details-display">
+                  <h4>Available Variants ({selectedColorName}):</h4>
+                  <div className="sh-variant-list">
+                    {variantDetails.map((variant, idx) => (
+                      <div key={idx} className="sh-variant-item">
+                        <span className="sh-variant-size">{variant.size}</span>
+                        <span className="sh-variant-stock">Stock: {variant.quantity}</span>
+                        {variant.imageUrl && (
+                          <img src={variant.imageUrl} alt={`${selectedColorName} ${variant.size}`} className="sh-variant-thumb" onError={(e) => e.target.src = '/placeholder.jpg'} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {/* Actions */}
               <div className="sh-modal-actions">
                 <div className="sh-quantity-control">
@@ -311,18 +366,45 @@ const ProductPage = () => {
     // Extract unique sizes and colors from variants
     const sizes = [...new Set(variants.map(v => v.size).filter(s => s))];
     const colors = [...new Set(variants.map(v => v.color).filter(c => c))];
+    
     const colorHexMap = {
       'red': '#FF0000', 'blue': '#0000FF', 'black': '#000000', 
       'white': '#FFFFFF', 'green': '#00FF00', 'yellow': '#FFFF00',
-      'gray': '#808080', 'navy': '#000080', 'brown': '#8B4513'
+      'gray': '#808080', 'navy': '#000080', 'brown': '#8B4513',
+      'pink': '#FFC0CB', 'orange': '#FFA500', 'purple': '#800080',
+      'beige': '#F5F5DC', 'khaki': '#F0E68C', 'maroon': '#800000'
     };
+    
     const colorArray = colors.map(c => colorHexMap[c.toLowerCase()] || `#${Math.floor(Math.random()*16777215).toString(16)}`);
     
-    // Get first image from variants
+    // Get all images from variants, grouped by color
+    const imagesByColor = {};
+    colors.forEach((color) => {
+      const colorVariants = variants.filter(v => v.color === color);
+      const colorImages = colorVariants
+        .map(v => v.imageUrl)
+        .filter((img, idx, arr) => img && arr.indexOf(img) === idx); // Remove duplicates
+      imagesByColor[color] = colorImages.length > 0 ? colorImages : ['/placeholder.jpg'];
+    });
+    
+    // Get first image overall
     const firstImage = variants.find(v => v.imageUrl)?.imageUrl || '/placeholder.jpg';
     
     // Calculate total quantity
     const totalQuantity = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+    
+    // Create color to hex map
+    const colorNameToHex = {};
+    colors.forEach((color, idx) => {
+      colorNameToHex[colorArray[idx]] = color;
+    });
+    
+    // Create color images map with hex keys
+    const colorImagesMap = {};
+    colorArray.forEach((hex, idx) => {
+      const colorName = colors[idx];
+      colorImagesMap[hex] = imagesByColor[colorName] || [firstImage];
+    });
     
     return {
       id: apiProduct.id,
@@ -334,9 +416,7 @@ const ProductPage = () => {
       sizes: sizes,
       colors: colorArray,
       colorNames: Object.fromEntries(colorArray.map((hex, i) => [hex, colors[i]])),
-      colorImages: Object.fromEntries(
-        colorArray.map((hex, i) => [hex, [variants.find(v => v.color === colors[i])?.imageUrl || firstImage]])
-      ),
+      colorImages: colorImagesMap,
       inStock: totalQuantity > 0,
       stockCount: totalQuantity,
       sku: `SKU-${apiProduct.id}`,
@@ -344,7 +424,15 @@ const ProductPage = () => {
       composition: '100% Cotton',
       modelInfo: `Available in ${sizes.length} sizes and ${colors.length} colors`,
       freeShippingThreshold: 2000,
-      variants: variants // Include raw variants for reference
+      variants: variants, // Include raw variants for reference
+      variantDetails: Object.fromEntries(
+        colors.map(color => [
+          color,
+          variants
+            .filter(v => v.color === color)
+            .map(v => ({ size: v.size, quantity: v.quantity, imageUrl: v.imageUrl }))
+        ])
+      )
     };
   };
 

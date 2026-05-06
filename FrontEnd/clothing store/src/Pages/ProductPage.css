@@ -741,6 +741,71 @@ body {
   margin-top: 0.4rem;
 }
 
+/* ────────────── VARIANT DETAILS DISPLAY ────────────── */
+.sh-variant-details-display {
+  background: var(--sh-off-white);
+  border: 1px solid var(--sh-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.sh-variant-details-display h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--sh-dark-gray);
+}
+
+.sh-variant-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
+}
+
+.sh-variant-item {
+  background: var(--sh-white);
+  border: 1px solid var(--sh-border);
+  border-radius: 6px;
+  padding: 0.6rem;
+  text-align: center;
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: all 0.15s;
+}
+
+.sh-variant-item:hover {
+  border-color: var(--sh-gold);
+  box-shadow: 0 2px 6px rgba(200, 152, 42, 0.1);
+}
+
+.sh-variant-size {
+  font-weight: 600;
+  color: var(--sh-black);
+}
+
+.sh-variant-stock {
+  font-size: 0.7rem;
+  color: var(--sh-gray);
+}
+
+.sh-variant-thumb {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--sh-border);
+}
+
+.sh-modal-size-btn .sh-size-stock {
+  font-size: 0.6rem;
+  display: block;
+  margin-top: 0.2rem;
+  opacity: 0.7;
+}
+
 .sh-modal-color-row {
   display: flex;
   gap: 0.5rem;
