@@ -40,9 +40,11 @@ app.use("/api/categories", categoryRoutes);                  // ✅ Added
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
+const selectedItemsRoutes = require("./routes/SelectedItemsRoutes");
 
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/bank-details", bankDetailRoutes);
+app.use("/api/selected-items", selectedItemsRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)

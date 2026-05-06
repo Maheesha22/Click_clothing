@@ -667,20 +667,49 @@ export default function CheckoutPage() {
           ) : (
             selectedItems.map((item) => (
               <div className="order-item" key={item.id}>
-                <div className="img-wrap">
-                  <div style={{
-                    width: 74,
-                    height: 90,
-                    borderRadius: 8,
-                    background: item.color,
-                    border: "1px solid #dedad4",
-                  }} />
-                  <span className="img-badge">{item.qty}</span>
+                <div className="img-wrap" style={{ position: "relative" }}>
+                  {item.imageUrl ? (
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      style={{
+                        width: 74,
+                        height: 90,
+                        borderRadius: 8,
+                        objectFit: "cover",
+                        border: "1px solid #dedad4",
+                      }} 
+                    />
+                  ) : (
+                    <div style={{
+                      width: 74,
+                      height: 90,
+                      borderRadius: 8,
+                      background: item.color,
+                      border: "1px solid #dedad4",
+                    }} />
+                  )}
+                  <span className="img-badge" style={{
+                    position: "absolute",
+                    top: -8,
+                    right: -8,
+                    background: "rgba(114, 114, 114, 0.9)",
+                    color: "white",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "50%",
+                    zIndex: 10
+                  }}>{item.qty}</span>
                 </div>
                 <div className="item-info">
                   <div className="item-name">{item.name}</div>
                   <div className="item-size">{item.sizeLabel || item.size}</div>
-                  <div className="color-dot" style={{ background: item.color }} />
+                  <div className="color-dot" style={{ background: item.color }} title={item.colorName || item.color} />
                 </div>
                 <div className="item-price">Rs. {(item.price * item.qty).toLocaleString()}.00</div>
               </div>
