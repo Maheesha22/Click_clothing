@@ -36,15 +36,17 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/categories", categoryRoutes);                  
+app.use("/api/categories", categoryRoutes);                 
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
 const customerOrderRoutes = require("./routes/customerOrderRoutes");
+const returnRoutes = require("./routes/returnRoutes");
 
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/bank-details", bankDetailRoutes);
 app.use("/api/customer-orders", customerOrderRoutes);
+app.use("/api/returns", returnRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
