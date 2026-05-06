@@ -33,7 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(10,2),
       defaultValue: 0
     },
-    total_bill: DataTypes.DECIMAL(10,2)
+    total_bill: DataTypes.DECIMAL(10,2),
+    payment_status: {
+      type: DataTypes.STRING,
+      defaultValue: 'PENDING'
+    }
   }, {
     sequelize,
     modelName: 'Order',
