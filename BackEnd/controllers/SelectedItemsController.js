@@ -29,7 +29,8 @@ exports.saveSelectedItems = async (req, res) => {
         size: item.sizeLabel || item.size,
         color: item.colorName || item.color,
         price: item.price,
-        quantity: item.qty || item.quantity
+        quantity: item.qty || item.quantity,
+        imageUrl: item.imageUrl
       };
     });
 
