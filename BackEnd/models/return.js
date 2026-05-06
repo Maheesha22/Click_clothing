@@ -11,13 +11,30 @@ module.exports = (sequelize, DataTypes) => {
   }
 
   Return.init({
-    userId: DataTypes.INTEGER,
-    orderId: DataTypes.INTEGER,
-    productId: DataTypes.INTEGER,
-    size: DataTypes.STRING,
-    color: DataTypes.STRING,
-    quantity: DataTypes.INTEGER,
-    reason: DataTypes.TEXT
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    orderId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    products: {
+      type: DataTypes.JSON,
+      allowNull: false,
+      defaultValue: [],
+      comment: 'Array of products: [{productId, quantity, size, color}, ...]'
+    },
+    reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Return reason for all products'
+    },
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: 'pending',
+      comment: 'pending, approved, rejected, completed'
+    }
   }, {
     sequelize,
     modelName: 'Return',

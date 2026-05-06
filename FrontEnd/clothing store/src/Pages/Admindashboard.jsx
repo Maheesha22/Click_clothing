@@ -26,6 +26,7 @@ import Dashboard from './adminpages/admin/Dashboard';
 import Products from './adminpages/admin/Products';
 import Categories from './adminpages/admin/Categories';
 import Orders from './adminpages/admin/Orders';
+import Returns from './adminpages/admin/Returns';
 import Customers from './adminpages/admin/Customers';
 import Inventory from './adminpages/admin/Inventory';
 import Payments from './adminpages/admin/Payments';
@@ -41,6 +42,7 @@ const NAV = [
   { id: 'products', label: 'Products', Icon: IcoBox, group: 'Main' },
   { id: 'categories', label: 'Categories', Icon: IcoTag, group: 'Main' },
   { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
+  { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
   { id: 'inventory', label: 'Inventory', Icon: IcoArchive, group: 'Commerce' },
   { id: 'payments', label: 'Payments', Icon: IcoCard, group: 'Finance' },
@@ -62,6 +64,7 @@ export default function AdminDashboard() {
       case 'products': return <Products toast={show} />;
       case 'categories': return <Categories toast={show} />;
       case 'orders': return <Orders />;
+      case 'returns': return <Returns />;
       case 'customers': return <Customers />;
       case 'inventory': return <Inventory toast={show} />;
       case 'payments': return <Payments />;
