@@ -492,9 +492,54 @@ exports.bulkCreateProducts = async (req, res) => {
 /* ─── GET /api/products/category/:category ───────────────── */
 exports.getProductsByCategory = async (req, res) => {
   try {
-    const products = await Product.findAll({ where: { categoryId: req.params.category } });
-    res.json({ success: true, data: products });
+    const categoryId = parseInt(req.params.category, 10);
+    
+    if (isNaN(categoryId)) {
+      return res.status(400).json({ success: false, message: 'Invalid category ID' });
+    }
+
+    // Check if category exists
+    const category = await Category.findByPk(categoryId);
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    // Fetch products with their variants
+    const products = await Product.findAll({
+      where: { categoryId: categoryId },
+      include: [
+        {
+          model: ProductVariant,
+          as: 'variants',
+          attributes: ['id', 'size', 'color', 'quantity', 'imageUrl', 'createdAt', 'updatedAt']
+        },
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name']
+        }
+      ],
+      attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
+      order: [['name', 'ASC']]
+    });
+
+    if (products.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: `No products found in category: ${category.name}`,
+        data: [],
+        category: { id: category.id, name: category.name }
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: products,
+      category: { id: category.id, name: category.name },
+      totalProducts: products.length
+    });
   } catch (error) {
+    console.error('Get products by category error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

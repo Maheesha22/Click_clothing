@@ -24,7 +24,7 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
     // Draw border for receipt box
     doc.setDrawColor(33, 150, 243);
     doc.setLineWidth(0.5);
-    doc.rect(15, yPos, pageWidth - 30, 160);
+    doc.rect(15, yPos, pageWidth - 30, 180);
     
     yPos += 10;
     
@@ -34,6 +34,24 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
     
     const leftMargin = 25;
     const lineHeight = 12;
+    
+    // Order Number and Barcode
+    doc.setFont(undefined, 'bold');
+    doc.text('Order Information:', leftMargin, yPos);
+    yPos += lineHeight;
+    
+    doc.setFont(undefined, 'normal');
+    if (orderDetails.orderNumber) {
+      doc.text(`Order Number: ${orderDetails.orderNumber}`, leftMargin, yPos);
+      yPos += lineHeight;
+    }
+    
+    if (orderDetails.barcode) {
+      doc.text(`Barcode: ${orderDetails.barcode}`, leftMargin, yPos);
+      yPos += lineHeight;
+    }
+    
+    yPos += 5;
     
     // Customer Information
     doc.setFont(undefined, 'bold');
@@ -65,6 +83,11 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
       yPos += lineHeight;
     }
     
+    if (orderDetails.province) {
+      doc.text(`Province: ${orderDetails.province}`, leftMargin, yPos);
+      yPos += lineHeight;
+    }
+    
     yPos += 5;
     
     // Product Information
@@ -77,28 +100,38 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
     // List all items
     if (orderDetails.items && orderDetails.items.length > 0) {
       orderDetails.items.forEach((item, index) => {
-        doc.text(`${index + 1}. ${item.name} - Size: ${item.size} - Qty: ${item.qty} - Rs. ${(item.price * item.qty).toLocaleString()}.00`, leftMargin, yPos);
-        yPos += lineHeight;
+        const itemText = `${index + 1}. ${item.name} - Size: ${item.sizeLabel || item.size || 'N/A'} - Qty: ${item.qty} - Rs. ${(item.price * item.qty).toLocaleString()}.00`;
+        // Handle long text wrapping
+        const splitText = doc.splitTextToSize(itemText, pageWidth - 40);
+        doc.text(splitText, leftMargin, yPos);
+        yPos += (splitText.length * lineHeight);
       });
     } else {
       doc.text(`Product: ${orderDetails.productName}`, leftMargin, yPos);
+      yPos += lineHeight;
+      doc.text(`Quantity: ${orderDetails.quantity}`, leftMargin, yPos);
       yPos += lineHeight;
     }
     
     yPos += 5;
     
     // Financial Details
-    doc.text(`Subtotal: Rs. ${orderDetails.subtotal.toLocaleString()}.00`, leftMargin, yPos);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Subtotal: Rs. ${(orderDetails.subtotal || 0).toLocaleString()}.00`, leftMargin, yPos);
     yPos += lineHeight;
     
-    doc.text(`Shipping: Rs. ${orderDetails.shipping.toLocaleString()}.00`, leftMargin, yPos);
+    doc.text(`Shipping: Rs. ${(orderDetails.shipping || 0).toLocaleString()}.00`, leftMargin, yPos);
     yPos += lineHeight;
     
     doc.setFont(undefined, 'bold');
-    doc.text(`Total Amount: Rs. ${orderDetails.price.toLocaleString()}.00`, leftMargin, yPos);
+    doc.setFontSize(14);
+    doc.setTextColor(76, 175, 80);
+    doc.text(`Total Amount: Rs. ${(orderDetails.price || orderDetails.paidAmount || 0).toLocaleString()}.00`, leftMargin, yPos);
     yPos += lineHeight + 5;
     
     // Payment Information
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
     doc.setFont(undefined, 'normal');
     doc.text(`Payment Method: ${orderDetails.paymentMethod}`, leftMargin, yPos);
     yPos += lineHeight;
@@ -106,28 +139,41 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
     doc.text(`Payment Status: ${orderDetails.confirmed ? 'Confirmed' : 'Pending'}`, leftMargin, yPos);
     yPos += lineHeight;
     
-    doc.text(`Date: ${orderDetails.paidDate}`, leftMargin, yPos);
+    doc.text(`Date: ${orderDetails.paidDate || new Date().toLocaleDateString()}`, leftMargin, yPos);
     
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text('Thank you for your order!', pageWidth / 2, yPos, { align: 'center' });
+    doc.text('Thank you for shopping with Click Super Mall!', pageWidth / 2, yPos, { align: 'center' });
     
     // Save PDF
-    doc.save(`order-receipt-${Date.now()}.pdf`);
+    doc.save(`order-receipt-${orderDetails.orderNumber || Date.now()}.pdf`);
   };
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-container">
+    <div className="popup-overlay" onClick={onClose}>
+      <div className="popup-container" onClick={(e) => e.stopPropagation()}>
         <button className="close-btn" onClick={onClose}>×</button>
+        
+        <div className="success-checkmark">
+          <div className="check-icon">✓</div>
+        </div>
         
         <h1 className="confirmation-title">Your order is confirmed!</h1>
         
-        <h2 className="receipt-title">Download Your Receipt</h2>
+        <p className="order-number">Order #{orderDetails.orderNumber}</p>
+        
+        {orderDetails.barcode && (
+          <div className="barcode-section">
+            <span className="barcode-label">Barcode:</span>
+            <span className="barcode-value">{orderDetails.barcode}</span>
+          </div>
+        )}
         
         <div className="receipt-box">
+          <h3 className="receipt-title">Order Summary</h3>
+          
           <div className="order-details">
             <div className="detail-row">
               <span className="detail-label">Customer Name:</span>
@@ -135,19 +181,78 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
             </div>
             
             <div className="detail-row">
-              <span className="detail-label">Product:</span>
-              <span className="detail-value">{orderDetails.productName}</span>
+              <span className="detail-label">Email:</span>
+              <span className="detail-value">{orderDetails.email}</span>
+            </div>
+            
+            {orderDetails.phone && (
+              <div className="detail-row">
+                <span className="detail-label">Phone:</span>
+                <span className="detail-value">{orderDetails.phone}</span>
+              </div>
+            )}
+            
+            <div className="detail-row">
+              <span className="detail-label">Address:</span>
+              <span className="detail-value">{orderDetails.address}</span>
+            </div>
+            
+            {orderDetails.city && (
+              <div className="detail-row">
+                <span className="detail-label">City:</span>
+                <span className="detail-value">{orderDetails.city}</span>
+              </div>
+            )}
+            
+            {orderDetails.district && (
+              <div className="detail-row">
+                <span className="detail-label">District:</span>
+                <span className="detail-value">{orderDetails.district}</span>
+              </div>
+            )}
+            
+            {orderDetails.province && (
+              <div className="detail-row">
+                <span className="detail-label">Province:</span>
+                <span className="detail-value">{orderDetails.province}</span>
+              </div>
+            )}
+            
+            <div className="divider"></div>
+            
+            <div className="detail-row">
+              <span className="detail-label">Items:</span>
+              <span className="detail-value">
+                {orderDetails.items && orderDetails.items.length > 0 ? (
+                  <div className="items-list">
+                    {orderDetails.items.map((item, index) => (
+                      <div key={index} className="item-entry">
+                        {item.name} - {item.sizeLabel || item.size || 'N/A'} - Qty: {item.qty} - Rs. {(item.price * item.qty).toLocaleString()}.00
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  `${orderDetails.productName} x ${orderDetails.quantity}`
+                )}
+              </span>
             </div>
             
             <div className="detail-row">
-              <span className="detail-label">Quantity:</span>
-              <span className="detail-value">{orderDetails.quantity}</span>
+              <span className="detail-label">Subtotal:</span>
+              <span className="detail-value">Rs. {(orderDetails.subtotal || 0).toLocaleString()}.00</span>
             </div>
             
             <div className="detail-row">
-              <span className="detail-label">Price:</span>
-              <span className="detail-value">Rs. {orderDetails.price.toLocaleString()}.00</span>
+              <span className="detail-label">Shipping:</span>
+              <span className="detail-value">Rs. {(orderDetails.shipping || 0).toLocaleString()}.00</span>
             </div>
+            
+            <div className="detail-row total-row">
+              <span className="detail-label">Total Amount:</span>
+              <span className="detail-value">Rs. {(orderDetails.price || orderDetails.paidAmount || 0).toLocaleString()}.00</span>
+            </div>
+            
+            <div className="divider"></div>
             
             <div className="detail-row">
               <span className="detail-label">Payment Method:</span>
@@ -156,24 +261,26 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
             
             <div className="detail-row">
               <span className="detail-label">Order Status:</span>
-              <span className={`detail-value ${orderDetails.confirmed ? 'confirmed' : 'pending'}`}>
-                {orderDetails.confirmed ? 'Confirmed' : 'Pending'}
+              <span className={`detail-value status ${orderDetails.confirmed ? 'confirmed' : 'pending'}`}>
+                {orderDetails.confirmed ? 'Confirmed ✓' : 'Pending'}
               </span>
             </div>
             
             <div className="detail-row">
-              <span className="detail-label">Paid Date:</span>
-              <span className="detail-value">{orderDetails.paidDate}</span>
-            </div>
-            
-            <div className="detail-row">
-              <span className="detail-label">Paid Amount:</span>
-              <span className="detail-value">Rs. {orderDetails.paidAmount.toLocaleString()}.00</span>
+              <span className="detail-label">Order Date:</span>
+              <span className="detail-value">{orderDetails.paidDate || new Date().toLocaleDateString()}</span>
             </div>
           </div>
         </div>
         
-        <button className="download-btn" onClick={generatePDF}>Download</button>
+        <div className="button-group">
+          <button className="download-btn" onClick={generatePDF}>
+             Download Receipt
+          </button>
+          <button className="close-confirm-btn" onClick={onClose}>
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

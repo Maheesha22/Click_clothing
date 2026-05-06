@@ -4,56 +4,26 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // define association here
+      User.hasMany(models.Cart, { foreignKey: 'userId' });
+      User.hasMany(models.Order, { foreignKey: 'userId' });
+      User.hasMany(models.Wishlist, { foreignKey: 'userId' });
+      User.hasMany(models.Return, { foreignKey: 'userId' });
     }
   }
-  
+
   User.init({
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'first_name'
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'last_name'
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true
-      }
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    googleId: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      unique: true
-    },
-    isAdmin: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    reset_token: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    reset_expires: {
-      type: DataTypes.DATE,
-      allowNull: true
-    }
+    first_name: DataTypes.STRING,
+    last_name: DataTypes.STRING,
+    email: DataTypes.STRING,
+    password: DataTypes.STRING,
+    googleId: DataTypes.STRING,
+    isAdmin: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'User',
     tableName: 'users',
     timestamps: true
   });
-  
+
   return User;
 };
