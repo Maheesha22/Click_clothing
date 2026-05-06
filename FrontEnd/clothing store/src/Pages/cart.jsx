@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../Components/footer";
 import EditProductModal from "./EditProduct";
 import cartService from "../services/cartService";
+import selectedItemsService from "../services/selectedItemsService";
 import "./cart.css";
 
 const ProductSVG = () => (
@@ -73,7 +74,7 @@ export default function Cart() {
         if (cartItems.length > 0) {
           const formattedItems = cartItems.map(item => ({
             id: item.id,
-            productId: item.productId,
+            productId: item.productId, // Keep track of the actual productId
             name: item.name || 'Product',
             size: item.size ? parseInt(item.size) : 32,
             sizeLabel: item.size || '32',
@@ -202,47 +203,77 @@ export default function Cart() {
 
   const openEditModal = (item) => {
     setEditingItem(item);
-    setTempColor(item.colorName);
-    setTempSize(item.sizeLabel);
+    setTempColor(item.colorName || item.color);
+    setTempSize(item.sizeLabel || item.size);
     setIsModalOpen(true);
   };
 
   const saveEditChanges = async () => {
     if (editingItem) {
       try {
+        setLoading(true);
+        // Find the selected variant to get its image if needed (though backend handles storage)
+        const selectedVariant = editingItem.availableVariants.find(v => 
+          v.color === tempColor && v.size === tempSize
+        );
+
         const response = await cartService.updateCartItem(editingItem.id, {
           color: tempColor,
           size: tempSize
         });
-        
+
         if (response.success) {
-          // Instead of updating the local state with mocked data, 
-          // let's fetch the entire cart again to get the true image and price 
-          // (or if it merged, the quantities will be updated).
-          fetchCartItems();
+          // Refresh cart items to show changes
+          await fetchCartItems();
+          setIsModalOpen(false);
+          setEditingItem(null);
         } else {
-          console.error('Failed to update cart item details');
+          alert("Failed to update item. Please try again.");
         }
       } catch (error) {
-        console.error('Error updating cart item details:', error);
+        console.error('Cart - Error saving edit changes:', error);
+        alert("Error updating item. This variant might not be available.");
+      } finally {
+        setLoading(false);
       }
     }
-    setIsModalOpen(false);
-    setEditingItem(null);
   };
 
   const selectedItems = items.filter(item => selected.has(item.id));
   const subtotal = selectedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const selectedTotalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
 
-  const handleProceedToCheckout = () => {
+  const handleProceedToCheckout = async () => {
     if (selectedItems.length === 0) {
       alert("Please select at least one item to proceed.");
       return;
     }
-    navigate("/checkout", {
-      state: { selectedItems, subtotal },
-    });
+
+    if (!userId) {
+      alert("Please login to proceed to checkout.");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Save selected items to the database before proceeding
+      const response = await selectedItemsService.saveSelectedItems(userId, selectedItems);
+      console.log('Cart - Save selected items response:', response);
+      
+      if (response.success) {
+        navigate("/checkout", {
+          state: { selectedItems, subtotal },
+        });
+      } else {
+        alert("Failed to prepare checkout. Please try again.");
+      }
+    } catch (error) {
+      console.error('Cart - Error saving selected items:', error);
+      alert("An error occurred while preparing your checkout. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleProceedToHome = () => {
