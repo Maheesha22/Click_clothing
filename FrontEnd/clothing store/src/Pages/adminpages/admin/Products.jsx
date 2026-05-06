@@ -1,152 +1,123 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  CAT_CLS, PER_PAGE,
+  PER_PAGE,
   IcoPlus, IcoSearch,
   Badge, StockBar, MiniStats, Modal,
 } from './shared';
 
-/* ════════════════════════════════════════
-   CLICK CLOTHING — CATEGORIES & MAPS
-════════════════════════════════════════ */
-const CLOTHING_CATS = ['Shirts', 'Trousers', 'Shorts', 'T-shirts', 'Accessories'];
-const ACC_SUBS = ['Cap', 'Perfume', 'Deodorant'];
-
-/* Size options per category */
-const WAIST_SIZES = ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'];
-const SHIRT_SIZES = ['S', 'M', 'L', 'XL', '2XL'];
-const SIZE_OPTIONS = {
-  Trousers: WAIST_SIZES,
-  Shorts: WAIST_SIZES,
-  'T-shirts': SHIRT_SIZES,
-  Shirts: SHIRT_SIZES,
-  Accessories: [],           // no size for accessories
-};
-const CAT_ICON = {
-  Shirts: '',
-  Trousers: '',
-  Shorts: '',
-  'T-shirts': '',
-  Accessories: '',
-};
-const MY_CAT_CLS = {
-  ...CAT_CLS,
-  Shirts: 'cp-sarong',
-  Trousers: 'cp-trousers',
-  Shorts: 'cp-shorts',
-  'T-shirts': 'cp-tshirts',
-  Accessories: 'cp-accessories',
-};
-
-/* ════════════════════════════════════════
-   API BASE
-════════════════════════════════════════ */
 const API = 'http://localhost:3000/api/products';
+const ALL_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'];
 
-/* ════════════════════════════════════════
-   IMAGE UPLOAD BOX
-   FIX: Uploads to YOUR backend (/api/products/upload-image)
-        which then sends to Cloudinary using server-side credentials.
-        Never upload directly from the browser to Cloudinary with an
-        unsigned preset — it requires creating a preset in the dashboard
-        and exposes your cloud name publicly.
-════════════════════════════════════════ */
-function ImageUploadBox({ imageUrl, onUpload, uploading, setUploading }) {
-  const inputRef = useRef(null);
-  const [dragOver, setDragOver] = useState(false);
-  const [error, setError] = useState('');
-
-  const uploadFile = async (file) => {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { setError('Please select an image file.'); return; }
-    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5 MB.'); return; }
-    setError('');
-    setUploading(true);
-    try {
-      // ✅ FIX: Send to your own backend endpoint, NOT directly to Cloudinary.
-      //    Your backend (multer + cloudinary config) handles the actual upload
-      //    using credentials stored safely in the .env file.
-      const fd = new FormData();
-      fd.append('image', file);   // field name must match upload.single('image') in routes
-
-      const res = await fetch(`${API}/upload-image`, { method: 'POST', body: fd });
-      const data = await res.json();
-
-      if (res.ok && data.success && data.image_url) {
-        onUpload(data.image_url);
-      } else {
-        setError(data.message || 'Upload failed — check your backend Cloudinary config.');
-      }
-    } catch {
-      setError('Network error during upload. Is the backend running?');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="f-full">
-      <label className="f-lbl">Product Image</label>
-      <div
-        className={`img-upload-box${dragOver ? ' drag-over' : ''}${imageUrl ? ' has-img' : ''}`}
-        onClick={() => !uploading && inputRef.current?.click()}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={e => { e.preventDefault(); setDragOver(false); uploadFile(e.dataTransfer.files[0]); }}
-      >
-        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
-          onChange={e => uploadFile(e.target.files[0])} />
-
-        {uploading ? (
-          <div className="img-state"><div className="img-spinner" /><span>Uploading…</span></div>
-        ) : imageUrl ? (
-          <div className="img-preview-wrap">
-            <img src={imageUrl} alt="Product" className="img-preview" />
-            <div className="img-overlay">🔄 Click to replace</div>
-          </div>
-        ) : (
-          <div className="img-state">
-            <div style={{ fontSize: 32 }}>☁️</div>
-            <div style={{ fontSize: 13 }}><strong>Click to upload</strong> or drag & drop</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>PNG, JPG, WEBP — max 5 MB</div>
-          </div>
-        )}
-      </div>
-      {error && <div className="img-error">{error}</div>}
-      {imageUrl && !uploading && (
-        <div className="img-url-badge">
-          ✅ Uploaded &nbsp;
-          <a href={imageUrl} target="_blank" rel="noreferrer" className="img-url-link">View ↗</a>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════
-   PRODUCTS PAGE
-════════════════════════════════════════ */
 export default function Products({ toast }) {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [catF, setCatF] = useState('');
   const [stF, setStF] = useState('');
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [delId, setDelId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [delId, setDelId] = useState(null);
 
-  const blank = {
-    product_name: '', category: '', price: '', quantity: '',
-    status: 'Active', product_description: '', image_url: '',
-    color: '', size: '', acc_type: '', sizes_quantities: {}
+  // Expandable row state
+  const [expandedRow, setExpandedRow] = useState(null);
+  const [variantsCache, setVariantsCache] = useState({});
+  const [variantsLoading, setVariantsLoading] = useState(false);
+
+  const toggleRow = async (productId) => {
+    if (expandedRow === productId) {
+      setExpandedRow(null);
+      return;
+    }
+    setExpandedRow(productId);
+    if (variantsCache[productId]) return; // already fetched
+    setVariantsLoading(true);
+    try {
+      const res = await fetch(`${API}/${productId}`);
+      const data = await res.json();
+      if (data.success) {
+        setVariantsCache(prev => ({ ...prev, [productId]: data.data.variants || [] }));
+      } else {
+        toast('⚠️', 'Could not load variants');
+      }
+    } catch {
+      toast('⚠️', 'Network error');
+    } finally {
+      setVariantsLoading(false);
+    }
   };
-  const [form, setForm] = useState(blank);
 
-  /* ── fetch on mount ── */
-  useEffect(() => { fetchProducts(); }, []);
+  // Product basic info
+  const [formData, setFormData] = useState({
+    product_name: '',
+    categoryId: '',
+    price: '',
+    description: '',
+  });
+
+  // Dynamic colors: each = { id, name, image_url, sizes: [{ size, quantity }] }
+  const [colors, setColors] = useState([]);
+
+  // ----- Color helpers -----
+  const addColor = () => {
+    setColors([...colors, { id: Date.now(), name: '', image_url: '', sizes: [{ size: '', quantity: 0 }] }]);
+  };
+  const updateColor = (colorId, field, value) => {
+    setColors(colors.map(c => c.id === colorId ? { ...c, [field]: value } : c));
+  };
+  const removeColor = (colorId) => {
+    setColors(colors.filter(c => c.id !== colorId));
+  };
+
+  // ----- Size helpers inside a color -----
+  const addSize = (colorId) => {
+    setColors(colors.map(c =>
+      c.id === colorId ? { ...c, sizes: [...c.sizes, { size: '', quantity: 0 }] } : c
+    ));
+  };
+  const updateSize = (colorId, idx, field, value) => {
+    setColors(colors.map(c =>
+      c.id === colorId
+        ? { ...c, sizes: c.sizes.map((s, i) => i === idx ? { ...s, [field]: value } : s) }
+        : c
+    ));
+  };
+  const removeSize = (colorId, idx) => {
+    setColors(colors.map(c =>
+      c.id === colorId ? { ...c, sizes: c.sizes.filter((_, i) => i !== idx) } : c
+    ));
+  };
+
+  // ----- Image upload per color (uses existing Cloudinary endpoint) -----
+  const uploadColorImage = async (colorId, file) => {
+    if (!file || !file.type.startsWith('image/')) return toast('⚠️', 'Please select an image');
+    if (file.size > 5 * 1024 * 1024) return toast('⚠️', 'Max 5MB');
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch(`${API}/upload-image`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        updateColor(colorId, 'image_url', data.image_url);
+        toast('✅', 'Image uploaded');
+      } else {
+        toast('❌', data.message || 'Upload failed');
+      }
+    } catch (err) {
+      toast('❌', 'Network error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // ----- Data fetching -----
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -154,359 +125,393 @@ export default function Products({ toast }) {
       const res = await fetch(API);
       const data = await res.json();
       if (data.success) setProducts(data.data);
-      else toast('⚠️', 'Could not load products.');
-    } catch { toast('⚠️', 'Server not reachable.'); }
-    finally { setLoading(false); }
+      else toast('⚠️', 'Could not load products');
+    } catch {
+      toast('⚠️', 'Server not reachable');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ── filter + paginate ── */
-  const filtered = products.filter(p =>
-    (!search || (p.product_name || '').toLowerCase().includes(search.toLowerCase())) &&
-    (!catF || p.category === catF) &&
-    (!stF || (stF === 'Active' ? p.available : !p.available))
-  );
-  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const sp = Math.min(page, pages);
-  const slice = filtered.slice((sp - 1) * PER_PAGE, sp * PER_PAGE);
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${API}/categories/all`);
+      const data = await res.json();
+      if (data.success) setCategories(data.data);
+    } catch (err) { console.error(err); }
+  };
 
-  /* ── modal helpers ── */
-  const openAdd = () => { setForm(blank); setEditId(null); setModal(true); };
-  const openEdit = p => {
-    let parsedSQ = {};
-    let parsedSize = p.size || '';
-    if (p.size && p.size.startsWith('{')) {
-      try {
-        parsedSQ = JSON.parse(p.size);
-        parsedSize = '';
-      } catch (e) { }
-    }
-    setForm({
-      product_name: p.product_name || '',
-      category: p.category || '',
-      price: p.price || '',
-      quantity: p.quantity ?? '',
-      status: p.available ? 'Active' : 'Inactive',
-      product_description: p.product_description || '',
-      image_url: p.image_url || '',
-      color: p.color || '',
-      size: parsedSize,
-      acc_type: p.acc_type || '',
-      sizes_quantities: parsedSQ,
-    });
-    setEditId(p.id);
+  // ----- Modal control -----
+  const openAddModal = () => {
+    setFormData({ product_name: '', categoryId: '', price: '', description: '' });
+    setColors([]);
     setModal(true);
   };
-  const closeM = () => { setModal(false); setEditId(null); };
 
-  /* ── save ── */
-  const save = async () => {
-    const hasSizeQtys = ['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category);
-    if (!form.product_name || !form.category || form.price === '' || (!hasSizeQtys && form.quantity === '')) {
-      toast('⚠️', 'Please fill all required fields.'); return;
+  const closeModal = () => {
+    setModal(false);
+    setFormData({ product_name: '', categoryId: '', price: '', description: '' });
+    setColors([]);
+  };
+
+  // ----- Save product: builds variants array and sends to backend -----
+  const saveProduct = async () => {
+    if (!formData.product_name || !formData.categoryId || !formData.price) {
+      toast('⚠️', 'Fill product name, category, and price');
+      return;
     }
+
+    const variants = [];
+    for (const color of colors) {
+      if (!color.name.trim()) continue;
+      for (const sizeObj of color.sizes) {
+        if (!sizeObj.size || sizeObj.quantity <= 0) continue;
+        variants.push({
+          color: color.name,
+          size: sizeObj.size,
+          quantity: parseInt(sizeObj.quantity, 10),
+          image_url: color.image_url || null,
+        });
+      }
+    }
+
+    if (variants.length === 0) {
+      toast('⚠️', 'Add at least one color with a valid size & quantity');
+      return;
+    }
+
     setSaving(true);
-
-    let finalQuantity = parseInt(form.quantity, 10);
-    let finalSize = form.size;
-
-    if (hasSizeQtys) {
-      let totalQty = 0;
-      Object.values(form.sizes_quantities).forEach(q => {
-        totalQty += parseInt(q || 0, 10);
-      });
-      finalQuantity = totalQty;
-      finalSize = Object.keys(form.sizes_quantities).length > 0 ? JSON.stringify(form.sizes_quantities) : '';
-    }
-
-    const payload = {
-      product_name: form.product_name,
-      category: form.category,
-      price: parseFloat(form.price),
-      quantity: finalQuantity || 0,
-      available: form.status === 'Active',
-      product_description: form.product_description,
-      image_url: form.image_url,
-      color: form.color,
-      size: finalSize,
-    };
     try {
-      const url = editId ? `${API}/${editId}` : API;
-      const method = editId ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const payload = {
+        product_name: formData.product_name,
+        description: formData.description,
+        categoryId: parseInt(formData.categoryId),
+        price: parseFloat(formData.price),
+        variants,
+      };
+
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       const data = await res.json();
       if (data.success) {
         await fetchProducts();
-        toast('✅', editId ? 'Product updated!' : 'Product added!');
-        closeM();
-      } else toast('❌', data.message || 'Save failed.');
-    } catch { toast('❌', 'Network error.'); }
-    finally { setSaving(false); }
+        setVariantsCache({});
+        toast('✅', 'Product added!');
+        closeModal();
+      } else {
+        toast('❌', data.message || 'Save failed');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('❌', 'Network error');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  /* ── delete ── */
-  const confirmDel = async () => {
+  // ----- Delete product -----
+  const confirmDelete = async () => {
     try {
       const res = await fetch(`${API}/${delId}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.success) { await fetchProducts(); toast('🗑️', 'Product deleted.'); }
-      else toast('❌', data.message || 'Delete failed.');
-    } catch { toast('❌', 'Network error.'); }
+      if (data.success) {
+        await fetchProducts();
+        setVariantsCache(prev => { const next = { ...prev }; delete next[delId]; return next; });
+        if (expandedRow === delId) setExpandedRow(null);
+        toast('🗑️', 'Product deleted');
+      } else toast('❌', data.message);
+    } catch {
+      toast('❌', 'Network error');
+    }
     setDelId(null);
   };
 
-  const ms = {
+  // ----- Filter & pagination -----
+  const filtered = products.filter(p => {
+    const matchSearch = !search || (p.product_name || '').toLowerCase().includes(search.toLowerCase());
+    const matchCat = !catF || p.category?.id === parseInt(catF) || p.category?.name === catF;
+    const matchStatus = !stF || (stF === 'Active' ? p.available : !p.available);
+    return matchSearch && matchCat && matchStatus;
+  });
+  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const currentPage = Math.min(page, pages);
+  const currentProducts = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
+  const stats = {
     total: products.length,
     active: products.filter(p => p.available).length,
     low: products.filter(p => p.quantity > 0 && p.quantity <= 10).length,
     out: products.filter(p => p.quantity === 0).length,
   };
-
-  /* ── price formatter ── */
-  const fmtPrice = v => `RS ${parseFloat(v || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
+  const formatPrice = price => `RS ${parseFloat(price || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="view">
-
-      {/* inline styles for new UI pieces */}
       <style>{`
-        .img-upload-box{border:2px dashed #cbd5e1;border-radius:10px;padding:24px 16px;cursor:pointer;text-align:center;transition:border-color .2s,background .2s;background:#f8fafc;min-height:140px;display:flex;align-items:center;justify-content:center;}
-        .img-upload-box:hover,.img-upload-box.drag-over{border-color:#6366f1;background:#eef2ff;}
-        .img-upload-box.has-img{padding:0;overflow:hidden;}
-        .img-state{display:flex;flex-direction:column;align-items:center;gap:6px;color:#64748b;}
-        .img-preview-wrap{position:relative;width:100%;}
-        .img-preview{width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;}
-        .img-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;opacity:0;transition:opacity .2s;border-radius:8px;}
-        .img-upload-box:hover .img-overlay{opacity:1;}
-        .img-spinner{width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#6366f1;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:4px;}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .img-error{color:#ef4444;font-size:12px;margin-top:4px;}
-        .img-url-badge{font-size:12px;color:#16a34a;margin-top:6px;}
-        .img-url-link{color:#6366f1;text-decoration:underline;}
-        .prod-img{width:38px;height:38px;object-fit:cover;border-radius:6px;}
-        .prod-thumb-ico{width:38px;height:38px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px;}
-        .cp-sarong{background:#fef9c3;color:#854d0e;}
-        .cp-trousers{background:#dbeafe;color:#1d4ed8;}
-        .cp-shorts{background:#d1fae5;color:#065f46;}
-        .cp-tshirts{background:#fce7f3;color:#9d174d;}
+        .variant-expand-row td {
+          padding: 0 !important;
+          background: #f8fafc;
+          border-bottom: 2px solid #e2e8f0;
+        }
+        .variant-expand-inner {
+          padding: 16px 24px;
+          animation: fadeSlide 0.2s ease;
+        }
+        @keyframes fadeSlide {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .variant-title {
+          font-size: 13px; font-weight: 600; color: #475569;
+          margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .variant-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .variant-table th {
+          background: #e2e8f0; padding: 6px 12px; text-align: left;
+          font-weight: 600; color: #374151;
+        }
+        .variant-table td { padding: 7px 12px; border-bottom: 1px solid #e2e8f0; color: #374151; }
+        .variant-table tr:last-child td { border-bottom: none; }
+        .variant-table tr:hover td { background: #f1f5f9; }
+        .size-badge {
+          display: inline-block; background: #dbeafe; color: #1d4ed8;
+          border-radius: 4px; padding: 2px 8px; font-weight: 600; font-size: 12px;
+        }
+        .qty-badge {
+          display: inline-block; background: #dcfce7; color: #166534;
+          border-radius: 4px; padding: 2px 8px; font-weight: 600; font-size: 12px;
+        }
+        .qty-badge.low { background: #fef9c3; color: #854d0e; }
+        .qty-badge.out { background: #fee2e2; color: #991b1b; }
+        .clickable-row { cursor: pointer; }
+        .clickable-row:hover td { background: #f0f9ff !important; }
+        .expand-arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; margin-left: 4px; }
+        .expand-arrow.open { transform: rotate(90deg); }
+        .no-variants-msg { color: #94a3b8; font-size: 13px; padding: 8px 0; }
+        .variant-img { width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .img-upload-box-small {
+          width: 60px; height: 60px;
+          border: 1px dashed #cbd5e1;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          background: #f8fafc;
+          overflow: hidden;
+        }
+        .color-block {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 20px;
+          background: #fff;
+        }
+        .size-row {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          margin-top: 8px;
+        }
+        .size-select, .size-qty {
+          padding: 6px;
+          border-radius: 6px;
+          border: 1px solid #cbd5e1;
+        }
+        .size-select { width: 100px; }
+        .size-qty { width: 80px; }
+        .btn-icon { background: #ef4444; color: white; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+        .btn-add-size { background: #3b82f6; color: white; border: none; border-radius: 6px; padding: 4px 12px; margin-top: 8px; cursor: pointer; }
+        .product-image { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; }
+        .no-image { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 8px; font-size: 24px; }
       `}</style>
 
       <div className="ph">
-        <div><h1 className="ph-title">Products</h1><p className="ph-sub">Manage your clothing catalogue.</p></div>
-        <button className="btn-primary" onClick={openAdd}><IcoPlus /> Add New Product</button>
+        <div><h1 className="ph-title">Products</h1><p className="ph-sub">Manage your catalogue</p></div>
+        <button className="btn-primary" onClick={openAddModal}><IcoPlus /> Add New Product</button>
       </div>
 
       <MiniStats items={[
-        ['📦', ms.total, 'Total Products'],
-        ['✅', ms.active, 'Active'],
-        ['⚠️', ms.low, 'Low Stock'],
-        ['🚫', ms.out, 'Out of Stock'],
+        ['📦', stats.total, 'Total Products'],
+        ['✅', stats.active, 'Active'],
+        ['⚠️', stats.low, 'Low Stock'],
+        ['🚫', stats.out, 'Out of Stock'],
       ]} />
 
       <div className="toolbar">
-        <div className="tb-search">
-          <IcoSearch w={13} />
-          <input className="tb-inp" placeholder="Search product name…" value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }} />
-        </div>
-        <select className="tb-sel" value={catF} onChange={e => { setCatF(e.target.value); setPage(1); }}>
-          <option value="">All Categories</option>
-          {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
-        </select>
-        <select className="tb-sel" value={stF} onChange={e => { setStF(e.target.value); setPage(1); }}>
-          <option value="">All Status</option>
-          <option>Active</option><option>Inactive</option>
-        </select>
+        <div className="tb-search"><IcoSearch w={13} /><input className="tb-inp" placeholder="Search…" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} /></div>
+        <select className="tb-sel" value={catF} onChange={e => { setCatF(e.target.value); setPage(1); }}><option value="">All Categories</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+        <select className="tb-sel" value={stF} onChange={e => { setStF(e.target.value); setPage(1); }}><option value="">All Status</option><option>Active</option><option>Inactive</option></select>
         <span className="tb-count">{filtered.length} products</span>
       </div>
 
-      <div className="admin_card" style={{ overflow: 'hidden' }}>
+      <div className="admin-card">
         <div className="tbl-wrap">
-          <table className="tbl" style={{ minWidth: 900 }}>
-            <thead><tr>
-              <th>Product</th><th>Category</th>
-              <th>Price (RS)</th><th>Stock</th><th>Status</th><th>Actions</th>
-            </tr></thead>
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>ID</th><th>Image</th><th>Product Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Colors</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {loading
-                ? <tr><td colSpan={6} className="empty-cell">Loading products…</td></tr>
-                : slice.length === 0
-                  ? <tr><td colSpan={6} className="empty-cell">No products found.</td></tr>
-                  : slice.map(p => (
-                    <tr key={p.id}>
+              {loading ? (
+                <tr><td colSpan="9">Loading…</td></tr>
+              ) : currentProducts.length === 0 ? (
+                <tr><td colSpan="9">No products found</td></tr>
+              ) : (
+                currentProducts.flatMap(p => {
+                  const isExpanded = expandedRow === p.id;
+                  const variants = variantsCache[p.id] || [];
+                  return [
+                    <tr key={p.id} className="clickable-row" onClick={() => toggleRow(p.id)}>
+                      <td>#{p.id}</td>
+                      <td onClick={e => e.stopPropagation()}>{p.image_url ? <img src={p.image_url} className="product-image" alt="" /> : <div className="no-image">📦</div>}</td>
                       <td>
-                        <div className="prod-cell">
-                          {p.image_url
-                            ? <img src={p.image_url} alt={p.product_name} className="prod-img" />
-                            : <div className="prod-thumb-ico">{CAT_ICON[p.category] || '📦'}</div>
-                          }
-                          <div>
-                            <div className="cell-nm">{p.product_name}</div>
-                            <div className="cell-sub">#{p.id}</div>
-                          </div>
-                        </div>
+                        <strong>{p.product_name}</strong>
+                        <span className={`expand-arrow${isExpanded ? ' open' : ''}`}>▶</span>
+                        <br/><small>{p.product_description?.slice(0,50)}</small>
                       </td>
-                      <td><span className={`cat-pill ${MY_CAT_CLS[p.category] || ''}`}>{p.category}</span></td>
-                      <td className="cell-price">{fmtPrice(p.price)}</td>
+                      <td><span className="cat-pill">{p.category?.name || 'Uncategorized'}</span></td>
+                      <td className="cell-price">{formatPrice(p.price)}</td>
                       <td><StockBar stock={p.quantity || 0} /></td>
+                      <td>{p.color || '—'}</td>
                       <td><Badge label={p.available ? 'Active' : 'Inactive'} cls={p.available ? 'b-active' : 'b-inactive'} /></td>
-                      <td><div className="act-grp">
-                        <button className="ab ab-edit" onClick={() => openEdit(p)}>✏️ Edit</button>
-                        <button className="ab ab-del" onClick={() => setDelId(p.id)}>🗑️</button>
-                      </div></td>
-                    </tr>
-                  ))
-              }
+                      <td onClick={e => e.stopPropagation()}><button className="ab ab-del" onClick={() => setDelId(p.id)}>🗑️</button></td>
+                    </tr>,
+                    isExpanded && (
+                      <tr key={`${p.id}-variants`} className="variant-expand-row">
+                        <td colSpan="9">
+                          <div className="variant-expand-inner">
+                            <div className="variant-title">📋 Product Variants — {p.product_name}</div>
+                            {variantsLoading && !variantsCache[p.id] ? (
+                              <div className="no-variants-msg">Loading variants…</div>
+                            ) : variants.length === 0 ? (
+                              <div className="no-variants-msg">No variants found for this product.</div>
+                            ) : (
+                              <table className="variant-table">
+                                <thead>
+                                  <tr>
+                                    <th>Image</th>
+                                    <th>Color</th>
+                                    <th>Size</th>
+                                    <th>Quantity</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {variants.map((v, i) => {
+                                    const qty = v.quantity || 0;
+                                    const qtyClass = qty === 0 ? 'out' : qty <= 5 ? 'low' : '';
+                                    return (
+                                      <tr key={v.id || i}>
+                                        <td>
+                                          {v.imageUrl
+                                            ? <img src={v.imageUrl} className="variant-img" alt={v.color} />
+                                            : <div style={{ width:36, height:36, background:'#f1f5f9', borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>🎨</div>
+                                          }
+                                        </td>
+                                        <td>
+                                          <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+                                            <span style={{
+                                              display:'inline-block', width:14, height:14, borderRadius:'50%',
+                                              background: v.color?.toLowerCase() || '#cbd5e1',
+                                              border:'1px solid #cbd5e1', flexShrink:0
+                                            }} />
+                                            {v.color || '—'}
+                                          </span>
+                                        </td>
+                                        <td><span className="size-badge">{v.size || '—'}</span></td>
+                                        <td><span className={`qty-badge ${qtyClass}`}>{qty} {qty === 0 ? '(Out of Stock)' : qty <= 5 ? '(Low)' : ''}</span></td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ),
+                  ].filter(Boolean);
+                })
+              )}
             </tbody>
           </table>
         </div>
-        <div className="tbl-foot">
-          <span className="tbl-info">
-            Showing {filtered.length === 0 ? 0 : (sp - 1) * PER_PAGE + 1}–{Math.min(sp * PER_PAGE, filtered.length)} of {filtered.length}
-          </span>
-          <div className="pg-btns">
-            <button className="pg-btn" onClick={() => setPage(p => p - 1)} disabled={sp <= 1}>← Prev</button>
-            {Array.from({ length: Math.min(pages, 5) }, (_, i) => (
-              <button key={i} className={`pg-btn${sp === i + 1 ? ' active' : ''}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
-            ))}
-            <button className="pg-btn" onClick={() => setPage(p => p + 1)} disabled={sp >= pages}>Next →</button>
+        {!loading && filtered.length > 0 && (
+          <div className="tbl-foot">
+            <span>Showing {Math.min(currentPage * PER_PAGE, filtered.length)} of {filtered.length}</span>
+            <div className="pg-btns">
+              <button disabled={currentPage <= 1} onClick={() => setPage(p => p - 1)}>Prev</button>
+              {Array.from({ length: Math.min(pages, 5) }, (_, i) => (
+                <button key={i} className={currentPage === i + 1 ? 'active' : ''} onClick={() => setPage(i + 1)}>{i + 1}</button>
+              ))}
+              <button disabled={currentPage >= pages} onClick={() => setPage(p => p + 1)}>Next</button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ── Add / Edit Modal ── */}
-      <Modal open={modal} onClose={closeM} title={editId ? 'Edit Product' : 'Add New Product'}
-        footer={<>
-          <button className="btn-secondary" onClick={closeM} disabled={saving || uploading}>Cancel</button>
-          <button className="btn-primary" onClick={save} disabled={saving || uploading}>
-            {saving ? 'Saving…' : 'Save Product'}
-          </button>
-        </>}>
+      {/* Add Product Modal */}
+      <Modal open={modal} onClose={closeModal} title="Add New Product"
+        footer={
+          <>
+            <button className="btn-secondary" onClick={closeModal} disabled={saving || uploading}>Cancel</button>
+            <button className="btn-primary" onClick={saveProduct} disabled={saving || uploading}>{saving ? 'Saving...' : 'Save Product'}</button>
+          </>
+        }>
         <div className="m-body">
           <div className="f-grid">
+            <div className="f-full"><label className="f-lbl">Product Name *</label><input className="f-inp" value={formData.product_name} onChange={e => setFormData({...formData, product_name: e.target.value})} /></div>
+            <div><label className="f-lbl">Category *</label><select className="f-sel" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})}><option value="">Select</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+            <div><label className="f-lbl">Price (RS) *</label><input className="f-inp" type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} /></div>
+            <div className="f-full"><label className="f-lbl">Description</label><textarea className="f-ta" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} /></div>
+          </div>
 
-            <ImageUploadBox
-              imageUrl={form.image_url}
-              onUpload={url => setForm(f => ({ ...f, image_url: url }))}
-              uploading={uploading}
-              setUploading={setUploading}
-            />
-
-            <div className="f-full">
-              <label className="f-lbl">Product Name *</label>
-              <input className="f-inp" placeholder="e.g. Classic Checkered Shirt"
-                value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))} />
-            </div>
-
-            <div>
-              <label className="f-lbl">Category *</label>
-              <select className="f-sel" value={form.category}
-                onChange={e => setForm(f => ({ ...f, category: e.target.value, acc_type: '', size: '', sizes_quantities: {} }))}>
-                <option value="">Select…</option>
-                {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-
-            {form.category === 'Accessories' && (
-              <div>
-                <label className="f-lbl">Accessory Type</label>
-                <select className="f-sel" value={form.acc_type}
-                  onChange={e => setForm(f => ({ ...f, acc_type: e.target.value }))}>
-                  <option value="">Select type…</option>
-                  {ACC_SUBS.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="f-lbl">Price (RS) *</label>
-              <input className="f-inp" type="number" min="0" step="0.01" placeholder="0.00"
-                value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
-            </div>
-
-            {!['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category) && (
-              <div>
-                <label className="f-lbl">Stock Qty *</label>
-                <input className="f-inp" type="number" min="0" placeholder="0"
-                  value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-              </div>
-            )}
-
-            {/* Size — dropdown changes based on selected category */}
-            {['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category) && (
-              <div className="f-full">
-                <label className="f-lbl">Select Sizes & Quantities *</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px', marginTop: '6px' }}>
-                  {SIZE_OPTIONS[form.category]?.map(s => {
-                    const isChecked = form.sizes_quantities && form.sizes_quantities[s] !== undefined;
-                    return (
-                      <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={e => {
-                            const newSQ = { ...(form.sizes_quantities || {}) };
-                            if (e.target.checked) newSQ[s] = 1;
-                            else delete newSQ[s];
-                            setForm(f => ({ ...f, sizes_quantities: newSQ }));
-                          }}
-                          style={{ cursor: 'pointer', width: '16px', height: '16px', margin: 0 }}
-                        />
-                        <label style={{ cursor: 'pointer', fontSize: '14px', flex: 1, userSelect: 'none' }} onClick={() => {
-                          const newSQ = { ...(form.sizes_quantities || {}) };
-                          if (!isChecked) newSQ[s] = 1; else delete newSQ[s];
-                          setForm(f => ({ ...f, sizes_quantities: newSQ }));
-                        }}>{s}</label>
-                        <input
-                          className="f-inp"
-                          type="number"
-                          min="1"
-                          disabled={!isChecked}
-                          value={isChecked ? form.sizes_quantities[s] : ''}
-                          onChange={e => setForm(f => ({ ...f, sizes_quantities: { ...f.sizes_quantities, [s]: e.target.value === '' ? '' : parseInt(e.target.value, 10) } }))}
-                          style={{ width: '60px', padding: '4px 6px', opacity: isChecked ? 1 : 0.4 }}
-                        />
-                      </div>
-                    );
-                  })}
+          <div className="f-full" style={{ marginTop: '20px' }}>
+            <label className="f-lbl">Colors, Images & Sizes</label>
+            {colors.map(color => (
+              <div key={color.id} className="color-block">
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                  <input className="f-inp" placeholder="Color name (e.g., Red)" value={color.name} onChange={e => updateColor(color.id, 'name', e.target.value)} style={{ flex: 2 }} />
+                  <div className="img-upload-box-small" onClick={() => !uploading && document.getElementById(`colorImg-${color.id}`)?.click()}>
+                    <input id={`colorImg-${color.id}`} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => uploadColorImage(color.id, e.target.files[0])} />
+                    {color.image_url ? <img src={color.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <span>📷</span>}
+                  </div>
+                  <button type="button" className="btn-icon" onClick={() => removeColor(color.id)}>Remove</button>
                 </div>
+                <label>Sizes & Quantities:</label>
+                {color.sizes.map((sizeObj, idx) => {
+                  const selectedCategory = categories.find(c => c.id === parseInt(formData.categoryId));
+                  const catName = (selectedCategory?.name || '').toLowerCase();
+                  const isTop = ['armcuts', 'hoodie', 'long sleeves', 'shirts', 't shirts'].includes(catName);
+                  const sizesToShow = isTop ? ['S', 'M', 'L', 'XL', 'XXL'] : ALL_SIZES;
+
+                  return (
+                    <div key={idx} className="size-row">
+                      <select className="size-select" value={sizeObj.size} onChange={e => updateSize(color.id, idx, 'size', e.target.value)}>
+                        <option value="">Select size</option>
+                        {sizesToShow.map(s => <option key={s}>{s}</option>)}
+                      </select>
+                      <input className="size-qty" type="number" min="0" placeholder="Qty" value={sizeObj.quantity || ''} onChange={e => updateSize(color.id, idx, 'quantity', parseInt(e.target.value) || 0)} />
+                      <button type="button" className="btn-icon" onClick={() => removeSize(color.id, idx)}>✕</button>
+                    </div>
+                  );
+                })}
+                <button type="button" className="btn-add-size" onClick={() => addSize(color.id)}>+ Add Size</button>
               </div>
-            )}
-
-            <div>
-              <label className="f-lbl">Color</label>
-              <input className="f-inp" placeholder="e.g. Blue, Red, Multicolor"
-                value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} />
-            </div>
-
-            <div>
-              <label className="f-lbl">Status</label>
-              <select className="f-sel" value={form.status}
-                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                <option>Active</option><option>Inactive</option>
-              </select>
-            </div>
-
-            <div className="f-full">
-              <label className="f-lbl">Description</label>
-              <textarea className="f-ta" placeholder="Brief product description…"
-                value={form.product_description}
-                onChange={e => setForm(f => ({ ...f, product_description: e.target.value }))} />
-            </div>
+            ))}
+            <button type="button" className="btn-secondary" style={{ marginTop: '8px' }} onClick={addColor}>+ Add Another Color</button>
+            {colors.length === 0 && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>Add one or more colors, each with an optional image and at least one size+quantity.</div>}
           </div>
         </div>
       </Modal>
 
-      {/* ── Delete Confirm ── */}
-      <Modal open={!!delId} onClose={() => setDelId(null)} compact
-        footer={<>
-          <button className="btn-secondary" onClick={() => setDelId(null)}>Cancel</button>
-          <button className="btn-danger" onClick={confirmDel}>Yes, Delete</button>
-        </>}>
-        <div className="m-body del-body">
-          <div className="del-icon">🗑️</div>
-          <div className="del-title">Delete Product?</div>
-          <div className="del-sub">This action cannot be undone.</div>
-        </div>
+      {/* Delete confirmation modal */}
+      <Modal open={!!delId} onClose={() => setDelId(null)} compact footer={<><button className="btn-secondary" onClick={() => setDelId(null)}>Cancel</button><button className="btn-danger" onClick={confirmDelete}>Delete</button></>}>
+        <div className="del-body"><div className="del-icon">🗑️</div><div className="del-title">Delete Product?</div><div className="del-sub">This action cannot be undone.</div></div>
       </Modal>
     </div>
   );

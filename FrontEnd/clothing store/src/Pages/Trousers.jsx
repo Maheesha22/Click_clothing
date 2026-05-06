@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Trousers.css";
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 import {
   getWishlistDB,
@@ -11,6 +12,7 @@ import {
   addToGuestWishlist,
   removeFromGuestWishlist,
 } from "../services/wishlistService";
+
 
 // ── Color Utility ────────────────────────────────────────────────────────────────
 // Maps common color names (as stored in DB) to hex values for swatches
@@ -863,6 +865,7 @@ const TrousersPage = () => {
   return (
     <div className="tr-page">
       <Header />
+      <NavBar />
 
       <section className="tr-hero">
         <h1>Premium Trousers<br /><span>For the Modern Gentleman</span></h1>
@@ -964,7 +967,17 @@ const TrousersPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
-      <WhatsAppButton />
+      <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "trousers",
+              productName: selectedProduct.name,
+              category: selectedProduct.category,
+              price: selectedProduct.price,
+            }
+          : { page: "trousers" }
+      } />
+
     </div>
   );
 };

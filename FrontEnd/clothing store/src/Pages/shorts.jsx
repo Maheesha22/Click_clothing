@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./shorts.css";
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
@@ -650,6 +651,7 @@ const ShortsPage = () => {
   return (
     <div className="st-page">
       <Header />
+      <NavBar />
 
       <section className="st-hero">
         <h1>Premium Shorts<br /><span>Summer Essential Collection</span></h1>
@@ -743,7 +745,7 @@ const ShortsPage = () => {
 
       <Footer />
 
-      <WhatsAppButton />
+      
 
       {selectedProduct && (
         <ProductModal
@@ -753,6 +755,17 @@ const ShortsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
+
+     <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "shorts",
+              productName: selectedProduct.name,
+              category: "Shorts",
+              price: selectedProduct.basePrice,
+            }
+          : { page: "shorts" }
+      } />
     </div>
   );
 };

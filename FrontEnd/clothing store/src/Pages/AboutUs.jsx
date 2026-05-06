@@ -2,6 +2,8 @@ import React from "react";
 import Header from "../Components/header";
 import Footer from "../Components/footer";
 import "./AboutUs.css";
+import retailStoreImg from "../assets/retail-store.png";
+
 
 const AboutUs = () => {
   return (
@@ -34,7 +36,7 @@ const AboutUs = () => {
                 Welcome to <strong>Click Clothing Super Mall</strong>, your one-stop destination for trendy and affordable fashion.
               </p>
               <p>
-                We offer stylish clothing for men, women, and kids — from casual everyday essentials to statement pieces.
+                We offer stylish clothing for men from casual everyday essentials to statement pieces.
               </p>
               <p>
                 Our goal is to make fashion easy and accessible for everyone, bridging the gap between quality and affordability.
@@ -82,7 +84,7 @@ const AboutUs = () => {
         <div className="about-team-wrap">
           <img
             className="about-team-img"
-            src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e12?q=80&w=2070&auto=format"
+            src={retailStoreImg}
             alt="Click Clothing Super Mall Retail Store"
             onError={(e) => {
               e.target.src = "https://placehold.co/1400x500/1e2836/ffffff?text=Our+Retail+Store";

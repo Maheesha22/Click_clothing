@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../components/whatsappbtn";
 import "./Shirts.css";
 
@@ -644,6 +645,7 @@ const ShirtsPage = () => {
   return (
     <div className="sh-page">
       <Header />
+      <NavBar />
 
       <section className="sh-hero">
         <h1>Premium Shirts<br /><span>For Every Occasion</span></h1>
@@ -737,7 +739,6 @@ const ShirtsPage = () => {
 
       <Footer />
 
-      <WhatsAppButton />
 
       {selectedProduct && (
         <ProductModal
@@ -747,6 +748,16 @@ const ShirtsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
+    <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "shirts",
+              productName: selectedProduct.name,
+              category: "Shirts",     // fixed category because all products are shirts
+              price: selectedProduct.basePrice,
+            }
+          : { page: "shirts" }
+      } />
     </div>
   );
 };

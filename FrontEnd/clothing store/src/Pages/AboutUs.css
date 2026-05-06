@@ -175,7 +175,9 @@
 
 .about-team-img {
   width: 100%;
-  max-width: 1200px;
+  max-width: 800px;
+  height: 350px;
+  object-fit: cover;
   display: block;
   margin: 0 auto;
   border-radius: 2rem;

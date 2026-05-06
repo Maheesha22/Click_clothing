@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./tshirts.css";
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
@@ -641,6 +642,7 @@ const TShirtsPage = () => {
   return (
     <div className="ts-page">
       <Header />
+      <NavBar />
 
       <section className="ts-hero">
         <h1>Premium T-Shirts<br /><span>Everyday Comfort, Effortless Style</span></h1>
@@ -742,7 +744,17 @@ const TShirtsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
-      <WhatsAppButton />
+      <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "tshirts",
+              productName: selectedProduct.name,
+              category: "T-Shirts",
+              price: selectedProduct.basePrice,
+            }
+          : { page: "tshirts" }
+      } />
+
     </div>
   );
 };

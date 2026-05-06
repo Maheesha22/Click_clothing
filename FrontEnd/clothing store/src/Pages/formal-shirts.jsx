@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./formal-shirts.css";
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
@@ -643,6 +644,7 @@ const FormalShirtsPage = () => {
   return (
     <div className="fs-page">
       <Header />
+      <NavBar />
 
       <section className="fs-hero">
         <h1>Formal Shirts<br /><span>Dressed for Every Occasion</span></h1>
@@ -744,7 +746,17 @@ const FormalShirtsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
-      <WhatsAppButton />
+      <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "formal shirts",
+              productName: selectedProduct.name,
+              category: "Formal Shirts",     // fixed category because all products are formal shirts
+              price: selectedProduct.basePrice,
+            }
+          : { page: "formal shirts" }
+      } />
+
     </div>
   );
 };
