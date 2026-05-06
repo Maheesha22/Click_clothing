@@ -1,86 +1,135 @@
 // controllers/productController.js
-// Full CRUD for Products + Cloudinary image upload handler.
-//
-// FIX: Removed the duplicate inline cloudinary.config() that was inside this file.
-//      Cloudinary is now configured ONCE in config/cloudinary.js and shared via
-//      config/multer.js. Duplicating the config here caused conflicts when
-//      environment variables weren't loaded yet.
-
-const { Product } = require('../models');
-const { Op }      = require('sequelize');
+const { Product, Category, ProductVariant } = require('../models');
 
 /* ─── POST /api/products/upload-image ────────────────────── */
-// multer middleware is applied in the route (upload.single('image')),
-// so by the time this handler runs, req.file is already the Cloudinary result.
 exports.uploadImage = (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file received.' });
   }
-
-  // multer-storage-cloudinary puts the Cloudinary secure URL in req.file.path
-  // and the public_id in req.file.filename
   res.status(200).json({
-    success   : true,
-    image_url : req.file.path,       // ← Cloudinary secure URL (https://res.cloudinary.com/...)
-    public_id : req.file.filename,
-    message   : 'Image uploaded successfully',
+    success: true,
+    image_url: req.file.path,
+    public_id: req.file.filename,
+    message: 'Image uploaded successfully',
   });
 };
 
-/* ─── POST /api/products ──────────────────────────────────── */
+/* ─── POST /api/products (handles simple or advanced payload) ── */
 exports.createProduct = async (req, res) => {
   try {
-    const product = await Product.create(req.body);
-    res.status(201).json({ success: true, data: product, message: 'Product created successfully' });
+    const { product_name, description, categoryId, price, variants } = req.body;
+
+    // Validate required fields
+    const name = product_name || req.body.name;
+    const catId = parseInt(categoryId || req.body.categoryId, 10);
+    const priceVal = parseFloat(price || req.body.price);
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Product name is required' });
+    }
+    if (!catId || isNaN(catId)) {
+      return res.status(400).json({ success: false, message: 'Valid category is required' });
+    }
+    if (!priceVal || isNaN(priceVal) || priceVal <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid price is required' });
+    }
+
+    // Create the product first
+    const product = await Product.create({
+      name: name.trim(),
+      description: (description || req.body.product_description || '').trim(),
+      price: priceVal,
+      categoryId: catId,
+    });
+
+    // If variants provided, create them
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      const validVariants = variants.filter(v =>
+        v.color && v.color.trim() &&
+        v.size && v.size.trim() &&
+        parseInt(v.quantity, 10) >= 0
+      );
+
+      if (validVariants.length === 0) {
+        await product.destroy();
+        return res.status(400).json({ success: false, message: 'At least one valid variant (color + size + quantity) is required' });
+      }
+
+      const variantRecords = validVariants.map(v => ({
+        productId: product.id,
+        color: v.color.trim(),
+        size: v.size.trim(),
+        quantity: parseInt(v.quantity, 10),
+        imageUrl: v.image_url || null,
+      }));
+
+      // Use ignoreDuplicates to avoid unique constraint crash
+      await ProductVariant.bulkCreate(variantRecords, { ignoreDuplicates: true });
+    }
+
+    return res.status(201).json({ success: true, data: { id: product.id }, message: 'Product created successfully' });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    console.error('Create product error:', error);
+    // Return a clear message for unique constraint violations
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ success: false, message: 'Duplicate variant: same color + size combination already exists for this product' });
+    }
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 /* ─── GET /api/products ───────────────────────────────────── */
 exports.getAllProducts = async (req, res) => {
   try {
-    const page   = parseInt(req.query.page)  || 1;
-    const limit  = parseInt(req.query.limit) || 100;
-    const offset = (page - 1) * limit;
-    const where  = {};
+    const products = await Product.findAll({
+      attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
+    });
+    const categories = await Category.findAll({ attributes: ['id', 'name'] });
+    const categoryMap = Object.fromEntries(categories.map(c => [c.id, c.name]));
 
-    if (req.query.category)               where.category  = req.query.category;
-    if (req.query.available !== undefined) where.available = req.query.available === 'true';
-    if (req.query.size)                   where.size      = req.query.size;
-    if (req.query.color)                  where.color     = req.query.color;
-
-    if (req.query.minPrice || req.query.maxPrice) {
-      where.price = {};
-      if (req.query.minPrice) where.price[Op.gte] = parseFloat(req.query.minPrice);
-      if (req.query.maxPrice) where.price[Op.lte] = parseFloat(req.query.maxPrice);
-    }
-
-    if (req.query.search) {
-      where[Op.or] = [
-        { product_name:        { [Op.like]: `%${req.query.search}%` } },
-        { product_description: { [Op.like]: `%${req.query.search}%` } },
-      ];
-    }
-
-    const { count, rows } = await Product.findAndCountAll({
-      where, limit, offset,
-      order: [['createdAt', 'DESC']],
+    const variants = await ProductVariant.findAll({
+      attributes: ['productId', 'color', 'size', 'quantity', 'imageUrl'],
     });
 
-    res.status(200).json({
-      success: true,
-      data: rows,
-      pagination: {
-        total      : count,
-        page,
-        limit,
-        totalPages : Math.ceil(count / limit),
-        hasNext    : page < Math.ceil(count / limit),
-        hasPrev    : page > 1,
-      },
+    const variantsByProduct = {};
+    variants.forEach(v => {
+      if (!variantsByProduct[v.productId]) variantsByProduct[v.productId] = [];
+      variantsByProduct[v.productId].push(v);
     });
+
+    const result = products.map(product => {
+      const productVariants = variantsByProduct[product.id] || [];
+      let totalQty = 0;
+      let firstImage = null;
+      const colorsSet = new Set();
+
+      productVariants.forEach(v => {
+        totalQty += v.quantity;
+        if (!firstImage && v.imageUrl) firstImage = v.imageUrl;
+        if (v.color) colorsSet.add(v.color);
+      });
+
+      return {
+        id: product.id,
+        product_name: product.name,
+        product_description: product.description,
+        price: parseFloat(product.price),
+        image_url: firstImage,
+        quantity: totalQty,
+        available: totalQty > 0,
+        categoryId: product.categoryId,
+        category: {
+          id: product.categoryId,
+          name: categoryMap[product.categoryId] || 'Uncategorized',
+        },
+        color: Array.from(colorsSet).join(', ') || '—',
+        variant_count: productVariants.length,
+      };
+    });
+
+    res.json({ success: true, data: result });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -88,52 +137,8 @@ exports.getAllProducts = async (req, res) => {
 /* ─── GET /api/products/categories/all ───────────────────── */
 exports.getAllCategories = async (req, res) => {
   try {
-    const FIXED_CATS = [
-      { name: 'Sarong',      icon: '🧣', description: 'Traditional & batik sarongs' },
-      { name: 'Trousers',    icon: '👖', description: 'Formal & casual trousers'    },
-      { name: 'Shorts',      icon: '🩳', description: 'Casual & sports shorts'      },
-      { name: 'T-shirts',    icon: '👕', description: 'Graphic & plain T-shirts'    },
-      { name: 'Accessories', icon: '🎩', description: 'Cap, Perfume, Deodorant'     },
-    ];
-
-    const counts = await Product.findAll({
-      attributes: [
-        'category',
-        [Product.sequelize.fn('COUNT', Product.sequelize.col('id')), 'total'],
-        [Product.sequelize.fn('SUM', Product.sequelize.literal("CASE WHEN available = 1 THEN 1 ELSE 0 END")), 'active'],
-      ],
-      group: ['category'],
-    });
-
-    const countMap = {};
-    counts.forEach(r => {
-      countMap[r.category] = {
-        total  : parseInt(r.dataValues.total)  || 0,
-        active : parseInt(r.dataValues.active) || 0,
-      };
-    });
-
-    const data = FIXED_CATS.map(c => ({
-      ...c,
-      total  : countMap[c.name]?.total  || 0,
-      active : countMap[c.name]?.active || 0,
-      status : 'Active',
-    }));
-
-    res.status(200).json({ success: true, data });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-/* ─── GET /api/products/category/:category ───────────────── */
-exports.getProductsByCategory = async (req, res) => {
-  try {
-    const products = await Product.findAll({
-      where : { category: req.params.category },
-      order : [['price', 'ASC']],
-    });
-    res.status(200).json({ success: true, count: products.length, data: products });
+    const categories = await Category.findAll({ order: [['name', 'ASC']], attributes: ['id', 'name'] });
+    res.json({ success: true, data: categories });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -142,9 +147,20 @@ exports.getProductsByCategory = async (req, res) => {
 /* ─── GET /api/products/:id ──────────────────────────────── */
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findByPk(req.params.id);
+    const product = await Product.findByPk(req.params.id, {
+      attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
+    });
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    res.status(200).json({ success: true, data: product });
+    const variants = await ProductVariant.findAll({ where: { productId: product.id } });
+    const category = await Category.findByPk(product.categoryId);
+    res.json({
+      success: true,
+      data: {
+        ...product.toJSON(),
+        variants,
+        category: category ? { id: category.id, name: category.name } : null,
+      },
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -156,17 +172,16 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
 
-    const allowed = [
-      'product_name', 'product_description', 'size', 'color',
-      'price', 'image_url', 'quantity', 'category', 'available',
-    ];
     const updates = {};
-    Object.keys(req.body).forEach(k => { if (allowed.includes(k)) updates[k] = req.body[k]; });
+    if (req.body.product_name || req.body.name) updates.name = req.body.product_name || req.body.name;
+    if (req.body.product_description || req.body.description) updates.description = req.body.product_description || req.body.description;
+    if (req.body.price !== undefined) updates.price = req.body.price;
+    if (req.body.categoryId !== undefined) updates.categoryId = req.body.categoryId;
 
     await product.update(updates);
-    res.status(200).json({ success: true, data: product, message: 'Product updated successfully' });
+    res.json({ success: true, data: product, message: 'Product updated' });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -175,8 +190,9 @@ exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    await ProductVariant.destroy({ where: { productId: product.id } });
     await product.destroy();
-    res.status(200).json({ success: true, message: 'Product deleted successfully' });
+    res.json({ success: true, message: 'Product deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -184,55 +200,80 @@ exports.deleteProduct = async (req, res) => {
 
 /* ─── PATCH /api/products/:id/availability ───────────────── */
 exports.updateAvailability = async (req, res) => {
-  try {
-    const { available } = req.body;
-    if (typeof available !== 'boolean')
-      return res.status(400).json({ success: false, message: 'available must be boolean' });
-    const product = await Product.findByPk(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-    product.available = available;
-    await product.save();
-    res.status(200).json({ success: true, data: product, message: 'Availability updated' });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+  // This endpoint is kept for compatibility – availability is now computed from variants
+  res.status(200).json({ success: true, message: 'Availability is auto-calculated from variant quantities' });
 };
 
 /* ─── PATCH /api/products/:id/quantity ───────────────────── */
 exports.updateQuantity = async (req, res) => {
-  try {
-    const { quantity, operation } = req.body;
-    if (typeof quantity !== 'number' || quantity < 0)
-      return res.status(400).json({ success: false, message: 'quantity must be non-negative number' });
-    const product = await Product.findByPk(req.params.id);
-    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
-
-    if      (operation === 'add')      product.quantity += quantity;
-    else if (operation === 'subtract') {
-      if (product.quantity - quantity < 0)
-        return res.status(400).json({ success: false, message: 'Insufficient quantity' });
-      product.quantity -= quantity;
-    } else {
-      product.quantity = quantity;
-    }
-
-    product.available = product.quantity > 0;
-    await product.save();
-    res.status(200).json({ success: true, data: product, message: 'Quantity updated' });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
+  res.status(501).json({ success: false, message: 'Update variant quantities directly' });
 };
 
 /* ─── POST /api/products/bulk ────────────────────────────── */
 exports.bulkCreateProducts = async (req, res) => {
   try {
     const { products } = req.body;
-    if (!Array.isArray(products) || products.length === 0)
-      return res.status(400).json({ success: false, message: 'products must be non-empty array' });
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ success: false, message: 'products must be a non-empty array' });
+    }
     const created = await Product.bulkCreate(products);
     res.status(201).json({ success: true, data: created, message: `${created.length} products created` });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/* ─── GET /api/products/category/:category ───────────────── */
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const categoryId = parseInt(req.params.category, 10);
+    
+    if (isNaN(categoryId)) {
+      return res.status(400).json({ success: false, message: 'Invalid category ID' });
+    }
+
+    // Check if category exists
+    const category = await Category.findByPk(categoryId);
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    // Fetch products with their variants
+    const products = await Product.findAll({
+      where: { categoryId: categoryId },
+      include: [
+        {
+          model: ProductVariant,
+          as: 'variants',
+          attributes: ['id', 'size', 'color', 'quantity', 'imageUrl', 'createdAt', 'updatedAt']
+        },
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name']
+        }
+      ],
+      attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
+      order: [['name', 'ASC']]
+    });
+
+    if (products.length === 0) {
+      return res.json({ 
+        success: true, 
+        message: `No products found in category: ${category.name}`,
+        data: [],
+        category: { id: category.id, name: category.name }
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      data: products,
+      category: { id: category.id, name: category.name },
+      totalProducts: products.length
+    });
+  } catch (error) {
+    console.error('Get products by category error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -1,30 +1,13 @@
+// Home.jsx (updated)
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/whatsappbtn";
+import NavBar from "../components/navsidebar";   // new component
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
-// ── Men sub-menu ─────────────────────────────────────────────────
-const MEN_MENU = [
-  { label: "Trousers",      page: "trousers" },
-  { label: "Shirts",        page: "shirts"   },
-  { label: "Formal Shirts", page: "formal-shirts" },
-  { label: "T Shirts",      page: "tshirts"  },
-  { label: "Shorts",        page: "shorts"   },
-  { label: "Accessories",   page: "accessories" },
-];
-
-// ── Top nav tabs ─────────────────────────────────────────────────
-const NAV_TABS = [
-  { label: "New Arrivals" },
-  { label: "Best Sellers" },
-  { label: "Men", menu: MEN_MENU },
-  { label: "Men Accessories", page: "men-accessories" },
-  { label: "Recently Viewed" },
-];
-
-// ── Slideshow Data ───────────────────────────────────────────────
+// ── Slideshow Data (unchanged) ─────────────────────────────────
 const SLIDES = [
   {
     img: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1400&q=85",
@@ -52,7 +35,7 @@ const SLIDES = [
   },
 ];
 
-// ── Product Data ─────────────────────────────────────────────────
+// ── Product Data (unchanged) ───────────────────────────────────
 const NEW_ARRIVALS = [
   {
     id: 1,
@@ -189,7 +172,7 @@ const getSuggestedProducts = (excludeProductId = null, count = 4) => {
   return [...available].sort(() => 0.5 - Math.random()).slice(0, count);
 };
 
-// ── Product Popup Modal ──────────────────────────────────────────
+// ── Product Popup Modal (unchanged) ────────────────────────────
 function ProductPopup({ product, onClose }) {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -214,18 +197,15 @@ function ProductPopup({ product, onClose }) {
     <div className="home-popup-overlay" onClick={onClose}>
       <div className="home-popup-container" onClick={(e) => e.stopPropagation()}>
         <button className="home-popup-close" onClick={onClose}>×</button>
-
         <div className="home-popup-grid">
           <div className="home-popup-image">
             <img src={currentImage} alt={product.name} />
           </div>
-
           <div className="home-popup-details">
             <h2 className="home-popup-title">{product.name.toUpperCase()}</h2>
             <p className="home-popup-category">{product.category}</p>
             <div className="home-popup-price">Rs. {product.price}</div>
             <p className="home-popup-description">{product.description}</p>
-
             {product.colors?.length > 0 && (
               <div className="home-popup-colors">
                 <label>Color</label>
@@ -242,7 +222,6 @@ function ProductPopup({ product, onClose }) {
                 </div>
               </div>
             )}
-
             {product.sizes?.length > 0 && (
               <div className="home-popup-sizes">
                 <label>Size</label>
@@ -259,7 +238,6 @@ function ProductPopup({ product, onClose }) {
                 </div>
               </div>
             )}
-
             <div className="home-popup-quantity">
               <label>Quantity</label>
               <div className="home-popup-quantity-selector">
@@ -268,7 +246,6 @@ function ProductPopup({ product, onClose }) {
                 <button onClick={() => setQuantity(quantity + 1)}>+</button>
               </div>
             </div>
-
             <button className="home-popup-add-to-cart" onClick={handleAddToCart}>
               ADD TO CART — Rs.{" "}
               {(parseFloat(product.price.replace(/,/g, "")) * quantity).toLocaleString()}
@@ -280,7 +257,7 @@ function ProductPopup({ product, onClose }) {
   );
 }
 
-// ── Slideshow ────────────────────────────────────────────────────
+// ── Slideshow (unchanged) ──────────────────────────────────────
 function Slideshow() {
   const [current, setCurrent] = useState(0);
 
@@ -320,7 +297,7 @@ function Slideshow() {
   );
 }
 
-// ── Product Grid ─────────────────────────────────────────────────
+// ── Product Grid (unchanged) ───────────────────────────────────
 function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches = true }) {
   const [selectedColors, setSelectedColors] = useState({});
   const [productImages, setProductImages] = useState({});
@@ -386,50 +363,7 @@ function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches
   );
 }
 
-// ── Tab Bar ──────────────────────────────────────────────────────
-function HomeTabBar({ activeTab, setActiveTab, navigate }) {
-  return (
-    <div className="home-tab-bar">
-      {NAV_TABS.map((tab) => (
-        <div className="home-tab-item" key={tab.label}>
-          <button
-            className={`home-tab-btn ${activeTab === tab.label ? "home-tab-active" : ""}`}
-            onClick={() => {
-              setActiveTab(tab.label);
-              if (tab.page) navigate(`/${tab.page}`);
-            }}
-          >
-            {tab.label}{tab.menu ? " ▾" : ""}
-          </button>
-
-          {tab.menu && (
-            <div className="home-dropdown">
-              {tab.menu.map((item) => (
-                <div
-                  className={`home-dropdown-item${item.page ? " home-dropdown-nav" : ""}`}
-                  key={item.label}
-                  onClick={() => item.page && navigate(`/${item.page}`)}
-                >
-                  {item.label}
-                  {item.sub && <span className="home-dropdown-arrow">▶</span>}
-                  {item.sub && (
-                    <div className="home-sub-dropdown">
-                      {item.sub.map((subItem) => (
-                        <div className="home-sub-item" key={subItem}>{subItem}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── You May Also Like ────────────────────────────────────────────
+// ── You May Also Like (unchanged) ──────────────────────────────
 function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   const [suggestions, setSuggestions] = useState([]);
 
@@ -456,9 +390,9 @@ function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   );
 }
 
-// ── Home Page ────────────────────────────────────────────────────
+// ── Home Page (updated to use NavBar) ──────────────────────────
 export default function Home() {
-  const [activeTab, setActiveTab]         = useState("New Arrivals");
+  const [activeTab, setActiveTab] = useState("New Arrivals");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [youMayAlsoLikeKey, setYouMayAlsoLikeKey] = useState(0);
   const navigate = useNavigate();
@@ -474,39 +408,33 @@ export default function Home() {
     switch (activeTab) {
       case "New Arrivals": return NEW_ARRIVALS;
       case "Best Sellers": return BEST_SELLERS;
-      default:             return NEW_ARRIVALS;
+      default: return NEW_ARRIVALS;
     }
   };
 
-  // ── Dynamic WhatsApp context ─────────────────────────────────
-  // • Product popup open  → sends product-specific message
-  // • No popup            → sends generic home page message
   const whatsappContext = selectedProduct
     ? {
         productName: selectedProduct.name,
-        category:    selectedProduct.category,
-        price:       selectedProduct.price,
-        page:        "home",
+        category: selectedProduct.category,
+        price: selectedProduct.price,
+        page: "home",
       }
     : { page: "home" };
 
-  const currentProducts  = getProductsForTab();
+  const currentProducts = getProductsForTab();
   const currentProductId = selectedProduct?.id || null;
 
   return (
     <div className="home-page">
       <Header />
-
+      
       <main className="home-main">
-        <HomeTabBar activeTab={activeTab} setActiveTab={setActiveTab} navigate={navigate} />
-
+        <NavBar activeTab={activeTab} setActiveTab={setActiveTab} />
         <div className="home-content-area">
           <div className="home-right">
             <div className="home-slideshow-area">
               <Slideshow />
             </div>
-
-            {/* New Arrivals / Best Sellers */}
             <div className="home-section">
               <div className="home-section-header">
                 <h2 className="home-section-title">{activeTab.toUpperCase()}</h2>
@@ -522,8 +450,6 @@ export default function Home() {
               </div>
               <ProductGrid items={currentProducts} onProductClick={handleProductClick} maxItems={4} />
             </div>
-
-            {/* You May Also Like */}
             <YouMayAlsoLike
               key={youMayAlsoLikeKey}
               onProductClick={handleProductClick}
@@ -532,10 +458,8 @@ export default function Home() {
           </div>
         </div>
       </main>
-
       <div className="home-shop-category">
         <p className="home-shop-category-label">Shopping By Category</p>
-
         <div className="home-cat-top-row">
           <div className="home-cat-card home-cat-mens" onClick={() => navigate("/sarong")}>
             <img src="/mens.jpg" alt="Mens" className="home-cat-img" />
@@ -552,7 +476,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
         <div className="home-cat-bottom-row" onClick={() => navigate("/mens-accessories")}>
           <div className="home-cat-bottom-img-wrap">
             <img src="/men-accessories.jpg" alt="Men Accessories 1" className="home-cat-img" />
@@ -570,19 +493,9 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       <Footer />
-
-      {/*
-        WhatsAppButton — context is reactive:
-        - selectedProduct set  → product-specific message (name, category, price)
-        - selectedProduct null → generic "browsing home" message
-      */}
       <WhatsAppButton context={whatsappContext} />
-
-      {selectedProduct && (
-        <ProductPopup product={selectedProduct} onClose={handleClosePopup} />
-      )}
+      {selectedProduct && <ProductPopup product={selectedProduct} onClose={handleClosePopup} />}
     </div>
   );
 }

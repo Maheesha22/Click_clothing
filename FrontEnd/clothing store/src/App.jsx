@@ -18,6 +18,7 @@ import ShortsPage from "./Pages/shorts";
 import FeedbackForm from "./Pages/FeedbackForm";
 import FAQPage from "./Pages/FAQ";
 import AboutUs from "./Pages/AboutUs";
+import ProductPage from './Pages/ProductPage';
 
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
@@ -58,6 +59,7 @@ function App() {
         </Route>
 
         {/*PRODUCT PAGES */}
+        <Route path="/category/:category" element={<ProductPage />} />
         <Route path="/trousers" element={<Trousers />} />
         <Route path="/shirts" element={<Shirts />} />
         <Route path="/formal-shirts" element={<FormalShirtsPage />} />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../components/whatsappbtn";
 import "./Shirts.css";
 
@@ -644,6 +645,7 @@ const ShirtsPage = () => {
   return (
     <div className="sh-page">
       <Header />
+      <NavBar />
 
       <section className="sh-hero">
         <h1>Premium Shirts<br /><span>For Every Occasion</span></h1>

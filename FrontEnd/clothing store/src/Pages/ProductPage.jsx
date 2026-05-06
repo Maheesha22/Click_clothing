@@ -71,7 +71,7 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
         <img src={currentImage} alt={product.name} loading="lazy" />
         <button
           className={`sh-wishlist-btn ${isWished ? "active" : ""}`}
-          onClick={(e) => { e.stopPropagation(); onToggleWishlist(product); }}
+          onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }}
           aria-label="Wishlist"
         >
           {isWished ? "❤️" : "🤍"}
@@ -221,7 +221,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
               </div>
               <div className="sh-modal-main-image">
                 <img src={currentImage} alt={product.name} onError={(e) => e.target.src = '/placeholder.jpg'} />
-                <button className={`sh-modal-wishlist-float ${isWished ? "active" : ""}`} onClick={() => onToggleWishlist(product)}>
+                <button className={`sh-modal-wishlist-float ${isWished ? "active" : ""}`} onClick={() => onToggleWishlist(product.id)}>
                   {isWished ? "❤️" : "🤍"}
                 </button>
                 {images.length > 1 && (
