@@ -6,12 +6,21 @@ import {
   getGuestWishlist,
   removeFromGuestWishlist
 } from '../../services/wishlistService';
+import cartService from '../../services/cartService';
 
 const Wishlist = () => {
   const { storedUser, isLoggedIn } = useOutletContext();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: '' });
+    }, 3000);
+  };
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -39,6 +48,32 @@ const Wishlist = () => {
       }
     } else {
       setItems(removeFromGuestWishlist(item.productId));
+    }
+  };
+
+  const handleAddToCart = async (item) => {
+    if (!isLoggedIn) {
+      showToast("Please login to add items to your cart.", "error");
+      return;
+    }
+
+    try {
+      const cartData = {
+        userId: storedUser.id,
+        productId: item.productId || item.id,
+        name: item.productName,
+        price: item.price,
+        imageUrl: item.imageUrl,
+        color: '',
+        size: '',
+        quantity: 1
+      };
+
+      await cartService.addToCart(cartData);
+      showToast(`${item.productName} has been added to your cart!`);
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      showToast("Failed to add item to cart. Please try again.", "error");
     }
   };
 
@@ -109,13 +144,43 @@ const Wishlist = () => {
               <h3 className="item-name">{item.productName}</h3>
               <p className="item-price">Rs {Number(item.price).toLocaleString()}.00</p>
               <div className="item-actions">
-                <button className="add-to-cart-btn">Add to Cart</button>
+                <button className="add-to-cart-btn" onClick={() => handleAddToCart(item)}>Add to Cart</button>
                 <button className="remove-btn" onClick={() => handleRemove(item)}>Remove</button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div style={{
+          position: 'fixed',
+          bottom: '30px',
+          right: '30px',
+          background: toast.type === 'error' ? '#fdecea' : '#eafdf0',
+          color: toast.type === 'error' ? '#c0392b' : '#27ae60',
+          padding: '12px 24px',
+          borderRadius: '4px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          borderLeft: `4px solid ${toast.type === 'error' ? '#c0392b' : '#27ae60'}`,
+          fontFamily: "'Jost', sans-serif",
+          fontSize: '14px',
+          zIndex: 9999,
+          animation: 'fadeInOut 3s ease-in-out'
+        }}>
+          {toast.message}
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(20px); }
+          15% { opacity: 1; transform: translateY(0); }
+          85% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-20px); }
+        }
+      `}</style>
     </div>
   );
 };
