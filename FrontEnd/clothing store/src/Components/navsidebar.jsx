@@ -1,45 +1,6 @@
-
-// components/NavBar.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./navsidebar.css";
-
-// ── Men sub-menu ─────────────────────────────────────────────
-const MEN_MENU = [
-  { label: "Trousers",      page: "trousers" },
-  { label: "Shirts",        page: "shirts"   },
-  { label: "Formal Shirts", page: "formal-shirts" },
-  { label: "T Shirts",      page: "tshirts"  },
-  { label: "Shorts",        page: "shorts"   },
-  { label: "Accessories",   page: "accessories" },
-];
-
-// ── Top nav tabs ─────────────────────────────────────────────
-const NAV_TABS = [
-  { label: "New Arrivals" },
-  { label: "Best Sellers" },
-  { label: "Men", menu: MEN_MENU },
-  { label: "Men Accessories", page: "men-accessories" },
-  { label: "Recently Viewed" },
-];
-
-// ── Helper: flatten all navigable category names for search ──
-const getAllCategoryLabels = () => {
-  const labels = [];
-  NAV_TABS.forEach(tab => {
-    labels.push(tab.label);
-    if (tab.menu) {
-      tab.menu.forEach(item => {
-        labels.push(item.label);
-        if (item.sub) item.sub.forEach(sub => labels.push(sub));
-      });
-    }
-  });
-  return [...new Set(labels)];
-};
-
-// ✅ FIX: Moved outside component – created once, never changes
-const ALL_CATEGORIES = getAllCategoryLabels();
 
 const MAX_RECENT_SEARCHES = 5;
 const STORAGE_KEY = "navbar_recent_searches";
@@ -50,7 +11,8 @@ function NavBar({ activeTab, setActiveTab }) {
   const [suggestions, setSuggestions] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  
+  const [categories, setCategories] = useState([]);
+
   const searchRef = useRef(null);
   const dropdownRef = useRef(null);
   const blurTimeoutRef = useRef(null);
@@ -70,27 +32,67 @@ function NavBar({ activeTab, setActiveTab }) {
     }
   }, []);
 
-  // Save recent searches to localStorage whenever it changes
+  // Save recent searches
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recentSearches));
   }, [recentSearches]);
 
-  // ✅ FIX: Removed `allCategories` from dependencies; now only `searchQuery`
+  // Fetch categories from backend (adjust URL if needed)
+  useEffect(() => {
+    fetch("http://localhost:3000/api/categories")
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error("Failed to load categories:", err));
+  }, []);
+
+  // ✅ Build navigation tabs – category menu items go to ProductPage
+  const navTabs = useMemo(() => [
+    { label: "New Arrivals", page: "new-arrivals" },
+    { label: "Best Sellers", page: "best-sellers" },
+    { 
+      label: "Men", 
+      menu: categories.map(cat => {
+        const slug = cat.name.toLowerCase().replace(/\s/g, '-');
+        return { 
+          label: cat.name, 
+          page: `category/${slug}`   // ✅ navigates to /category/shirts, /category/denims, etc.
+        };
+      })
+    },
+    { label: "Men Accessories", page: "men-accessories" },
+    { label: "Recently Viewed", page: "recently-viewed" },
+  ], [categories]);
+
+  // Flatten all category labels for search suggestions (search works with both tab labels and menu items)
+  const allCategories = useMemo(() => {
+    const labels = [];
+    navTabs.forEach(tab => {
+      labels.push(tab.label);
+      if (tab.menu) {
+        tab.menu.forEach(item => {
+          labels.push(item.label);
+          if (item.sub) item.sub.forEach(sub => labels.push(sub));
+        });
+      }
+    });
+    return [...new Set(labels)];
+  }, [navTabs]);
+
+  // Update suggestions based on search query
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
       const lowerQuery = searchQuery.toLowerCase();
-      const filtered = ALL_CATEGORIES.filter(cat =>
+      const filtered = allCategories.filter(cat =>
         cat.toLowerCase().includes(lowerQuery)
       );
       setSuggestions(filtered.slice(0, 8));
       setShowDropdown(true);
     } else {
       setSuggestions([]);
-      // Do NOT automatically show dropdown here – it will be shown on focus
     }
-  }, [searchQuery]);  // ✅ ALL_CATEGORIES is stable outside component
+  }, [searchQuery, allCategories]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -106,14 +108,13 @@ function NavBar({ activeTab, setActiveTab }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Clean up timeout on unmount
+  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
     };
   }, []);
 
-  // Add query to recent searches (no duplicates, newest first)
   const addToRecentSearches = (query) => {
     if (!query.trim()) return;
     const trimmed = query.trim();
@@ -141,14 +142,13 @@ function NavBar({ activeTab, setActiveTab }) {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    // Try to find a matching route (tab with page or menu item)
-    const matchedTab = NAV_TABS.find(t => t.label === suggestion);
+    const matchedTab = navTabs.find(t => t.label === suggestion);
     if (matchedTab && matchedTab.page) {
       setActiveTab(matchedTab.label);
       navigate(`/${matchedTab.page}`);
       addToRecentSearches(suggestion);
     } else {
-      const menuItem = MEN_MENU.find(m => m.label === suggestion);
+      const menuItem = navTabs.find(t => t.menu)?.menu.find(m => m.label === suggestion);
       if (menuItem && menuItem.page) {
         navigate(`/${menuItem.page}`);
         addToRecentSearches(suggestion);
@@ -175,7 +175,6 @@ function NavBar({ activeTab, setActiveTab }) {
 
   const handleInputFocus = () => {
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
-    // Only show if there's something to show (recent searches or suggestions)
     if (searchQuery.trim() === "" && recentSearches.length > 0) {
       setShowDropdown(true);
     } else if (searchQuery.trim() !== "" && suggestions.length > 0) {
@@ -189,16 +188,14 @@ function NavBar({ activeTab, setActiveTab }) {
     }, 150);
   };
 
-  // Determine what to show in dropdown
   const showRecent = searchQuery.trim() === "" && recentSearches.length > 0;
   const showFilteredSuggestions = searchQuery.trim() !== "" && suggestions.length > 0;
   const showNoResults = searchQuery.trim() !== "" && suggestions.length === 0;
 
   return (
     <div className="navbar-container">
-      {/* Left‑aligned tabs */}
       <div className="navbar-tabs">
-        {NAV_TABS.map((tab) => (
+        {navTabs.map((tab) => (
           <div className="navbar-tab-item" key={tab.label}>
             <button
               className={`navbar-tab-btn ${activeTab === tab.label ? "active" : ""}`}
@@ -235,7 +232,6 @@ function NavBar({ activeTab, setActiveTab }) {
         ))}
       </div>
 
-      {/* Search bar with live suggestions & recent searches */}
       <div className="navbar-search-wrapper" ref={searchRef}>
         <form className="navbar-search-form" onSubmit={handleSearchSubmit}>
           <input
@@ -262,20 +258,12 @@ function NavBar({ activeTab, setActiveTab }) {
               <>
                 <div className="navbar-suggestions-header">
                   <span>Recently searched</span>
-                  <button
-                    type="button"
-                    className="navbar-clear-recent"
-                    onClick={handleClearRecent}
-                  >
+                  <button type="button" className="navbar-clear-recent" onClick={handleClearRecent}>
                     Clear
                   </button>
                 </div>
                 {recentSearches.map((query, idx) => (
-                  <div
-                    key={idx}
-                    className="navbar-suggestion-item"
-                    onClick={() => handleRecentClick(query)}
-                  >
+                  <div key={idx} className="navbar-suggestion-item" onClick={() => handleRecentClick(query)}>
                     <span className="recent-icon">🕒</span> {query}
                   </div>
                 ))}
@@ -285,11 +273,7 @@ function NavBar({ activeTab, setActiveTab }) {
             {showFilteredSuggestions && (
               <>
                 {suggestions.map((sug, idx) => (
-                  <div
-                    key={idx}
-                    className="navbar-suggestion-item"
-                    onClick={() => handleSuggestionClick(sug)}
-                  >
+                  <div key={idx} className="navbar-suggestion-item" onClick={() => handleSuggestionClick(sug)}>
                     {sug}
                   </div>
                 ))}
