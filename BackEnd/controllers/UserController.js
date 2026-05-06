@@ -19,10 +19,11 @@ exports.register = async (req, res) => {
 
     // create user
     const user = await User.create({
-      firstName: firstName,
-      lastName: lastName,
+      first_name: firstName,
+      last_name: lastName,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      isAdmin: false
     });
 
     res.status(201).json({
@@ -66,8 +67,8 @@ exports.login = async (req, res) => {
       message: "Login successful",
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.first_name,
+        lastName: user.last_name,
         email: user.email,
         isAdmin: user.isAdmin
       }
@@ -87,8 +88,8 @@ exports.googleLogin = async (req, res) => {
 
     if (!user) {
       user = await User.create({
-        firstName: firstName || "",
-        lastName: lastName || "",
+        first_name: firstName || "",
+        last_name: lastName || "",
         email: email,
         googleId: googleId,
         password: null,
@@ -103,8 +104,8 @@ exports.googleLogin = async (req, res) => {
       message: "Google login successful",
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        firstName: user.first_name,
+        lastName: user.last_name,
         email: user.email,
         isAdmin: user.isAdmin
       }
@@ -204,8 +205,8 @@ exports.createPlainTextAdmin = async (req, res) => {
     
     // Create new admin with plain text password
     const admin = await User.create({
-      firstName: firstName || "Admin",
-      lastName: lastName || "User",
+      first_name: firstName || "Admin",
+      last_name: lastName || "User",
       email: email,
       password: password,  // Store as plain text
       isAdmin: true
