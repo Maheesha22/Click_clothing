@@ -4,16 +4,8 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NavBar from "../components/navsidebar";
 import WhatsAppButton from "../components/whatsappbtn";
-import "./ProductPage.css"; 
-
-import {
-  getWishlistDB,
-  addToWishlistDB,
-  removeFromWishlistByProductDB,
-  getGuestWishlist,
-  addToGuestWishlist,
-  removeFromGuestWishlist,
-} from "../services/wishlistService";
+import cartService from "../services/cartService";
+import "./ProductPage.css"; // same styles as Shirts.css
 
 // Helper: reviews mock (can be replaced with API call)
 const getReviews = (productId) => {
@@ -180,15 +172,41 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
     };
   }, [onClose]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
-    const variant = variantDetails.find(v => v.size === selectedSize);
-    const details = `${product.name} | Size: ${selectedSize} | Color: ${colorName} | Qty: ${quantity}`;
-    if (variant) {
-      console.log(`Added to cart with variant details:`, { ...variant, selectedQuantity: quantity });
+
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      alert("Please login to add items to cart");
+      return;
     }
-    alert(`Added to cart: ${details}`);
+    const user = JSON.parse(userData);
+    const userId = user.id;
+
+    try {
+      const cartData = {
+        userId,
+        productId: product.id,
+        name: product.name,
+        price: product.basePrice,
+        imageUrl: currentImage,
+        color: selectedColorName,
+        size: selectedSize,
+        quantity: quantity
+      };
+
+      const response = await cartService.addToCart(cartData);
+      if (response.success) {
+        alert("Product added to cart successfully!");
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+      } else {
+        alert("Failed to add product to cart: " + response.message);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   const handleBuyNow = () => {
@@ -362,26 +380,11 @@ const ProductPage = () => {
   const [visibleCount, setVisibleCount] = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
-  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
-  const isLoggedIn = storedUser && storedUser.id ? true : false;
-
-  // Load wishlist from DB or guest sessionStorage
+  // Load wishlist from localStorage
   useEffect(() => {
-    if (isLoggedIn) {
-      getWishlistDB(storedUser.id)
-        .then(res => {
-          const ids = res.data.map(item => Number(item.productId));
-          setWishlist(ids);
-        })
-        .catch(err => {
-          console.error("Error fetching wishlist:", err);
-          setWishlist([]);
-        });
-    } else {
-      const guestItems = getGuestWishlist();
-      setWishlist(guestItems.map(item => Number(item.productId)));
-    }
-  }, [category, isLoggedIn, storedUser?.id]);
+    const saved = JSON.parse(localStorage.getItem(`wishlist_${category}`)) || [];
+    setWishlist(saved);
+  }, [category]);
 
   // Transform API response to match ProductCard expectations
   const transformProduct = (apiProduct) => {
@@ -493,46 +496,15 @@ const ProductPage = () => {
       });
   }, [category]);
 
-  const toggleWishlist = async (product) => {
-    const productId = product.id;
-    const isWished = wishlist.includes(productId);
-
-    // Optimistic UI update
-    setWishlist(prev =>
-      isWished ? prev.filter(id => id !== productId) : [...prev, productId]
-    );
-
-    if (isLoggedIn) {
-      try {
-        if (isWished) {
-          await removeFromWishlistByProductDB(storedUser.id, String(productId));
-        } else {
-          await addToWishlistDB({
-            userId: storedUser.id,
-            productId: String(productId),
-            productName: product.name,
-            price: product.basePrice,
-            imageUrl: product.img,
-          });
-        }
-      } catch (err) {
-        setWishlist(prev =>
-          isWished ? [...prev, productId] : prev.filter(id => id !== productId)
-        );
-        console.error('Wishlist error:', err);
-      }
+  const toggleWishlist = (productId) => {
+    let updated;
+    if (wishlist.includes(productId)) {
+      updated = wishlist.filter(id => id !== productId);
     } else {
-      if (isWished) {
-        removeFromGuestWishlist(String(productId));
-      } else {
-        addToGuestWishlist({
-          productId: String(productId),
-          productName: product.name,
-          price: product.basePrice,
-          imageUrl: product.img,
-        });
-      }
+      updated = [...wishlist, productId];
     }
+    setWishlist(updated);
+    localStorage.setItem(`wishlist_${category}`, JSON.stringify(updated));
   };
 
   // Filtering & Sorting
