@@ -37,25 +37,31 @@ function NavBar({ activeTab, setActiveTab }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(recentSearches));
   }, [recentSearches]);
 
-  // Fetch categories from backend (adjust URL if needed)
+  // Fetch categories from backend
   useEffect(() => {
-    fetch("http://localhost:3000/api/categories")
+    fetch("http://localhost:3000/api/products/categories/all")
       .then(res => res.json())
-      .then(data => setCategories(data))
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          setCategories(data.data);
+        } else {
+          console.error("Invalid categories response", data);
+        }
+      })
       .catch(err => console.error("Failed to load categories:", err));
   }, []);
 
-  // ✅ Build navigation tabs – category menu items go to ProductPage
+  // ✅ Build navigation tabs – category menu items go to ProductPage with categoryId
   const navTabs = useMemo(() => [
     { label: "New Arrivals", page: "new-arrivals" },
     { label: "Best Sellers", page: "best-sellers" },
     { 
       label: "Men", 
       menu: categories.map(cat => {
-        const slug = cat.name.toLowerCase().replace(/\s/g, '-');
         return { 
           label: cat.name, 
-          page: `category/${slug}`   // ✅ navigates to /category/shirts, /category/denims, etc.
+          page: `category/${cat.id}`,   // ✅ navigates with categoryId: /category/1, /category/2, etc.
+          categoryId: cat.id
         };
       })
     },

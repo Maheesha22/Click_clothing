@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
@@ -287,8 +286,9 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 
 // MAIN PRODUCT PAGE COMPONENT
 const ProductPage = () => {
-  const { category } = useParams(); // e.g., /category/shirts
+  const { category } = useParams(); // e.g., /category/1 (categoryId)
   const [products, setProducts] = useState([]);
+  const [categoryName, setCategoryName] = useState("");
   const [loading, setLoading] = useState(true);
   const [maxPrice, setMaxPrice] = useState(5000);
   const [wishlist, setWishlist] = useState([]);
@@ -304,20 +304,79 @@ const ProductPage = () => {
     setWishlist(saved);
   }, [category]);
 
-  // Fetch products for this category
+  // Transform API response to match ProductCard expectations
+  const transformProduct = (apiProduct) => {
+    const variants = apiProduct.variants || [];
+    
+    // Extract unique sizes and colors from variants
+    const sizes = [...new Set(variants.map(v => v.size).filter(s => s))];
+    const colors = [...new Set(variants.map(v => v.color).filter(c => c))];
+    const colorHexMap = {
+      'red': '#FF0000', 'blue': '#0000FF', 'black': '#000000', 
+      'white': '#FFFFFF', 'green': '#00FF00', 'yellow': '#FFFF00',
+      'gray': '#808080', 'navy': '#000080', 'brown': '#8B4513'
+    };
+    const colorArray = colors.map(c => colorHexMap[c.toLowerCase()] || `#${Math.floor(Math.random()*16777215).toString(16)}`);
+    
+    // Get first image from variants
+    const firstImage = variants.find(v => v.imageUrl)?.imageUrl || '/placeholder.jpg';
+    
+    // Calculate total quantity
+    const totalQuantity = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
+    
+    return {
+      id: apiProduct.id,
+      name: apiProduct.name,
+      description: apiProduct.description,
+      img: firstImage,
+      basePrice: parseFloat(apiProduct.price),
+      price: parseFloat(apiProduct.price),
+      sizes: sizes,
+      colors: colorArray,
+      colorNames: Object.fromEntries(colorArray.map((hex, i) => [hex, colors[i]])),
+      colorImages: Object.fromEntries(
+        colorArray.map((hex, i) => [hex, [variants.find(v => v.color === colors[i])?.imageUrl || firstImage]])
+      ),
+      inStock: totalQuantity > 0,
+      stockCount: totalQuantity,
+      sku: `SKU-${apiProduct.id}`,
+      material: apiProduct.description || 'Premium Quality',
+      composition: '100% Cotton',
+      modelInfo: `Available in ${sizes.length} sizes and ${colors.length} colors`,
+      freeShippingThreshold: 2000,
+      variants: variants // Include raw variants for reference
+    };
+  };
+
+  // Fetch products for this category by categoryId
   useEffect(() => {
     setLoading(true);
-    // Replace with your actual API endpoint
-    fetch(`/api/products?category=${category}`)
+    const categoryId = parseInt(category, 10);
+    
+    if (isNaN(categoryId)) {
+      console.error("Invalid category ID");
+      setLoading(false);
+      return;
+    }
+    
+    fetch(`http://localhost:3000/api/products/category/${categoryId}`)
       .then(res => res.json())
       .then(data => {
-        setProducts(data);
+        if (data.success) {
+          const transformedProducts = data.data.map(transformProduct);
+          setProducts(transformedProducts);
+          if (data.category) {
+            setCategoryName(data.category.name);
+          }
+        } else {
+          console.error("API error:", data.message);
+          setProducts([]);
+        }
         setLoading(false);
       })
       .catch(err => {
         console.error("Error fetching products:", err);
         setLoading(false);
-        // Fallback: use empty array or mock data
         setProducts([]);
       });
   }, [category]);
@@ -350,7 +409,7 @@ const ProductPage = () => {
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
 
-  const heroTitle = category ? category.charAt(0).toUpperCase() + category.slice(1) : "Products";
+  const heroTitle = categoryName || "Products";
 
   if (loading) return <div className="sh-page"><Header /><NavBar /><div className="sh-container" style={{textAlign:"center", padding:"4rem"}}>Loading products...</div><Footer /></div>;
 
