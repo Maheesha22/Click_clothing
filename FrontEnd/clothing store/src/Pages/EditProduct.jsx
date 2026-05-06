@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import API from "../services/api";
+import React from "react";
 import "./EditProduct.css";
 
 const EditProductModal = ({ 
@@ -12,36 +11,11 @@ const EditProductModal = ({
   setTempSize, 
   onSave 
 }) => {
-  const [variants, setVariants] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && product?.productId) {
-      setLoading(true);
-      API.get(`/products/${product.productId}`)
-        .then(res => {
-          if (res.data?.success && res.data.data?.variants) {
-            setVariants(res.data.data.variants);
-          } else if (product.availableVariants) {
-            setVariants(product.availableVariants);
-          }
-        })
-        .catch(err => {
-          console.error("Error fetching product variants:", err);
-          if (product.availableVariants) {
-            setVariants(product.availableVariants);
-          }
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setVariants([]);
-    }
-  }, [isOpen, product]);
-
   if (!isOpen) return null;
 
+  // Extract variants from product directly (populated via CartController)
+  const variants = product?.availableVariants || [];
+  
   // Extract unique colors (case-insensitive) and sizes from variants
   const colorMap = new Map();
   variants.forEach(v => {
