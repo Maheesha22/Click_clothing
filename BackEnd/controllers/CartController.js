@@ -1,4 +1,4 @@
-const { Cart } = require('../models');
+const { Cart, Product, ProductVariant } = require('../models');
 
 class CartController {
   // Add item to cart
@@ -70,12 +70,63 @@ class CartController {
       
       const cartItems = await Cart.findAll({
         where: { userId },
+        include: [
+          {
+            model: Product,
+            attributes: ['id', 'name', 'price'],
+            include: [
+              {
+                model: ProductVariant,
+                as: 'variants',
+                attributes: ['size', 'color', 'imageUrl', 'quantity']
+              }
+            ]
+          }
+        ],
         order: [['createdAt', 'DESC']]
       });
       
+      const formattedItems = cartItems.map(item => {
+        let price = item.price;
+        let imageUrl = item.imageUrl;
+        let name = item.name;
+
+        if (item.Product) {
+          name = item.Product.name;
+          price = parseFloat(item.Product.price);
+
+          if (item.Product.variants && item.Product.variants.length > 0) {
+            // Find specific variant by color and size
+            const variant = item.Product.variants.find(v => 
+              v.size === item.size && v.color === item.color
+            );
+
+            if (variant && variant.imageUrl) {
+              imageUrl = variant.imageUrl;
+            } else if (item.Product.variants[0].imageUrl) {
+              imageUrl = item.Product.variants[0].imageUrl;
+            }
+          }
+        }
+
+        return {
+          id: item.id,
+          userId: item.userId,
+          productId: item.productId,
+          name: name,
+          price: price,
+          imageUrl: imageUrl,
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        };
+      });
+
       return res.status(200).json({ 
         success: true, 
-        cartItems 
+        cartItems: formattedItems 
       });
     } catch (error) {
       console.error('Error fetching cart:', error);
