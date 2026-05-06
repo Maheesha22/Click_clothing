@@ -1,5 +1,5 @@
 const { Return, User, Order, Product, OrderItem } = require('../models');
-const { Op } = require('sequelize');
+const { Op } = require('sequelize'); 
 
 // Get all returns with product details enriched
 const getAllReturns = async (req, res) => {
