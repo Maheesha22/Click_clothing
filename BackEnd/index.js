@@ -29,11 +29,15 @@ const userRoutes    = require("./routes/UserRoutes");
 const productRoutes = require("./routes/productRoutes");   // ← added
 const cartRoutes = require("./routes/CartRoutes");
 const contactRoutes = require('./routes/contactRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const returnRoutes = require('./routes/returnRoutes');
 
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);                   // ← added
 app.use("/api/cart", cartRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/returns", returnRoutes);
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 app.use("/api/wishlist", wishlistRoutes);
