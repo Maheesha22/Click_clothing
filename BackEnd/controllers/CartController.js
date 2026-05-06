@@ -90,12 +90,15 @@ class CartController {
         let price = item.price;
         let imageUrl = item.imageUrl;
         let name = item.name;
+        let availableVariants = [];
 
         if (item.Product) {
           name = item.Product.name;
           price = parseFloat(item.Product.price);
 
           if (item.Product.variants && item.Product.variants.length > 0) {
+            availableVariants = item.Product.variants;
+            
             // Find specific variant by color and size
             const variant = item.Product.variants.find(v => 
               v.size === item.size && v.color === item.color
@@ -119,6 +122,7 @@ class CartController {
           color: item.color,
           size: item.size,
           quantity: item.quantity,
+          availableVariants: availableVariants,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt
         };
@@ -133,6 +137,63 @@ class CartController {
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch cart items',
+        error: error.message 
+      });
+    }
+  }
+
+  // Update cart item (color and size)
+  static async updateCartItem(req, res) {
+    try {
+      const { cartId } = req.params;
+      const { color, size } = req.body;
+
+      const cartItem = await Cart.findByPk(cartId);
+      if (!cartItem) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Cart item not found' 
+        });
+      }
+
+      // Check if an item with the new color/size already exists for this user and product
+      const existingItem = await Cart.findOne({
+        where: {
+          userId: cartItem.userId,
+          productId: cartItem.productId,
+          color: color || cartItem.color,
+          size: size || cartItem.size
+        }
+      });
+
+      if (existingItem && existingItem.id !== cartItem.id) {
+        // Merge quantities if duplicate exists
+        existingItem.quantity += cartItem.quantity;
+        await existingItem.save();
+        await cartItem.destroy(); // Remove the old item
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Cart item merged successfully', 
+          cartItem: existingItem 
+        });
+      } else {
+        // Just update attributes
+        cartItem.color = color || cartItem.color;
+        cartItem.size = size || cartItem.size;
+        await cartItem.save();
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: 'Cart item updated successfully', 
+          cartItem 
+        });
+      }
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update cart item',
         error: error.message 
       });
     }
