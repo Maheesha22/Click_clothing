@@ -90,9 +90,11 @@ export default function Returns() {
           eligibilityErrors.push(`❌ Order status is "${order.status}" - Only shipped/delivered orders can be returned`);
         }
         
-        // Check payment method (must be COD)
-        if (order.payment_method?.toLowerCase() !== 'cod') {
-          eligibilityErrors.push(`❌ Payment method is "${order.payment_method}" - Only COD orders can be returned (Bank deposits cannot be returned)`);
+        // Check payment method (must be COD) - handle both camelCase and snake_case from API
+        const paymentMethod = (order.payment_method || order.paymentMethod || '');
+        const isCOD = ['cod', 'cash on delivery'].includes(paymentMethod.toLowerCase());
+        if (!isCOD) {
+          eligibilityErrors.push(`❌ Payment method is "${paymentMethod}" - Only COD orders can be returned (Bank deposits cannot be returned)`);
         }
         
         // If there are errors, show them and don't allow selection
@@ -123,7 +125,8 @@ export default function Returns() {
         });
         setSelectedItems(initialSelected);
         
-        setMessage(`✅ Order is eligible for return (Status: ${order.status}, Payment: ${order.payment_method})`);
+        const paymentDisplay = order.payment_method || order.paymentMethod || 'N/A';
+        setMessage(`✅ Order is eligible for return (Status: ${order.status}, Payment: ${paymentDisplay})`);
       }
     } catch (error) {
       console.error('Error fetching order details:', error);
@@ -403,7 +406,7 @@ export default function Returns() {
                   <th>Products Returned</th>
                   <th>Total Qty</th>
                   <th>Reason</th>
-                  <th>Status</th>
+                  <th>Order Status</th>
                   <th>Date</th>
                   <th>Actions</th>
                 </tr>
@@ -444,14 +447,20 @@ export default function Returns() {
                           borderRadius: '4px',
                           fontSize: '12px',
                           fontWeight: '600',
-                          backgroundColor: ret.status === 'pending' ? '#fff3cd' :
-                                           ret.status === 'approved' ? '#d4edda' :
-                                           ret.status === 'rejected' ? '#f8d7da' : '#e2e3e5',
-                          color: ret.status === 'pending' ? '#856404' :
-                                 ret.status === 'approved' ? '#155724' :
-                                 ret.status === 'rejected' ? '#721c24' : '#383d41'
+                          backgroundColor:
+                            ret.Order?.status?.toLowerCase() === 'shipped'   ? '#dbeafe' :
+                            ret.Order?.status?.toLowerCase() === 'delivered' ? '#d4edda' :
+                            ret.Order?.status?.toLowerCase() === 'confirmed' ? '#e0f7fa' :
+                            ret.Order?.status?.toLowerCase() === 'pending'   ? '#fff3cd' : '#e2e3e5',
+                          color:
+                            ret.Order?.status?.toLowerCase() === 'shipped'   ? '#1d4ed8' :
+                            ret.Order?.status?.toLowerCase() === 'delivered' ? '#155724' :
+                            ret.Order?.status?.toLowerCase() === 'confirmed' ? '#006064' :
+                            ret.Order?.status?.toLowerCase() === 'pending'   ? '#856404' : '#383d41'
                         }}>
-                          {ret.status?.charAt(0).toUpperCase() + ret.status?.slice(1)}
+                          {ret.Order?.status
+                            ? ret.Order.status.charAt(0).toUpperCase() + ret.Order.status.slice(1)
+                            : '-'}
                         </span>
                       </td>
                       <td className="cell-dim">
@@ -507,12 +516,12 @@ export default function Returns() {
             >
               <option value="">-- Select an order --</option>
               {eligibleOrders.map(order => {
-                const isEligible = ['shipped', 'delivered'].includes(order.status?.toLowerCase()) && 
-                                  order.paymentMethod?.toLowerCase() === 'cod';
+                // Backend already filters for eligible orders (shipped/delivered + COD)
+                // Just display them all as selectable
+                const paymentMethod = order.payment_method || order.paymentMethod || '';
                 return (
-                  <option key={order.id} value={order.id} disabled={!isEligible}>
-                    #{order.id} - {order.order_number} - {order.status} - {order.paymentMethod} - Rs {order.total_bill}
-                    {!isEligible ? ' ❌ (Not eligible)' : ' ✓'}
+                  <option key={order.id} value={order.id}>
+                    #{order.id} - {order.order_number} - {order.status} - {paymentMethod} - Rs {order.total_bill} ✓
                   </option>
                 );
               })}
