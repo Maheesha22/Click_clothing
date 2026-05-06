@@ -6,6 +6,7 @@ import WhatsAppButton from "../components/whatsappbtn";
 import NavBar from "../components/navsidebar";   // new component
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
+import cartService from "../services/cartService";
 
 // ── Slideshow Data (unchanged) ─────────────────────────────────
 const SLIDES = [
@@ -188,9 +189,39 @@ function ProductPopup({ product, onClose }) {
     setCurrentImage(product.colorImages?.[color] || product.defaultImage || product.img);
   };
 
-  const handleAddToCart = () => {
-    alert(`Added ${quantity} x ${product.name} (${selectedColor} color, Size ${selectedSize}) to cart`);
-    onClose();
+  const handleAddToCart = async () => {
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      alert("Please login to add items to cart");
+      return;
+    }
+    const user = JSON.parse(userData);
+    const userId = user.id;
+
+    try {
+      const cartData = {
+        userId,
+        productId: product.id,
+        name: product.name,
+        price: parseFloat(product.price.replace(/,/g, "")),
+        imageUrl: currentImage,
+        color: selectedColor,
+        size: selectedSize,
+        quantity: quantity
+      };
+
+      const response = await cartService.addToCart(cartData);
+      if (response.success) {
+        alert("Product added to cart successfully!");
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        onClose();
+      } else {
+        alert("Failed to add product to cart: " + response.message);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (
