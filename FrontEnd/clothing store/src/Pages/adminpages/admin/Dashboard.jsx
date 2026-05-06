@@ -10,7 +10,7 @@ function ChartSalesBar() {
     <div className="chart-wrap">
       <svg viewBox="0 0 560 160" width="100%" preserveAspectRatio="none">
         {[10, 50, 90, 130].map(y => <line key={y} x1="40" y1={y} x2="540" y2={y} stroke="#e4e4e4" strokeWidth="1"/>)}
-        {[['$9k',10],['$6k',50],['$3k',90],['$0',130]].map(([l,y]) =>
+        {[['Rs 9k',10],['Rs 6k',50],['Rs 3k',90],['Rs 0',130]].map(([l,y]) =>
           <text key={l} x="32" y={y+3} textAnchor="end" fontSize="9" fill="#9a9a9a">{l}</text>)}
         {days.map((d, i) => {
           const rx = 52 + i * 70;
