@@ -23,7 +23,7 @@ const cartService = {
         }
     },
     
-    // Update cart item details (color, size)
+    // Update cart item (size, color, quantity)
     updateCartItem: async (cartId, data) => {
         try {
             const response = await API.put(`/cart/update-item/${cartId}`, data);
@@ -33,7 +33,7 @@ const cartService = {
             throw error.response?.data || error;
         }
     },
-
+    
     // Update cart item quantity
     updateQuantity: async (cartId, quantity) => {
         try {
