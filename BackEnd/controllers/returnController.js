@@ -25,7 +25,7 @@ const getAllReturns = async (req, res) => {
           };
         })
       );
-      
+
       return {
         ...ret.dataValues,
         products: productsWithDetails
@@ -79,7 +79,7 @@ const getUserReturns = async (req, res) => {
 const getReturnsByDateRange = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const dateFilter = {};
     if (startDate) dateFilter[Op.gte] = new Date(startDate);
     if (endDate) dateFilter[Op.lte] = new Date(endDate);
@@ -143,11 +143,11 @@ const getReturnsStats = async (req, res) => {
       }
 
       stats[key].count += 1;
-      
+
       // Sum quantities from all products in this return
       const totalQty = (ret.products || []).reduce((sum, p) => sum + (p.quantity || 0), 0);
       stats[key].quantity += totalQty;
-      
+
       stats[key].reasons[ret.reason || 'Not specified'] = (stats[key].reasons[ret.reason || 'Not specified'] || 0) + 1;
     });
 
@@ -171,7 +171,7 @@ const createMultiProductReturn = async (req, res) => {
   try {
     console.log('=== CREATE MULTI-PRODUCT RETURN ===');
     console.log('Request body:', req.body);
-    
+
     const { userId, orderId, products, reason } = req.body;
 
     // Validation
@@ -212,7 +212,7 @@ const createMultiProductReturn = async (req, res) => {
     });
 
     console.log('Products found in DB:', productsInDb.length, 'Expected:', productIds.length);
-    
+
     if (productsInDb.length !== productIds.length) {
       const foundIds = productsInDb.map(p => p.id);
       const notFoundIds = productIds.filter(id => !foundIds.includes(id));
@@ -351,23 +351,42 @@ const createReturn = async (req, res) => {
 };
 
 // Get eligible orders for returns (shipped or delivered + COD payment only)
+// Excludes orders that already have a return record
 const getEligibleOrdersForReturns = async (req, res) => {
   try {
+    // Step 1: Get all orderIds that already have a return record
+    const existingReturns = await Return.findAll({
+      attributes: ['orderId'],
+      raw: true
+    });
+    const alreadyReturnedOrderIds = existingReturns.map(r => r.orderId);
+
+    // Step 2: Build where clause - exclude already-returned orders
+    const whereClause = {
+      status: { [Op.in]: ['shipped', 'delivered', 'Shipped', 'Delivered'] },
+      payment_method: { [Op.in]: ['Cash on Delivery', 'cash on delivery'] }
+    };
+
+    if (alreadyReturnedOrderIds.length > 0) {
+      whereClause.id = { [Op.notIn]: alreadyReturnedOrderIds };
+    }
+
+    // Step 3: Fetch eligible orders
     const orders = await Order.findAll({
-      where: {
-        status: ['shipped', 'delivered'],
-        payment_method: 'COD'
-      },
+      where: whereClause,
       attributes: ['id', 'order_number', 'status', 'total_bill', 'createdAt', 'payment_method'],
       include: [
-        { 
-          model: User, 
-          attributes: ['id', 'first_name', 'last_name', 'email'] 
+        {
+          model: User,
+          attributes: ['id', 'first_name', 'last_name', 'email']
         }
       ],
       order: [['createdAt', 'DESC']]
     });
-    
+
+    console.log(`Already returned order IDs: [${alreadyReturnedOrderIds.join(', ')}]`);
+    console.log(`Found ${orders.length} eligible orders for return`);
+
     res.status(200).json({
       success: true,
       data: orders
