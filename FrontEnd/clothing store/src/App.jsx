@@ -17,6 +17,8 @@ import TShirtsPage from "./Pages/tshirts";
 import ShortsPage from "./Pages/shorts";
 import FeedbackForm from "./Pages/FeedbackForm";
 import FAQPage from "./Pages/FAQ";
+import AboutUs from "./Pages/AboutUs";
+import ProductPage from './Pages/ProductPage';
 
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
@@ -37,11 +39,13 @@ function App() {
         <Route path="/Contactus" element={<ContactUs />} />
         <Route path="/feedback" element={<FeedbackForm />} />
         <Route path="/faq" element={<FAQPage />} />
+        <Route path="/about" element={<AboutUs />} />
 
         {/*Login pages */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
+        
 
         {/*Admin */}
         <Route path="/dashboard" element={<Dashboard />} />
@@ -55,6 +59,7 @@ function App() {
         </Route>
 
         {/*PRODUCT PAGES */}
+        <Route path="/category/:category" element={<ProductPage />} />
         <Route path="/trousers" element={<Trousers />} />
         <Route path="/shirts" element={<Shirts />} />
         <Route path="/formal-shirts" element={<FormalShirtsPage />} />
