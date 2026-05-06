@@ -1,41 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  CAT_CLS, PER_PAGE,
+  PER_PAGE,
   IcoPlus, IcoSearch,
   Badge, StockBar, MiniStats, Modal,
 } from './shared';
-
-/* ════════════════════════════════════════
-   CLICK CLOTHING — CATEGORIES & MAPS
-════════════════════════════════════════ */
-const CLOTHING_CATS = ['Shirts', 'Trousers', 'Shorts', 'T-shirts', 'Accessories'];
-const ACC_SUBS = ['Cap', 'Perfume', 'Deodorant'];
-
-/* Size options per category */
-const WAIST_SIZES = ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'];
-const SHIRT_SIZES = ['S', 'M', 'L', 'XL', '2XL'];
-const SIZE_OPTIONS = {
-  Trousers: WAIST_SIZES,
-  Shorts: WAIST_SIZES,
-  'T-shirts': SHIRT_SIZES,
-  Shirts: SHIRT_SIZES,
-  Accessories: [],           // no size for accessories
-};
-const CAT_ICON = {
-  Shirts: '',
-  Trousers: '',
-  Shorts: '',
-  'T-shirts': '',
-  Accessories: '',
-};
-const MY_CAT_CLS = {
-  ...CAT_CLS,
-  Shirts: 'cp-sarong',
-  Trousers: 'cp-trousers',
-  Shorts: 'cp-shorts',
-  'T-shirts': 'cp-tshirts',
-  Accessories: 'cp-accessories',
-};
 
 /* ════════════════════════════════════════
    API BASE
@@ -43,218 +11,87 @@ const MY_CAT_CLS = {
 const API = 'http://localhost:3000/api/products';
 
 /* ════════════════════════════════════════
-   IMAGE UPLOAD BOX
-   FIX: Uploads to YOUR backend (/api/products/upload-image)
-        which then sends to Cloudinary using server-side credentials.
-        Never upload directly from the browser to Cloudinary with an
-        unsigned preset — it requires creating a preset in the dashboard
-        and exposes your cloud name publicly.
-════════════════════════════════════════ */
-function ImageUploadBox({ imageUrl, onUpload, uploading, setUploading }) {
-  const inputRef = useRef(null);
-  const [dragOver, setDragOver] = useState(false);
-  const [error, setError] = useState('');
-
-  const uploadFile = async (file) => {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { setError('Please select an image file.'); return; }
-    if (file.size > 5 * 1024 * 1024) { setError('Image must be under 5 MB.'); return; }
-    setError('');
-    setUploading(true);
-    try {
-      // ✅ FIX: Send to your own backend endpoint, NOT directly to Cloudinary.
-      //    Your backend (multer + cloudinary config) handles the actual upload
-      //    using credentials stored safely in the .env file.
-      const fd = new FormData();
-      fd.append('image', file);   // field name must match upload.single('image') in routes
-
-      const res = await fetch(`${API}/upload-image`, { method: 'POST', body: fd });
-      const data = await res.json();
-
-      if (res.ok && data.success && data.image_url) {
-        onUpload(data.image_url);
-      } else {
-        setError(data.message || 'Upload failed — check your backend Cloudinary config.');
-      }
-    } catch {
-      setError('Network error during upload. Is the backend running?');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div className="f-full">
-      <label className="f-lbl">Product Image</label>
-      <div
-        className={`img-upload-box${dragOver ? ' drag-over' : ''}${imageUrl ? ' has-img' : ''}`}
-        onClick={() => !uploading && inputRef.current?.click()}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={e => { e.preventDefault(); setDragOver(false); uploadFile(e.dataTransfer.files[0]); }}
-      >
-        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
-          onChange={e => uploadFile(e.target.files[0])} />
-
-        {uploading ? (
-          <div className="img-state"><div className="img-spinner" /><span>Uploading…</span></div>
-        ) : imageUrl ? (
-          <div className="img-preview-wrap">
-            <img src={imageUrl} alt="Product" className="img-preview" />
-            <div className="img-overlay">🔄 Click to replace</div>
-          </div>
-        ) : (
-          <div className="img-state">
-            <div style={{ fontSize: 32 }}>☁️</div>
-            <div style={{ fontSize: 13 }}><strong>Click to upload</strong> or drag & drop</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>PNG, JPG, WEBP — max 5 MB</div>
-          </div>
-        )}
-      </div>
-      {error && <div className="img-error">{error}</div>}
-      {imageUrl && !uploading && (
-        <div className="img-url-badge">
-          ✅ Uploaded &nbsp;
-          <a href={imageUrl} target="_blank" rel="noreferrer" className="img-url-link">View ↗</a>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════
-   PRODUCTS PAGE
+   MAIN PRODUCTS COMPONENT
 ════════════════════════════════════════ */
 export default function Products({ toast }) {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [catF, setCatF] = useState('');
   const [stF, setStF] = useState('');
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState(false);
-  const [editId, setEditId] = useState(null);
   const [delId, setDelId] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
-  const blank = {
-    product_name: '', category: '', price: '', quantity: '',
-    status: 'Active', product_description: '', image_url: '',
-    color: '', size: '', acc_type: '', sizes_quantities: {}
-  };
-  const [form, setForm] = useState(blank);
-
-  /* ── fetch on mount ── */
-  useEffect(() => { fetchProducts(); }, []);
+  /* ── fetch products on mount ── */
+  useEffect(() => { 
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const res = await fetch(API);
       const data = await res.json();
-      if (data.success) setProducts(data.data);
-      else toast('⚠️', 'Could not load products.');
-    } catch { toast('⚠️', 'Server not reachable.'); }
-    finally { setLoading(false); }
+      console.log('Products fetched:', data);
+      if (data.success) {
+        setProducts(data.data);
+      } else {
+        toast('⚠️', 'Could not load products.');
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      toast('⚠️', 'Server not reachable.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ── filter + paginate ── */
-  const filtered = products.filter(p =>
-    (!search || (p.product_name || '').toLowerCase().includes(search.toLowerCase())) &&
-    (!catF || p.category === catF) &&
-    (!stF || (stF === 'Active' ? p.available : !p.available))
-  );
-  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const sp = Math.min(page, pages);
-  const slice = filtered.slice((sp - 1) * PER_PAGE, sp * PER_PAGE);
-
-  /* ── modal helpers ── */
-  const openAdd = () => { setForm(blank); setEditId(null); setModal(true); };
-  const openEdit = p => {
-    let parsedSQ = {};
-    let parsedSize = p.size || '';
-    if (p.size && p.size.startsWith('{')) {
-      try {
-        parsedSQ = JSON.parse(p.size);
-        parsedSize = '';
-      } catch (e) { }
-    }
-    setForm({
-      product_name: p.product_name || '',
-      category: p.category || '',
-      price: p.price || '',
-      quantity: p.quantity ?? '',
-      status: p.available ? 'Active' : 'Inactive',
-      product_description: p.product_description || '',
-      image_url: p.image_url || '',
-      color: p.color || '',
-      size: parsedSize,
-      acc_type: p.acc_type || '',
-      sizes_quantities: parsedSQ,
-    });
-    setEditId(p.id);
-    setModal(true);
-  };
-  const closeM = () => { setModal(false); setEditId(null); };
-
-  /* ── save ── */
-  const save = async () => {
-    const hasSizeQtys = ['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category);
-    if (!form.product_name || !form.category || form.price === '' || (!hasSizeQtys && form.quantity === '')) {
-      toast('⚠️', 'Please fill all required fields.'); return;
-    }
-    setSaving(true);
-
-    let finalQuantity = parseInt(form.quantity, 10);
-    let finalSize = form.size;
-
-    if (hasSizeQtys) {
-      let totalQty = 0;
-      Object.values(form.sizes_quantities).forEach(q => {
-        totalQty += parseInt(q || 0, 10);
-      });
-      finalQuantity = totalQty;
-      finalSize = Object.keys(form.sizes_quantities).length > 0 ? JSON.stringify(form.sizes_quantities) : '';
-    }
-
-    const payload = {
-      product_name: form.product_name,
-      category: form.category,
-      price: parseFloat(form.price),
-      quantity: finalQuantity || 0,
-      available: form.status === 'Active',
-      product_description: form.product_description,
-      image_url: form.image_url,
-      color: form.color,
-      size: finalSize,
-    };
+  const fetchCategories = async () => {
     try {
-      const url = editId ? `${API}/${editId}` : API;
-      const method = editId ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await fetch(`${API}/categories/all`);
       const data = await res.json();
       if (data.success) {
-        await fetchProducts();
-        toast('✅', editId ? 'Product updated!' : 'Product added!');
-        closeM();
-      } else toast('❌', data.message || 'Save failed.');
-    } catch { toast('❌', 'Network error.'); }
-    finally { setSaving(false); }
+        setCategories(data.data);
+      }
+    } catch (err) {
+      console.error('Category fetch error:', err);
+    }
   };
 
-  /* ── delete ── */
-  const confirmDel = async () => {
+  /* ── filter products ── */
+  const filtered = products.filter(p => {
+    const matchSearch = !search || (p.product_name || '').toLowerCase().includes(search.toLowerCase());
+    const matchCat = !catF || p.category?.id === parseInt(catF) || p.category?.name === catF;
+    const matchStatus = !stF || (stF === 'Active' ? p.available : !p.available);
+    return matchSearch && matchCat && matchStatus;
+  });
+
+  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const currentPage = Math.min(page, pages);
+  const currentProducts = filtered.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
+  /* ── delete product ── */
+  const confirmDelete = async () => {
     try {
       const res = await fetch(`${API}/${delId}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.success) { await fetchProducts(); toast('🗑️', 'Product deleted.'); }
-      else toast('❌', data.message || 'Delete failed.');
-    } catch { toast('❌', 'Network error.'); }
+      if (data.success) {
+        await fetchProducts();
+        toast('🗑️', 'Product deleted successfully.');
+      } else {
+        toast('❌', data.message || 'Delete failed.');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast('❌', 'Network error.');
+    }
     setDelId(null);
   };
 
-  const ms = {
+  /* ── stats ── */
+  const stats = {
     total: products.length,
     active: products.filter(p => p.available).length,
     low: products.filter(p => p.quantity > 0 && p.quantity <= 10).length,
@@ -262,246 +99,189 @@ export default function Products({ toast }) {
   };
 
   /* ── price formatter ── */
-  const fmtPrice = v => `RS ${parseFloat(v || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
+  const formatPrice = price => `RS ${parseFloat(price || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="view">
-
-      {/* inline styles for new UI pieces */}
-      <style>{`
-        .img-upload-box{border:2px dashed #cbd5e1;border-radius:10px;padding:24px 16px;cursor:pointer;text-align:center;transition:border-color .2s,background .2s;background:#f8fafc;min-height:140px;display:flex;align-items:center;justify-content:center;}
-        .img-upload-box:hover,.img-upload-box.drag-over{border-color:#6366f1;background:#eef2ff;}
-        .img-upload-box.has-img{padding:0;overflow:hidden;}
-        .img-state{display:flex;flex-direction:column;align-items:center;gap:6px;color:#64748b;}
-        .img-preview-wrap{position:relative;width:100%;}
-        .img-preview{width:100%;max-height:180px;object-fit:cover;display:block;border-radius:8px;}
-        .img-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;opacity:0;transition:opacity .2s;border-radius:8px;}
-        .img-upload-box:hover .img-overlay{opacity:1;}
-        .img-spinner{width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#6366f1;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:4px;}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .img-error{color:#ef4444;font-size:12px;margin-top:4px;}
-        .img-url-badge{font-size:12px;color:#16a34a;margin-top:6px;}
-        .img-url-link{color:#6366f1;text-decoration:underline;}
-        .prod-img{width:38px;height:38px;object-fit:cover;border-radius:6px;}
-        .prod-thumb-ico{width:38px;height:38px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px;filter:grayscale(100%);}
-        .cp-sarong{background:#e2e8f0;color:#0f172a;}
-        .cp-trousers{background:#cbd5e1;color:#0f172a;}
-        .cp-shorts{background:#f1f5f9;color:#0f172a;}
-        .cp-tshirts{background:#f8fafc;color:#0f172a;border:1px solid #e2e8f0;}
-      `}</style>
-
+      {/* Header */}
       <div className="ph">
-        <div><h1 className="ph-title">Products</h1><p className="ph-sub">Manage your clothing catalogue.</p></div>
-        <button className="btn-primary" onClick={openAdd}><IcoPlus /> Add New Product</button>
+        <div>
+          <h1 className="ph-title">Products</h1>
+          <p className="ph-sub">Manage your product catalogue</p>
+        </div>
       </div>
 
+      {/* Stats Cards */}
       <MiniStats items={[
-        ['📦', ms.total, 'Total Products'],
-        ['✅', ms.active, 'Active'],
-        ['⚠️', ms.low, 'Low Stock'],
-        ['🚫', ms.out, 'Out of Stock'],
+        ['📦', stats.total, 'Total Products'],
+        ['✅', stats.active, 'Active'],
+        ['⚠️', stats.low, 'Low Stock'],
+        ['🚫', stats.out, 'Out of Stock'],
       ]} />
 
+      {/* Filters */}
       <div className="toolbar">
         <div className="tb-search">
           <IcoSearch w={13} />
-          <input className="tb-inp" placeholder="Search product name…" value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }} />
+          <input
+            className="tb-inp"
+            placeholder="Search product name…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+          />
         </div>
-        <select className="tb-sel" value={catF} onChange={e => { setCatF(e.target.value); setPage(1); }}>
+        <select 
+          className="tb-sel" 
+          value={catF} 
+          onChange={e => { setCatF(e.target.value); setPage(1); }}
+        >
           <option value="">All Categories</option>
-          {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
+          {categories.map(c => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
         </select>
-        <select className="tb-sel" value={stF} onChange={e => { setStF(e.target.value); setPage(1); }}>
+        <select 
+          className="tb-sel" 
+          value={stF} 
+          onChange={e => { setStF(e.target.value); setPage(1); }}
+        >
           <option value="">All Status</option>
-          <option>Active</option><option>Inactive</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
         </select>
         <span className="tb-count">{filtered.length} products</span>
       </div>
 
+      {/* Products Table */}
       <div className="admin-card" style={{ overflow: 'hidden' }}>
         <div className="tbl-wrap">
           <table className="tbl" style={{ minWidth: 900 }}>
-            <thead><tr>
-              <th>Product</th><th>Category</th>
-              <th>Price (RS)</th><th>Stock</th><th>Status</th><th>Actions</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {loading
-                ? <tr><td colSpan={6} className="empty-cell">Loading products…</td></tr>
-                : slice.length === 0
-                  ? <tr><td colSpan={6} className="empty-cell">No products found.</td></tr>
-                  : slice.map(p => (
-                    <tr key={p.id}>
-                      <td>
-                        <div className="prod-cell">
-                          {p.image_url
-                            ? <img src={p.image_url} alt={p.product_name} className="prod-img" />
-                            : <div className="prod-thumb-ico">{CAT_ICON[p.category] || '📦'}</div>
-                          }
-                          <div>
-                            <div className="cell-nm">{p.product_name}</div>
-                            <div className="cell-sub">#{p.id}</div>
-                          </div>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="empty-cell">Loading products...</td>
+                </tr>
+              ) : currentProducts.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="empty-cell">
+                    {products.length === 0 ? 'No products in database.' : 'No products match your filters.'}
+                  </td>
+                </tr>
+              ) : (
+                currentProducts.map(product => (
+                  <tr key={product.id}>
+                    <td>#{product.id}</td>
+                    <td>
+                      {product.image_url ? (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.product_name} 
+                          className="prod-img" 
+                          style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px' }}
+                        />
+                      ) : (
+                        <div className="prod-thumb-ico" style={{ width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', borderRadius: '8px' }}>
+                          📦
                         </div>
-                      </td>
-                      <td><span className={`cat-pill ${MY_CAT_CLS[p.category] || ''}`}>{p.category}</span></td>
-                      <td className="cell-price">{fmtPrice(p.price)}</td>
-                      <td><StockBar stock={p.quantity || 0} /></td>
-                      <td><Badge label={p.available ? 'Active' : 'Inactive'} cls={p.available ? 'b-active' : 'b-inactive'} /></td>
-                      <td><div className="act-grp">
-                        <button className="ab ab-edit" onClick={() => openEdit(p)}>✏️ Edit</button>
-                        <button className="ab ab-del" onClick={() => setDelId(p.id)}>🗑️</button>
-                      </div></td>
-                    </tr>
-                  ))
-              }
+                      )}
+                    </td>
+                    <td>
+                      <div>
+                        <div className="cell-nm">{product.product_name}</div>
+                        {product.variant_summary && (
+                          <div className="cell-sub" style={{ fontSize: '10px', color: '#64748b' }} title={product.variant_summary}>
+                            {product.variant_count} variant(s)
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="cat-pill">
+                        {product.category?.name || 'Uncategorized'}
+                      </span>
+                    </td>
+                    <td className="cell-price">{formatPrice(product.price)}</td>
+                    <td>
+                      <StockBar stock={product.quantity || 0} />
+                      {product.variant_count > 0 && (
+                        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>
+                          {product.variant_count} size(s)
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <Badge 
+                        label={product.available ? 'Active' : 'Inactive'} 
+                        cls={product.available ? 'b-active' : 'b-inactive'} 
+                      />
+                    </td>
+                    <td>
+                      <button 
+                        className="ab ab-del" 
+                        onClick={() => setDelId(product.id)}
+                        style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-        <div className="tbl-foot">
-          <span className="tbl-info">
-            Showing {filtered.length === 0 ? 0 : (sp - 1) * PER_PAGE + 1}–{Math.min(sp * PER_PAGE, filtered.length)} of {filtered.length}
-          </span>
-          <div className="pg-btns">
-            <button className="pg-btn" onClick={() => setPage(p => p - 1)} disabled={sp <= 1}>← Prev</button>
-            {Array.from({ length: Math.min(pages, 5) }, (_, i) => (
-              <button key={i} className={`pg-btn${sp === i + 1 ? ' active' : ''}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
-            ))}
-            <button className="pg-btn" onClick={() => setPage(p => p + 1)} disabled={sp >= pages}>Next →</button>
+
+        {/* Pagination */}
+        {!loading && filtered.length > 0 && (
+          <div className="tbl-foot">
+            <span className="tbl-info">
+              Showing {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, filtered.length)} of {filtered.length}
+            </span>
+            <div className="pg-btns">
+              <button className="pg-btn" onClick={() => setPage(p => p - 1)} disabled={currentPage <= 1}>
+                ← Prev
+              </button>
+              {Array.from({ length: Math.min(pages, 5) }, (_, i) => (
+                <button 
+                  key={i} 
+                  className={`pg-btn ${currentPage === i + 1 ? 'active' : ''}`} 
+                  onClick={() => setPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button className="pg-btn" onClick={() => setPage(p => p + 1)} disabled={currentPage >= pages}>
+                Next →
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ── Add / Edit Modal ── */}
-      <Modal open={modal} onClose={closeM} title={editId ? 'Edit Product' : 'Add New Product'}
-        footer={<>
-          <button className="btn-secondary" onClick={closeM} disabled={saving || uploading}>Cancel</button>
-          <button className="btn-primary" onClick={save} disabled={saving || uploading}>
-            {saving ? 'Saving…' : 'Save Product'}
-          </button>
-        </>}>
-        <div className="m-body">
-          <div className="f-grid">
-
-            <ImageUploadBox
-              imageUrl={form.image_url}
-              onUpload={url => setForm(f => ({ ...f, image_url: url }))}
-              uploading={uploading}
-              setUploading={setUploading}
-            />
-
-            <div className="f-full">
-              <label className="f-lbl">Product Name *</label>
-              <input className="f-inp" placeholder="e.g. Classic Checkered Shirt"
-                value={form.product_name} onChange={e => setForm(f => ({ ...f, product_name: e.target.value }))} />
-            </div>
-
-            <div>
-              <label className="f-lbl">Category *</label>
-              <select className="f-sel" value={form.category}
-                onChange={e => setForm(f => ({ ...f, category: e.target.value, acc_type: '', size: '', sizes_quantities: {} }))}>
-                <option value="">Select…</option>
-                {CLOTHING_CATS.map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-
-            {form.category === 'Accessories' && (
-              <div>
-                <label className="f-lbl">Accessory Type</label>
-                <select className="f-sel" value={form.acc_type}
-                  onChange={e => setForm(f => ({ ...f, acc_type: e.target.value }))}>
-                  <option value="">Select type…</option>
-                  {ACC_SUBS.map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="f-lbl">Price (RS) *</label>
-              <input className="f-inp" type="number" min="0" step="0.01" placeholder="0.00"
-                value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
-            </div>
-
-            {!['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category) && (
-              <div>
-                <label className="f-lbl">Stock Qty *</label>
-                <input className="f-inp" type="number" min="0" placeholder="0"
-                  value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} />
-              </div>
-            )}
-
-            {/* Size — dropdown changes based on selected category */}
-            {['Trousers', 'Shorts', 'T-shirts', 'Shirts'].includes(form.category) && (
-              <div className="f-full">
-                <label className="f-lbl">Select Sizes & Quantities *</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px', marginTop: '6px' }}>
-                  {SIZE_OPTIONS[form.category]?.map(s => {
-                    const isChecked = form.sizes_quantities && form.sizes_quantities[s] !== undefined;
-                    return (
-                      <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={e => {
-                            const newSQ = { ...(form.sizes_quantities || {}) };
-                            if (e.target.checked) newSQ[s] = 1;
-                            else delete newSQ[s];
-                            setForm(f => ({ ...f, sizes_quantities: newSQ }));
-                          }}
-                          style={{ cursor: 'pointer', width: '16px', height: '16px', margin: 0 }}
-                        />
-                        <label style={{ cursor: 'pointer', fontSize: '14px', flex: 1, userSelect: 'none' }} onClick={() => {
-                          const newSQ = { ...(form.sizes_quantities || {}) };
-                          if (!isChecked) newSQ[s] = 1; else delete newSQ[s];
-                          setForm(f => ({ ...f, sizes_quantities: newSQ }));
-                        }}>{s}</label>
-                        <input
-                          className="f-inp"
-                          type="number"
-                          min="1"
-                          disabled={!isChecked}
-                          value={isChecked ? form.sizes_quantities[s] : ''}
-                          onChange={e => setForm(f => ({ ...f, sizes_quantities: { ...f.sizes_quantities, [s]: e.target.value === '' ? '' : parseInt(e.target.value, 10) } }))}
-                          style={{ width: '60px', padding: '4px 6px', opacity: isChecked ? 1 : 0.4 }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label className="f-lbl">Color</label>
-              <input className="f-inp" placeholder="e.g. Blue, Red, Multicolor"
-                value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))} />
-            </div>
-
-            <div>
-              <label className="f-lbl">Status</label>
-              <select className="f-sel" value={form.status}
-                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                <option>Active</option><option>Inactive</option>
-              </select>
-            </div>
-
-            <div className="f-full">
-              <label className="f-lbl">Description</label>
-              <textarea className="f-ta" placeholder="Brief product description…"
-                value={form.product_description}
-                onChange={e => setForm(f => ({ ...f, product_description: e.target.value }))} />
-            </div>
-          </div>
-        </div>
-      </Modal>
-
-      {/* ── Delete Confirm ── */}
-      <Modal open={!!delId} onClose={() => setDelId(null)} compact
-        footer={<>
-          <button className="btn-secondary" onClick={() => setDelId(null)}>Cancel</button>
-          <button className="btn-danger" onClick={confirmDel}>Yes, Delete</button>
-        </>}>
+      {/* Delete Confirmation Modal */}
+      <Modal 
+        open={!!delId} 
+        onClose={() => setDelId(null)} 
+        compact
+        footer={
+          <>
+            <button className="btn-secondary" onClick={() => setDelId(null)}>Cancel</button>
+            <button className="btn-danger" onClick={confirmDelete}>Yes, Delete</button>
+          </>
+        }
+      >
         <div className="m-body del-body">
           <div className="del-icon">🗑️</div>
           <div className="del-title">Delete Product?</div>
