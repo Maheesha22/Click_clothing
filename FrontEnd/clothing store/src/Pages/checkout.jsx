@@ -18,7 +18,11 @@ const PROVINCES = [
   "Southern Province", "Uva Province", "Western Province",
 ];
 
-const SHIPPING = 400;
+// Shipping logic: Colombo = 400, Others = 500
+const getShippingCost = (district) => {
+  if (!district) return 0;
+  return district.toLowerCase() === 'colombo' ? 400 : 500;
+};
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 const CartIcon = () => (
@@ -56,12 +60,6 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { selectedItems = [], subtotal: cartSubtotal = 0 } = location.state || {};
-
-  const totalItemCount = selectedItems.reduce((sum, item) => sum + (item.qty || 1), 0);
-  const total = cartSubtotal + SHIPPING;
-
-  const [formError, setFormError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     email: "",
     offers: false,
@@ -76,6 +74,12 @@ export default function CheckoutPage() {
     payment: "cod",
   });
 
+  const shippingCost = getShippingCost(form.district);
+  const totalItemCount = selectedItems.reduce((sum, item) => sum + (item.qty || 1), 0);
+  const total = cartSubtotal + shippingCost;
+
+  const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [phoneState, setPhoneState] = useState({ error: "", status: "" });
   const [slipFile, setSlipFile] = useState(null);
   const [toast, setToast] = useState(false);
@@ -268,7 +272,7 @@ export default function CheckoutPage() {
     formDataToSend.append('paymentMethod', form.payment);
     formDataToSend.append('selectedItems', JSON.stringify(selectedItems));
     formDataToSend.append('subtotal', cartSubtotal.toString());
-    formDataToSend.append('shippingCost', SHIPPING.toString());
+    formDataToSend.append('shippingCost', shippingCost.toString());
     
     if (slipFile) {
       formDataToSend.append('bankSlip', slipFile);
@@ -309,7 +313,7 @@ export default function CheckoutPage() {
           district: form.district,
           province: form.province,
           subtotal: cartSubtotal,
-          shipping: SHIPPING,
+          shipping: shippingCost,
         };
         
         setOrderData(orderDetails);
@@ -710,7 +714,7 @@ export default function CheckoutPage() {
           </div>
           <div className="total-row">
             <span className="total-label">Shipping</span>
-            <span className="total-val">Rs. {SHIPPING.toLocaleString()}.00</span>
+            <span className="total-val">Rs. {shippingCost.toLocaleString()}.00</span>
           </div>
           <div className="total-row grand">
             <span className="total-label">Total</span>
