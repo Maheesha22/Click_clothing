@@ -483,16 +483,23 @@ export default function Products({ toast }) {
                   <button type="button" className="btn-icon" onClick={() => removeColor(color.id)}>Remove</button>
                 </div>
                 <label>Sizes & Quantities:</label>
-                {color.sizes.map((sizeObj, idx) => (
-                  <div key={idx} className="size-row">
-                    <select className="size-select" value={sizeObj.size} onChange={e => updateSize(color.id, idx, 'size', e.target.value)}>
-                      <option value="">Select size</option>
-                      {ALL_SIZES.map(s => <option key={s}>{s}</option>)}
-                    </select>
-                    <input className="size-qty" type="number" min="0" placeholder="Qty" value={sizeObj.quantity || ''} onChange={e => updateSize(color.id, idx, 'quantity', parseInt(e.target.value) || 0)} />
-                    <button type="button" className="btn-icon" onClick={() => removeSize(color.id, idx)}>✕</button>
-                  </div>
-                ))}
+                {color.sizes.map((sizeObj, idx) => {
+                  const selectedCategory = categories.find(c => c.id === parseInt(formData.categoryId));
+                  const catName = (selectedCategory?.name || '').toLowerCase();
+                  const isTop = ['armcuts', 'hoodie', 'long sleeves', 'shirts', 't shirts'].includes(catName);
+                  const sizesToShow = isTop ? ['S', 'M', 'L', 'XL', 'XXL'] : ALL_SIZES;
+
+                  return (
+                    <div key={idx} className="size-row">
+                      <select className="size-select" value={sizeObj.size} onChange={e => updateSize(color.id, idx, 'size', e.target.value)}>
+                        <option value="">Select size</option>
+                        {sizesToShow.map(s => <option key={s}>{s}</option>)}
+                      </select>
+                      <input className="size-qty" type="number" min="0" placeholder="Qty" value={sizeObj.quantity || ''} onChange={e => updateSize(color.id, idx, 'quantity', parseInt(e.target.value) || 0)} />
+                      <button type="button" className="btn-icon" onClick={() => removeSize(color.id, idx)}>✕</button>
+                    </div>
+                  );
+                })}
                 <button type="button" className="btn-add-size" onClick={() => addSize(color.id)}>+ Add Size</button>
               </div>
             ))}

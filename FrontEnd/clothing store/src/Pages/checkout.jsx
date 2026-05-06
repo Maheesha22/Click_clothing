@@ -668,14 +668,29 @@ export default function CheckoutPage() {
             selectedItems.map((item) => (
               <div className="order-item" key={item.id}>
                 <div className="img-wrap">
-                  <div style={{
-                    width: 74,
-                    height: 90,
-                    borderRadius: 8,
-                    background: item.color,
-                    border: "1px solid #dedad4",
-                  }} />
-                  <span className="img-badge">{item.qty}</span>
+                  {item.imageUrl ? (
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      className="checkout-item-img" 
+                      style={{
+                        width: 74,
+                        height: 90,
+                        borderRadius: 8,
+                        objectFit: "cover",
+                        border: "1px solid #dedad4",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 74,
+                      height: 90,
+                      borderRadius: 8,
+                      background: item.color,
+                      border: "1px solid #dedad4",
+                    }} />
+                  )}
+                  <span className="img-badge">{item.qty || item.quantity}</span>
                 </div>
                 <div className="item-info">
                   <div className="item-name">{item.name}</div>
