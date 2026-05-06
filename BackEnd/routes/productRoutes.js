@@ -17,6 +17,8 @@ router.route('/:id')
   .put(ctrl.updateProduct)
   .delete(ctrl.deleteProduct);
 
+router.get('/:id/variants', ctrl.getProductVariants);
+
 router.patch('/:id/availability', ctrl.updateAvailability);
 router.patch('/:id/quantity', ctrl.updateQuantity);
 
