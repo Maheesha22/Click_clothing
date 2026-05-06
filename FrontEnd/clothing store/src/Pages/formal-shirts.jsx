@@ -744,7 +744,17 @@ const FormalShirtsPage = () => {
           isWished={wishlist.includes(selectedProduct.id)}
         />
       )}
-      <WhatsAppButton />
+      <WhatsAppButton context={
+        selectedProduct
+          ? {
+              page: "formal shirts",
+              productName: selectedProduct.name,
+              category: "Formal Shirts",     // fixed category because all products are formal shirts
+              price: selectedProduct.basePrice,
+            }
+          : { page: "formal shirts" }
+      } />
+
     </div>
   );
 };

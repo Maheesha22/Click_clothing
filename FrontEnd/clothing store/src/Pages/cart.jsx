@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../Components/footer";
 import EditProductModal from "./EditProduct";
@@ -51,7 +51,7 @@ export default function Cart() {
   const userId = getUserId();
   console.log('Cart - Final userId:', userId);
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     console.log('Cart - Fetching cart items for userId:', userId);
     
     if (!userId) {
@@ -99,24 +99,45 @@ export default function Cart() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   // Fetch cart on mount and when userId changes
   useEffect(() => {
     console.log('Cart - useEffect triggered');
     fetchCartItems();
-  }, [userId]);
+  }, [userId, fetchCartItems]);
 
-  // Listen for cart updates
+  // Listen for cart updates - UPDATED to handle partial removal
   useEffect(() => {
     const handleCartUpdate = (event) => {
       console.log('Cart - Received cartUpdated event:', event.detail);
-      fetchCartItems();
+      
+      // Check if this is a partial update (only purchased items)
+      if (event.detail && event.detail.purchasedItems) {
+        // Remove only the purchased items from cart state
+        const purchasedProductIds = event.detail.purchasedItems.map(item => item.id);
+        console.log('Cart - Removing purchased items with IDs:', purchasedProductIds);
+        
+        setItems(prevItems => 
+          prevItems.filter(item => !purchasedProductIds.includes(item.id))
+        );
+        
+        // Also remove from selected set if any purchased items were selected
+        setSelected(prevSelected => {
+          const newSelected = new Set(prevSelected);
+          purchasedProductIds.forEach(id => newSelected.delete(id));
+          return newSelected;
+        });
+      } else {
+        // Full refresh if no specific items provided (for other cart updates)
+        console.log('Cart - Full cart refresh');
+        fetchCartItems();
+      }
     };
     
     window.addEventListener('cartUpdated', handleCartUpdate);
     return () => window.removeEventListener('cartUpdated', handleCartUpdate);
-  }, []);
+  }, [fetchCartItems]);
 
   const toggleSelect = (id) => {
     setSelected(prev => {

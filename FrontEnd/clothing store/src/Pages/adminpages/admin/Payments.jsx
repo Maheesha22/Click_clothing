@@ -8,8 +8,8 @@ export default function Payments() {
       <div className="ph"><div><h1 className="ph-title">Payments</h1><p className="ph-sub">Transaction records &amp; courier payment management.</p></div></div>
       <MiniStats items={[['💰','$284,920','Total Revenue'],['✅','$271,440','Paid'],['⏳','$9,480','Pending'],['❌','$4,000','Failed']]}/>
 
-      <div className="admin_card" style={{overflow:'hidden',marginBottom:16}}>
-        <div className="card-hdr-pad"><div className="c-title">Payment Transactions</div></div>
+      <div className="admin-card" style={{overflow:'hidden',marginBottom:16}}>
+        <div className="admin-card-hdr-pad"><div className="c-title">Payment Transactions</div></div>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:1000}}>
             <thead><tr><th>Payment ID</th><th>Customer</th><th>Order ID</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
@@ -30,8 +30,8 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="admin_card" style={{overflow:'hidden'}}>
-        <div className="card-hdr-pad"><div className="c-title">Courier Service Payments</div><div className="c-sub" style={{marginTop:4}}>Delivery partner settlements</div></div>
+      <div className="admin-card" style={{overflow:'hidden'}}>
+        <div className="admin-card-hdr-pad"><div className="c-title">Courier Service Payments</div><div className="c-sub" style={{marginTop:4}}>Delivery partner settlements</div></div>
         <div className="tbl-wrap">
           <table className="tbl" style={{minWidth:860}}>
             <thead><tr><th>Courier Service</th><th>Orders Handled</th><th>Settlement Period</th><th>Total Amount</th><th>Status</th><th>Actions</th></tr></thead>

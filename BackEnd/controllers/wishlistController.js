@@ -14,7 +14,7 @@ const getWishlist = async (req, res) => {
 // POST /api/wishlist
 const addToWishlist = async (req, res) => {
   try {
-    const { userId, productId, productName, price, emoji, imageUrl } = req.body;
+    const { userId, productId, productName, price, imageUrl } = req.body;
 
     // Prevent duplicates
     const existing = await Wishlist.findOne({ where: { userId, productId } });
@@ -22,7 +22,7 @@ const addToWishlist = async (req, res) => {
       return res.status(409).json({ message: 'Item already in wishlist' });
     }
 
-    const item = await Wishlist.create({ userId, productId, productName, price, emoji, imageUrl });
+    const item = await Wishlist.create({ userId, productId, productName, price, imageUrl });
     res.status(201).json(item);
   } catch (err) {
     res.status(500).json({ message: 'Error adding to wishlist', error: err.message });
