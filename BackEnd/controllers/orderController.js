@@ -1,4 +1,4 @@
-const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail } = require('../models');
+const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail, Product, ProductVariant } = require('../models');
 const { generateBarcode } = require('../utils/barcodeGenerator');
 
 // Generate unique order number
@@ -306,7 +306,14 @@ const updateOrderStatus = async (req, res) => {
       });
     }
     
-    await order.update({ status });
+    const updateData = { status };
+
+    // Automatic payment confirmation for COD when delivered
+    if (status.toLowerCase() === 'delivered' && order.payment_method === 'Cash on Delivery') {
+      updateData.payment_status = 'Confirmed';
+    }
+
+    await order.update(updateData);
     
     res.status(200).json({
       success: true,
@@ -321,6 +328,48 @@ const updateOrderStatus = async (req, res) => {
     });
   }
 };
+
+// Get all orders (Admin)
+const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{
+            model: Product,
+            include: [{
+              model: ProductVariant,
+              as: 'variants'
+            }]
+          }]
+        },
+        {
+          model: OrderDetail,
+          as: 'detail'
+        },
+        {
+          model: Customer,
+          as: 'customer'
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching all orders'
+    });
+  }
+};
+
 
 // Update payment status (Admin)
 const updatePaymentStatus = async (req, res) => {
@@ -337,7 +386,15 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
     
-    await order.update({ paymentStatus });
+    // Prevent changing payment status if it's already Confirmed
+    if (order.payment_status === 'Confirmed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment status is already confirmed and cannot be changed.'
+      });
+    }
+
+    await order.update({ payment_status: paymentStatus });
     
     res.status(200).json({
       success: true,
@@ -359,5 +416,6 @@ module.exports = {
   getOrderDetails,
   getOrderByBarcode,
   updateOrderStatus,
-  updatePaymentStatus
+  updatePaymentStatus,
+  getAllOrders
 };
