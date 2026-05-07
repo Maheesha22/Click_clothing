@@ -84,6 +84,7 @@ export default function Categories({ toast }) {
 
   const openAdd = () => { setEditTarget(null); setFormName(''); setFormModal(true); };
   const openEdit = (cat, e) => { e.stopPropagation(); setEditTarget(cat); setFormName(cat.name); setFormModal(true); };
+  const openDelete = (cat, e) => { e.stopPropagation(); setDelTarget(cat); };
 
   const saveCategory = async () => {
     const name = formName.trim();
@@ -165,8 +166,6 @@ export default function Categories({ toast }) {
     }
   };
 
-  const totalProducts = categories.reduce((s, c) => s + c.productCount, 0);
-
   return (
     <div className="view">
       <style>{`
@@ -174,60 +173,51 @@ export default function Categories({ toast }) {
         @keyframes cat-fade { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
         @keyframes cat-scale { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
 
-        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; margin-bottom:40px; }
-
+        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:24px; margin-bottom:40px; }
+        
         .cat-card {
-          border-radius:24px; border:1px solid rgba(0,0,0,0.1); padding:28px; cursor:pointer;
-          transition:all .3s cubic-bezier(.175,.885,.32,1.275);
+          border-radius:24px; border:1px solid rgba(0,0,0,0.06); padding:24px; cursor:pointer;
+          transition:all .4s cubic-bezier(0.4, 0, 0.2, 1);
           animation:cat-fade .3s ease both;
           position:relative; overflow:hidden;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02), inset 0 0 0 1px rgba(255,255,255,0.6);
           display:flex; flex-direction:column;
+          min-height:180px; justify-content:space-between;
+          background:#fff;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
-        .cat-card:hover { transform:translateY(-8px); box-shadow:0 24px 48px rgba(0,0,0,0.08); }
-        .cat-card.active { box-shadow:0 0 0 2px #000, 0 12px 32px rgba(0,0,0,0.1); border-color:transparent; }
+        .cat-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,0.08); border-color:rgba(0,0,0,0.1); }
+        .cat-card.active { box-shadow:0 0 0 2px #000; border-color:transparent; }
 
-        .cat-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; z-index:1; }
-        .cat-card-ico { 
-          width:54px;height:54px;border-radius:16px;background:#fff;
-          display:flex;align-items:center;justify-content:center;
-          font-size:24px;box-shadow:0 8px 16px rgba(0,0,0,0.04);
-          transition: transform 0.3s ease;
-        }
-        .cat-card:hover .cat-card-ico { transform: scale(1.1) rotate(5deg); }
-
-        .cat-card-btns { display:flex;gap:6px;opacity:0;transition:all .2s; transform: translateY(4px); }
+        .cat-card-top { display:flex; justify-content:space-between; align-items:flex-start; z-index:1; }
+        
+        .cat-card-btns { display:flex;gap:8px;opacity:0;transition:all .2s; transform: translateY(4px); }
         .cat-card:hover .cat-card-btns { opacity:1; transform: translateY(0); }
         
         .cat-btn { 
-          width:32px;height:32px;border-radius:10px;border:none;
-          background:rgba(255,255,255,0.9);backdrop-filter:blur(4px);
+          width:36px;height:36px;border-radius:12px;border:none;
+          background:rgba(255,255,255,0.8);backdrop-filter:blur(8px);
           display:flex;align-items:center;justify-content:center;
-          cursor:pointer;font-size:14px;box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          cursor:pointer;font-size:16px;box-shadow: 0 2px 10px rgba(0,0,0,0.05);
           transition: all 0.2s;
         }
-        .cat-btn:hover { transform: scale(1.15); background:#fff; }
+        .cat-btn:hover { transform: scale(1.1); background:#fff; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
         .cat-btn-del:hover { background:#fee2e2; color:#ef4444; }
 
-        .cat-name { font-size:20px;font-weight:900;color:#000;letter-spacing:-.03em;margin-bottom:4px; z-index:1; }
-        .cat-id   { font-size:12px;font-weight:600;color:rgba(0,0,0,0.4);margin-bottom:20px; text-transform:uppercase; letter-spacing:0.05em; z-index:1; }
+        .cat-name { font-size:20px;font-weight:900;color:#000;letter-spacing:-.03em; line-height:1.2; z-index:1; }
+        .cat-count { font-size:12px; font-weight:700; color:rgba(0,0,0,0.4); text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; }
 
-        .cat-stats { display:flex;gap:10px; z-index:1; }
-        .cat-stat  { flex:1;background:rgba(255,255,255,0.5);backdrop-filter:blur(10px);border-radius:14px;padding:12px 8px;text-align:center;border:1px solid rgba(255,255,255,0.4); transition:all 0.3s; }
-        .cat-card:hover .cat-stat { background:rgba(255,255,255,0.8); }
-        .cat-stat-n { font-size:22px;font-weight:900;letter-spacing:-.04em; color:#000; }
-        .cat-stat-l { font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(0,0,0,0.5);margin-top:4px; }
-
-        .cat-foot  { display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.1); z-index:1; }
-        .cat-hint  { font-size:12px;font-weight:800;color:#000; text-transform:uppercase; letter-spacing:0.02em; }
+        .cat-foot  { display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(0,0,0,0.05); z-index:1; }
+        .cat-hint  { font-size:11px;font-weight:800;color:#000; text-transform:uppercase; letter-spacing:0.04em; opacity:0.4; transition:opacity 0.2s; }
+        .cat-card:hover .cat-hint { opacity:1; }
 
         .cat-add-card {
-          border-radius:24px;border:2px dashed rgba(0,0,0,0.1);padding:28px;cursor:pointer;
-          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-          min-height:180px;transition:all .3s;color:rgba(0,0,0,0.4);background:rgba(0,0,0,0.01);
+          border-radius:24px;border:2px dashed rgba(0,0,0,0.1);padding:24px;cursor:pointer;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+          min-height:180px;transition:all .4s;color:rgba(0,0,0,0.3);background:rgba(0,0,0,0.01);
+          text-align:center;
         }
-        .cat-add-card:hover { border-color:#000;background:#000;color:#fff;transform:translateY(-8px);box-shadow:0 24px 48px rgba(0,0,0,0.1); }
-        .cat-add-card span:first-child { font-size:32px; transition: transform 0.3s; }
+        .cat-add-card:hover { border-color:#000;background:#000;color:#fff;transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.1); }
+        .cat-add-card span:first-child { font-size:36px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .cat-add-card:hover span:first-child { transform: scale(1.2) rotate(90deg); }
 
         /* ── Product panel ── */
@@ -338,28 +328,34 @@ export default function Categories({ toast }) {
                 className={`cat-card${active ? ' active' : ''}`}
                 style={{ 
                   background: `linear-gradient(135deg, ${pal.bg} 0%, #fff 100%)`, 
-                  borderColor: active ? '#000' : pal.border, 
                   animationDelay:`${i*0.04}s`,
-                  padding: '16px 20px',
-                  minHeight: 'auto'
                 }}
                 onClick={() => openProducts(cat)}
               >
-                <div className="cat-card-top" style={{ marginBottom: 12 }}>
-                  <div className="cat-name" style={{ fontSize: 16, margin: 0 }}>{cat.name}</div>
+                <div className="cat-card-top">
+                  <div>
+                    <div className="cat-name">{cat.name}</div>
+                    <div className="cat-count">{cat.productCount || 0} Products</div>
+                  </div>
                   <div className="cat-card-btns" style={{ opacity: 1, transform: 'none' }}>
                     <button className="cat-btn" onClick={e => openEdit(cat, e)} title="Rename">✏️</button>
+                    <button className="cat-btn cat-btn-del" onClick={e => openDelete(cat, e)} title="Delete">🗑️</button>
                   </div>
                 </div>
 
-                <div className="cat-foot" style={{ marginTop: 8, paddingTop: 10 }}>
-                  <span className="cat-hint" style={{ fontSize: 11 }}>{active ? 'Close' : 'Preview'}</span>
+                <div className="cat-foot">
+                  <span className="cat-hint">{active ? 'Close Details' : 'View Collection'}</span>
+                  <div style={{ width:8, height:8, borderRadius:'50%', background:pal.dot, opacity: active ? 1 : 0.3 }} />
                 </div>
               </div>
             );
           })}
 
-          {/* Add card removed as requested */}
+          {/* Add Category Card */}
+          <div className="cat-add-card" onClick={openAdd}>
+            <span>＋</span>
+            <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Add Category</span>
+          </div>
         </div>
       )}
 
@@ -375,6 +371,7 @@ export default function Categories({ toast }) {
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button className="cat-btn" onClick={e => openEdit(viewCat, e)} title="Rename" style={{ background: '#fff', color: '#000' }}>✏️</button>
+              <button className="cat-btn cat-btn-del" onClick={e => openDelete(viewCat, e)} title="Delete" style={{ background: '#fff' }}>🗑️</button>
               <button className="cat-panel-close" onClick={() => { setViewCat(null); setProducts([]); setExpandProd(null); }} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>✕</button>
             </div>
           </div>
