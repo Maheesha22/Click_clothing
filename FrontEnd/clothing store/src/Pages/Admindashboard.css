@@ -797,24 +797,67 @@ input, select, textarea { font-family: inherit; }
 .toggle input:checked + .slider::before     { transform: translateX(18px); }
 
 /* ── RESPONSIVE ─────────────────────────────────────── */
-@media (max-width: 1280px) {
+/* ── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 1024px) {
   .stat-grid    { grid-template-columns: repeat(2, 1fr); }
   .mid-grid     { grid-template-columns: 1fr; }
   .mini-grid    { grid-template-columns: repeat(2, 1fr); }
   .charts-grid  { grid-template-columns: 1fr; }
-  .settings-grid{ grid-template-columns: 1fr; }
 }
+
+@media (max-width: 992px) {
+  :root { --sw: 260px; }
+  
+  .admin-sidebar {
+    left: calc(-1 * var(--sw));
+    width: var(--sw);
+    transition: transform .3s ease, width 0s;
+  }
+  .admin-sidebar.open {
+    transform: translateX(var(--sw));
+  }
+  .admin-sidebar.collapsed {
+    width: var(--sw); /* Don't collapse on mobile, just hide/show */
+  }
+  
+  .main-wrap { margin-left: 0 !important; }
+  .top-hdr { padding: 0 16px; }
+  .h-search { display: none; }
+  
+  .admin-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 290;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .admin-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 @media (max-width: 768px) {
-  .stat-grid    { grid-template-columns: 1fr 1fr; }
-  .pg           { padding: 14px 16px; }
-  .ph           { flex-direction: column; }
-  .f-grid       { grid-template-columns: 1fr; }
-  .toolbar      { flex-direction: column; align-items: stretch; }
-  .h-search     { display: none; }
+  .pg { padding: 16px 14px; }
+  .ph { flex-direction: column; gap: 16px; align-items: stretch; }
+  .ph-title { font-size: 19px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mini-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+  .tb-search { min-width: 100%; }
+  .f-grid { grid-template-columns: 1fr; }
 }
+
 @media (max-width: 480px) {
-  .stat-grid  { grid-template-columns: 1fr; }
-  .mini-grid  { grid-template-columns: 1fr 1fr; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .stat-val { font-size: 20px; }
+  .stat-card { padding: 14px 16px; }
+  .mini-grid { grid-template-columns: 1fr; }
+  .admin-pill .a-name, .admin-pill .a-role { display: none; }
+  .admin-pill { padding: 4px; }
+  .icon-btn { padding: 6px; }
 }
 
 /* ── RETURN FORM MODAL STYLES ───────────────────────── */

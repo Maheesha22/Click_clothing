@@ -1,12 +1,44 @@
-const { Wishlist } = require('../models');
+const { Wishlist, Product, ProductVariant } = require('../models');
 
 // GET /api/wishlist/:userId
 const getWishlist = async (req, res) => {
   try {
     const { userId } = req.params;
-    const items = await Wishlist.findAll({ where: { userId } });
-    res.json(items);
+    const items = await Wishlist.findAll({ 
+      where: { userId },
+      include: [{
+        model: Product,
+        include: [{
+          model: ProductVariant,
+          as: 'variants',
+          attributes: ['imageUrl']
+        }]
+      }]
+    });
+
+    const formattedItems = items.map(item => {
+      const product = item.Product;
+      
+      let imageUrl = null;
+      if (product && product.variants && product.variants.length > 0) {
+        imageUrl = product.variants.find(v => v.imageUrl)?.imageUrl || product.variants[0].imageUrl;
+      }
+
+      return {
+        id: item.id,
+        userId: item.userId,
+        productId: item.productId,
+        productName: product ? product.name : 'Unknown Product',
+        price: product ? product.price : 0,
+        imageUrl: imageUrl,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt
+      };
+    });
+
+    res.json(formattedItems);
   } catch (err) {
+    console.error('Error fetching wishlist:', err);
     res.status(500).json({ message: 'Error fetching wishlist', error: err.message });
   }
 };

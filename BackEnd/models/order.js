@@ -17,12 +17,20 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'orderId',
         as: 'detail'
       });
+
+      Order.belongsTo(models.Customer, {
+        foreignKey: 'userId',
+        targetKey: 'userId',
+        as: 'customer'
+      });
     }
   }
 
   Order.init({
     order_number: DataTypes.STRING,
     userId: DataTypes.INTEGER,
+    customerId: DataTypes.INTEGER,
+
     status: {
       type: DataTypes.STRING,
       defaultValue: 'pending'
@@ -33,7 +41,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(10,2),
       defaultValue: 0
     },
-    total_bill: DataTypes.DECIMAL(10,2)
+    total_bill: DataTypes.DECIMAL(10,2),
+    payment_status: {
+      type: DataTypes.STRING,
+      defaultValue: 'PENDING'
+    }
   }, {
     sequelize,
     modelName: 'Order',

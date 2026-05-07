@@ -17,7 +17,7 @@ function ChartSalesLine() {
           </linearGradient>
         </defs>
         {[15,55,95,130].map(y => <line key={y} x1="40" y1={y} x2="540" y2={y} stroke="#e4e4e4" strokeWidth="1"/>)}
-        {[['$81k',15],['$60k',55],['$40k',95],['$20k',130]].map(([l,y]) =>
+        {[['Rs 81k',15],['Rs 60k',55],['Rs 40k',95],['Rs 20k',130]].map(([l,y]) =>
           <text key={l} x="32" y={y+3} textAnchor="end" fontSize="9" fill="#9a9a9a">{l}</text>)}
         <polygon points={areaPts} fill="url(#grad1)"/>
         <polyline points={polyPts} fill="none" stroke="#111" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
@@ -91,11 +91,11 @@ function ChartPaymentDonut() {
         {/* Failed 1.4% */}
         <circle cx="90" cy="90" r="70" fill="none" stroke="#ef4444" strokeWidth="28"
           strokeDasharray="7 462" strokeDashoffset="-340" strokeLinecap="butt"/>
-        <text x="90" y="85"  textAnchor="middle" fontSize="13" fontWeight="800" fill="#111">$284k</text>
+        <text x="90" y="85"  textAnchor="middle" fontSize="13" fontWeight="800" fill="#111">Rs 284k</text>
         <text x="90" y="101" textAnchor="middle" fontSize="9"  fill="#9a9a9a">Total</text>
       </svg>
       <div className="donut-legend">
-        {[['#111','Paid','$271,440'],['#f59e0b','Pending','$9,480'],['#ef4444','Failed','$4,000']].map(([c,l,v]) => (
+        {[['#111','Paid','Rs 271,440'],['#f59e0b','Pending','Rs 9,480'],['#ef4444','Failed','Rs 4,000']].map(([c,l,v]) => (
           <div key={l} className="donut-item">
             <span className="donut-dot" style={{ background: c }}/>
             <div><div className="donut-lbl">{l}</div><div className="donut-val">{v}</div></div>
@@ -122,7 +122,7 @@ export default function Reports({ toast }) {
           <button key={d} className={`df-btn${df===d?' active':''}`} onClick={()=>{setDf(d);toast('📊','Updating report data…');}}>{d}</button>
         ))}
       </div>
-      <MiniStats items={[['💰','$12,840',"Today's Revenue"],['🛒','94','Orders Today'],['👥','+12','New Customers'],['🔄','3.4%','Return Rate']]}/>
+      <MiniStats items={[['💰','Rs 12,840',"Today's Revenue"],['🛒','94','Orders Today'],['👥','+12','New Customers'],['🔄','3.4%','Return Rate']]}/>
       <div className="charts-grid">
         <div className="admin-card chart-panel">
           <div className="c-hdr"><div><div className="c-title">Sales Over Time</div><div className="c-sub">Monthly revenue trend</div></div></div>

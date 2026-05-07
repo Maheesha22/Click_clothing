@@ -119,6 +119,7 @@ class CartController {
           color: item.color,
           size: item.size,
           quantity: item.quantity,
+          availableVariants: item.Product ? item.Product.variants : [], // Include variants for editing
           createdAt: item.createdAt,
           updatedAt: item.updatedAt
         };
@@ -133,6 +134,41 @@ class CartController {
       return res.status(500).json({ 
         success: false, 
         message: 'Failed to fetch cart items',
+        error: error.message 
+      });
+    }
+  }
+
+  // Update cart item (size, color, quantity)
+  static async updateCartItem(req, res) {
+    try {
+      const { cartId } = req.params;
+      const { size, color, quantity } = req.body;
+
+      const cartItem = await Cart.findByPk(cartId);
+      if (!cartItem) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Cart item not found' 
+        });
+      }
+
+      if (size) cartItem.size = size;
+      if (color) cartItem.color = color;
+      if (quantity !== undefined) cartItem.quantity = quantity;
+
+      await cartItem.save();
+
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Cart item updated successfully',
+        cartItem
+      });
+    } catch (error) {
+      console.error('Error updating cart item:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update cart item',
         error: error.message 
       });
     }

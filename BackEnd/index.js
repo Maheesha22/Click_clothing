@@ -1,10 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors    = require('cors');
+const path  = require('path');
 const app     = express();
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
@@ -40,9 +42,15 @@ app.use("/api/categories", categoryRoutes);                  // ✅ Added
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
+const customerOrderRoutes = require("./routes/customerOrderRoutes");
+const returnRoutes = require("./routes/returnRoutes");
+const adminCustomerRoutes = require("./routes/adminCustomerRoutes");
 
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/bank-details", bankDetailRoutes);
+app.use("/api/customer-orders", customerOrderRoutes);
+app.use("/api/returns", returnRoutes);
+app.use("/api/admin-customers", adminCustomerRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)

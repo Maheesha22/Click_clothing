@@ -78,7 +78,7 @@ export default function AdminDashboard() {
   return (
     <>
       {/* ── SIDEBAR ── */}
-      <aside className={`admin-sidebar${collapsed ? ' collapsed' : ''}`}>
+      <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
           <div className="s-mark">👕</div>
           <div className="s-text">
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
               <div key={item.id}>
                 {divider && <div className="s-div" />}
                 {showGroup && <div className="s-grp"><span className="lbl">{item.group}</span></div>}
-                <button className={`nav-item${active === item.id ? ' active' : ''}`} onClick={() => setActive(item.id)}>
+                <button className={`nav-item${active === item.id ? ' active' : ''}`} onClick={() => { setActive(item.id); window.innerWidth <= 992 && setCollapsed(true); }}>
                   <item.Icon />
                   <span className="lbl">{item.label}</span>
                   {item.badge && <><span className="n-badge lbl">{item.badge}</span><span className="n-dot-nav" /></>}
@@ -108,6 +108,9 @@ export default function AdminDashboard() {
           <Logout />
         </div>
       </aside>
+
+      {/* ── MOBILE BACKDROP ── */}
+      <div className={`admin-backdrop${!collapsed ? ' show' : ''}`} onClick={() => setCollapsed(true)} />
 
       {/* ── MAIN ── */}
       <div className={`main-wrap${collapsed ? ' collapsed' : ''}`}>
