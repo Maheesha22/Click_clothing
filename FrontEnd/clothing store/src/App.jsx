@@ -26,30 +26,6 @@ import Settings from "./Pages/userpages/Settings";
 import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
 
 // Component to handle redirection after login (e.g., for Buy It Now)
-const RedirectHandler = () => { 
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  React.useEffect(() => {
-    const user = sessionStorage.getItem('user');
-    const pendingBuyNow = sessionStorage.getItem('pendingBuyNow');
-
-    if (user && pendingBuyNow) {
-      try {
-        const data = JSON.parse(pendingBuyNow);
-        sessionStorage.removeItem('pendingBuyNow');
-        navigate('/checkout', { state: data });
-      } catch (error) {
-        console.error("Error parsing pendingBuyNow:", error);
-        sessionStorage.removeItem('pendingBuyNow');
-      }
-    }
-  }, [navigate, location.pathname]);
-
-  return null;
-};
-
-// Component to handle redirection after login (e.g., for Buy It Now)
 const RedirectHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
