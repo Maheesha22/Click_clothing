@@ -59,7 +59,10 @@ const AlertIcon = () => (
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedItems = [], subtotal: cartSubtotal = 0 } = location.state || {};
+  
+  // Use state for items so we can clear them after confirmation
+  const [selectedItems, setSelectedItems] = useState(location.state?.selectedItems || []);
+  const [cartSubtotal, setCartSubtotal] = useState(location.state?.subtotal || 0);
   const [form, setForm] = useState({
     email: "",
     offers: false,
@@ -342,6 +345,10 @@ export default function CheckoutPage() {
           detail: { purchasedItems: selectedItems } 
         }));
         
+        // Clear order summary
+        setSelectedItems([]);
+        setCartSubtotal(0);
+        
         setTimeout(() => setToast(false), 3500);
       } else {
         setFormError(data.message || "Error placing order. Please try again.");
@@ -393,12 +400,12 @@ export default function CheckoutPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [form, phoneState]);
 
-  // Redirect if no items selected
+  // Redirect if no items selected (only if not showing order confirmation)
   useEffect(() => {
-    if (selectedItems.length === 0) {
+    if (selectedItems.length === 0 && !showPopup) {
       navigate('/cart');
     }
-  }, [selectedItems, navigate]);
+  }, [selectedItems, navigate, showPopup]);
 
   // ── Input focus style helpers ───────────────────────────────────────────────
   const focusStyle = { borderColor: "#c9a882", background: "#fff", boxShadow: "0 0 0 3px rgba(201,168,130,0.12)" };
@@ -727,7 +734,10 @@ export default function CheckoutPage() {
       {showPopup && orderData && (
         <OrderConfirmationPopup 
           orderDetails={orderData}
-          onClose={() => setShowPopup(false)}
+          onClose={() => {
+            setShowPopup(false);
+            navigate('/'); // Go back to home after order
+          }}
         />
       )}
 
