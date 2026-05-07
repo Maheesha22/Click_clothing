@@ -326,7 +326,7 @@ export default function Cart() {
               <div className="empty-cart-message" style={{ textAlign: 'center', padding: '50px' }}>
                 <p>Your cart is empty!</p>
                 <button 
-                  onClick={() => navigate('/trousers')} 
+                  onClick={() => navigate('/')} 
                   style={{ 
                     padding: '10px 20px', 
                     cursor: 'pointer',
