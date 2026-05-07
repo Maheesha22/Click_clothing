@@ -133,7 +133,7 @@ const createOrder = async (req, res) => {
       status: 'pending',
       payment_method: paymentMethod,
       payment_status: 'PENDING',
-      payment_slip: req.file ? req.file.originalname : null, // Store filename or handle upload to cloud/disk
+      payment_slip: req.file ? req.file.path : null, // Cloudinary URL
       delivery_charges: parseFloat(shippingCost || 400),
       total_bill: totalBill
     });
