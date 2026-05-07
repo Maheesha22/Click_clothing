@@ -388,7 +388,7 @@ export default function Categories({ toast }) {
               </div>
             ) : products.map(prod => {
               const isOpen = expandProd === prod.id;
-              const sb = qtyBadge(prod.total_quantity);
+              const sb = qtyBadge(prod.quantity);
               const byColor = (prod.variants || []).reduce((acc, v) => {
                 const k = v.color || 'Universal';
                 if (!acc[k]) acc[k] = [];
