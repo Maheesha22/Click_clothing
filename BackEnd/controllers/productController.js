@@ -81,9 +81,26 @@ exports.createProduct = async (req, res) => {
 /* ─── GET /api/products ───────────────────────────────────── */
 exports.getAllProducts = async (req, res) => {
   try {
+    const { category, categoryId } = req.query;
+    let whereClause = {};
+
+    if (categoryId) {
+      whereClause.categoryId = categoryId;
+    } else if (category) {
+      const cat = await Category.findOne({ where: { name: category } });
+      if (cat) {
+        whereClause.categoryId = cat.id;
+      } else {
+        // Category name not found, return empty list
+        return res.json({ success: true, data: [] });
+      }
+    }
+
     const products = await Product.findAll({
+      where: whereClause,
       attributes: ['id', 'name', 'description', 'price', 'categoryId', 'createdAt', 'updatedAt'],
     });
+
     const categories = await Category.findAll({ attributes: ['id', 'name'] });
     const categoryMap = Object.fromEntries(categories.map(c => [c.id, c.name]));
 
@@ -102,11 +119,13 @@ exports.getAllProducts = async (req, res) => {
       let totalQty = 0;
       let firstImage = null;
       const colorsSet = new Set();
+      const sizesSet = new Set();
 
       productVariants.forEach(v => {
         totalQty += v.quantity;
         if (!firstImage && v.imageUrl) firstImage = v.imageUrl;
         if (v.color) colorsSet.add(v.color);
+        if (v.size) sizesSet.add(v.size);
       });
 
       return {
@@ -123,6 +142,7 @@ exports.getAllProducts = async (req, res) => {
           name: categoryMap[product.categoryId] || 'Uncategorized',
         },
         color: Array.from(colorsSet).join(', ') || '—',
+        size: Array.from(sizesSet).join(', ') || '—',
         variant_count: productVariants.length,
       };
     });
@@ -227,7 +247,7 @@ exports.bulkCreateProducts = async (req, res) => {
 exports.getProductsByCategory = async (req, res) => {
   try {
     const categoryId = parseInt(req.params.category, 10);
-    
+
     if (isNaN(categoryId)) {
       return res.status(400).json({ success: false, message: 'Invalid category ID' });
     }
@@ -258,22 +278,35 @@ exports.getProductsByCategory = async (req, res) => {
     });
 
     if (products.length === 0) {
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: `No products found in category: ${category.name}`,
         data: [],
         category: { id: category.id, name: category.name }
       });
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       data: products,
       category: { id: category.id, name: category.name },
       totalProducts: products.length
     });
   } catch (error) {
     console.error('Get products by category error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/* ─── GET /api/products/:id/variants ─────────────────────── */
+exports.getProductVariants = async (req, res) => {
+  try {
+    const variants = await ProductVariant.findAll({
+      where: { productId: req.params.id },
+      attributes: ['id', 'color', 'size', 'quantity', 'imageUrl']
+    });
+    res.json({ success: true, data: variants });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
