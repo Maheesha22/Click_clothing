@@ -16,7 +16,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MiniStats, Badge } from './shared';
 
-const API = 'http://localhost:3000/api/categories';
+const API_BASE = 'http://localhost:3000/api';
+const CAT_API = `${API_BASE}/categories`;
+const PROD_API = `${API_BASE}/products`;
 const fmt = v => `RS ${parseFloat(v || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
 
 const Spinner = () => (
@@ -70,25 +72,26 @@ export default function Categories({ toast }) {
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(API);
+      const res = await fetch(CAT_API);
       const d   = await res.json();
       if (d.success) setCategories(d.data);
       else toast('⚠️', d.message || 'Could not load categories');
     } catch { toast('⚠️', 'Backend not reachable on port 3000'); }
     finally   { setLoading(false); }
-  }, []);
+  }, [toast]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
   const openAdd = () => { setEditTarget(null); setFormName(''); setFormModal(true); };
   const openEdit = (cat, e) => { e.stopPropagation(); setEditTarget(cat); setFormName(cat.name); setFormModal(true); };
+  const openDelete = (cat, e) => { e.stopPropagation(); setDelTarget(cat); };
 
   const saveCategory = async () => {
     const name = formName.trim();
     if (!name) return toast('⚠️', 'Category name cannot be empty');
     setFormSaving(true);
     try {
-      const res  = await fetch(editTarget ? `${API}/${editTarget.id}` : API, {
+      const res  = await fetch(editTarget ? `${CAT_API}/${editTarget.id}` : CAT_API, {
         method:  editTarget ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ name }),
@@ -106,7 +109,7 @@ export default function Categories({ toast }) {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`${API}/${delTarget.id}`, { method:'DELETE' });
+      const res = await fetch(`${CAT_API}/${delTarget.id}`, { method:'DELETE' });
       const d   = await res.json();
       if (d.success) {
         toast('🗑️', 'Category deleted');
@@ -122,15 +125,46 @@ export default function Categories({ toast }) {
     if (viewCat?.id === cat.id) { setViewCat(null); setProducts([]); setExpandProd(null); return; }
     setViewCat(cat); setProducts([]); setExpandProd(null); setLoadProds(true);
     try {
-      const res = await fetch(`${API}/${cat.id}/products`);
+      // Use the required endpoint: GET /api/products?categoryId=ID
+      const res = await fetch(`${PROD_API}?categoryId=${cat.id}`);
       const d   = await res.json();
-      if (d.success) setProducts(d.data);
-      else toast('⚠️', d.message || 'Could not load products');
+      if (d.success) {
+        // Requirements say display product name, price, description
+        setProducts(d.data);
+      } else toast('⚠️', d.message || 'Could not load products');
     } catch { toast('⚠️', 'Network error'); }
     finally { setLoadProds(false); }
   };
 
-  const totalProducts = categories.reduce((s, c) => s + c.productCount, 0);
+  const toggleProductVariants = async (prodId) => {
+    if (expandProd === prodId) {
+      setExpandProd(null);
+      return;
+    }
+
+    // Check if we already have variants for this product
+    const product = products.find(p => p.id === prodId);
+    if (product && product.variantsLoaded) {
+      setExpandProd(prodId);
+      return;
+    }
+
+    // Fetch variants: GET /api/products/:id/variants
+    try {
+      const res = await fetch(`${PROD_API}/${prodId}/variants`);
+      const d   = await res.json();
+      if (d.success) {
+        setProducts(prev => prev.map(p => 
+          p.id === prodId ? { ...p, variants: d.data, variantsLoaded: true } : p
+        ));
+        setExpandProd(prodId);
+      } else {
+        toast('⚠️', d.message || 'Could not load variants');
+      }
+    } catch {
+      toast('⚠️', 'Network error fetching variants');
+    }
+  };
 
   return (
     <div className="view">
@@ -139,60 +173,51 @@ export default function Categories({ toast }) {
         @keyframes cat-fade { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
         @keyframes cat-scale { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
 
-        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; margin-bottom:40px; }
-
+        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:24px; margin-bottom:40px; }
+        
         .cat-card {
-          border-radius:24px; border:1px solid rgba(0,0,0,0.1); padding:28px; cursor:pointer;
-          transition:all .3s cubic-bezier(.175,.885,.32,1.275);
+          border-radius:24px; border:1px solid rgba(0,0,0,0.06); padding:24px; cursor:pointer;
+          transition:all .4s cubic-bezier(0.4, 0, 0.2, 1);
           animation:cat-fade .3s ease both;
           position:relative; overflow:hidden;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02), inset 0 0 0 1px rgba(255,255,255,0.6);
           display:flex; flex-direction:column;
+          min-height:180px; justify-content:space-between;
+          background:#fff;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
-        .cat-card:hover { transform:translateY(-8px); box-shadow:0 24px 48px rgba(0,0,0,0.08); }
-        .cat-card.active { box-shadow:0 0 0 2px #000, 0 12px 32px rgba(0,0,0,0.1); border-color:transparent; }
+        .cat-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,0.08); border-color:rgba(0,0,0,0.1); }
+        .cat-card.active { box-shadow:0 0 0 2px #000; border-color:transparent; }
 
-        .cat-card-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; z-index:1; }
-        .cat-card-ico { 
-          width:54px;height:54px;border-radius:16px;background:#fff;
-          display:flex;align-items:center;justify-content:center;
-          font-size:24px;box-shadow:0 8px 16px rgba(0,0,0,0.04);
-          transition: transform 0.3s ease;
-        }
-        .cat-card:hover .cat-card-ico { transform: scale(1.1) rotate(5deg); }
-
-        .cat-card-btns { display:flex;gap:6px;opacity:0;transition:all .2s; transform: translateY(4px); }
+        .cat-card-top { display:flex; justify-content:space-between; align-items:flex-start; z-index:1; }
+        
+        .cat-card-btns { display:flex;gap:8px;opacity:0;transition:all .2s; transform: translateY(4px); }
         .cat-card:hover .cat-card-btns { opacity:1; transform: translateY(0); }
         
         .cat-btn { 
-          width:32px;height:32px;border-radius:10px;border:none;
-          background:rgba(255,255,255,0.9);backdrop-filter:blur(4px);
+          width:36px;height:36px;border-radius:12px;border:none;
+          background:rgba(255,255,255,0.8);backdrop-filter:blur(8px);
           display:flex;align-items:center;justify-content:center;
-          cursor:pointer;font-size:14px;box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          cursor:pointer;font-size:16px;box-shadow: 0 2px 10px rgba(0,0,0,0.05);
           transition: all 0.2s;
         }
-        .cat-btn:hover { transform: scale(1.15); background:#fff; }
+        .cat-btn:hover { transform: scale(1.1); background:#fff; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
         .cat-btn-del:hover { background:#fee2e2; color:#ef4444; }
 
-        .cat-name { font-size:20px;font-weight:900;color:#000;letter-spacing:-.03em;margin-bottom:4px; z-index:1; }
-        .cat-id   { font-size:12px;font-weight:600;color:rgba(0,0,0,0.4);margin-bottom:20px; text-transform:uppercase; letter-spacing:0.05em; z-index:1; }
+        .cat-name { font-size:20px;font-weight:900;color:#000;letter-spacing:-.03em; line-height:1.2; z-index:1; }
+        .cat-count { font-size:12px; font-weight:700; color:rgba(0,0,0,0.4); text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; }
 
-        .cat-stats { display:flex;gap:10px; z-index:1; }
-        .cat-stat  { flex:1;background:rgba(255,255,255,0.5);backdrop-filter:blur(10px);border-radius:14px;padding:12px 8px;text-align:center;border:1px solid rgba(255,255,255,0.4); transition:all 0.3s; }
-        .cat-card:hover .cat-stat { background:rgba(255,255,255,0.8); }
-        .cat-stat-n { font-size:22px;font-weight:900;letter-spacing:-.04em; color:#000; }
-        .cat-stat-l { font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:rgba(0,0,0,0.5);margin-top:4px; }
-
-        .cat-foot  { display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.1); z-index:1; }
-        .cat-hint  { font-size:12px;font-weight:800;color:#000; text-transform:uppercase; letter-spacing:0.02em; }
+        .cat-foot  { display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(0,0,0,0.05); z-index:1; }
+        .cat-hint  { font-size:11px;font-weight:800;color:#000; text-transform:uppercase; letter-spacing:0.04em; opacity:0.4; transition:opacity 0.2s; }
+        .cat-card:hover .cat-hint { opacity:1; }
 
         .cat-add-card {
-          border-radius:24px;border:2px dashed rgba(0,0,0,0.1);padding:28px;cursor:pointer;
-          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-          min-height:180px;transition:all .3s;color:rgba(0,0,0,0.4);background:rgba(0,0,0,0.01);
+          border-radius:24px;border:2px dashed rgba(0,0,0,0.1);padding:24px;cursor:pointer;
+          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+          min-height:180px;transition:all .4s;color:rgba(0,0,0,0.3);background:rgba(0,0,0,0.01);
+          text-align:center;
         }
-        .cat-add-card:hover { border-color:#000;background:#000;color:#fff;transform:translateY(-8px);box-shadow:0 24px 48px rgba(0,0,0,0.1); }
-        .cat-add-card span:first-child { font-size:32px; transition: transform 0.3s; }
+        .cat-add-card:hover { border-color:#000;background:#000;color:#fff;transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.1); }
+        .cat-add-card span:first-child { font-size:36px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .cat-add-card:hover span:first-child { transform: scale(1.2) rotate(90deg); }
 
         /* ── Product panel ── */
@@ -203,22 +228,49 @@ export default function Categories({ toast }) {
         .cat-panel-close { background:#f1f5f9;border:none;cursor:pointer;color:#000;font-size:14px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center; transition:all 0.2s; }
         .cat-panel-close:hover { background:#000;color:#fff; transform:rotate(90deg); }
 
-        /* product row */
-        .cat-prow { display:flex;align-items:center;gap:18px;padding:16px 24px;border-bottom:1px solid rgba(0,0,0,0.1);cursor:pointer;transition:all .2s; position:relative; }
-        .cat-prow:hover { background:#fafafa; padding-left:32px; }
-        .cat-prow.open  { background:#fcfcfc; }
-        .cat-prow.open::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#000; }
+        /* product row - Refined for Professional Look */
+        .cat-prow { 
+          display:flex; align-items:center; gap:20px; padding:20px 24px; 
+          border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; 
+          transition:all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+          position:relative; background: #fff;
+        }
+        .cat-prow:hover { background:#f9fafb; }
+        .cat-prow.open { background:#fff; }
+        .cat-prow.open::before { 
+          content:''; position:absolute; left:0; top:0; bottom:0; width:4px; 
+          background:#000; transition: all 0.3s;
+        }
         .cat-prow:last-of-type { border-bottom:none; }
 
-        .cat-pthumb { width:56px;height:56px;border-radius:14px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0; border:1px solid rgba(0,0,0,0.1); }
-        .cat-pthumb img { width:100%;height:100%;object-fit:cover; }
-        .cat-pinfo  { flex:1;min-width:0; }
-        .cat-pname  { font-size:15px;font-weight:800;color:#000; letter-spacing:-.02em; }
-        .cat-pprice { font-size:14px;color:rgba(0,0,0,0.6);font-weight:700;margin-top:2px; }
-        .cat-pmeta  { font-size:12px;color:rgba(0,0,0,0.4);font-weight:600;margin-top:2px; }
-        .cat-pstock { padding:5px 12px;border-radius:10px;font-size:11px;font-weight:800;flex-shrink:0; text-transform:uppercase; letter-spacing:0.04em; }
-        .cat-parrow { color:rgba(0,0,0,0.1);font-size:14px;transition:transform .3s cubic-bezier(.175,.885,.32,1.275); }
-        .cat-prow.open .cat-parrow { transform:rotate(90deg); color:#000; }
+        .cat-pthumb { 
+          width:64px; height:64px; border-radius:12px; background:#f3f4f6; 
+          display:flex; align-items:center; justify-content:center; 
+          font-size:24px; overflow:hidden; flex-shrink:0; 
+          border:1px solid rgba(0,0,0,0.05);
+          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .cat-pthumb img { width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease; }
+        .cat-prow:hover .cat-pthumb img { transform: scale(1.1); }
+        
+        .cat-pinfo { flex:1; min-width:0; display: flex; flex-direction: column; gap: 2px; }
+        .cat-pname { font-size:16px; font-weight:700; color:#111827; letter-spacing:-0.01em; }
+        .cat-pprice { font-size:15px; color:#111827; font-weight:800; letter-spacing: -0.02em; }
+        .cat-pmeta { font-size:12px; color:#6b7280; font-weight:500; margin-top:6px; display: flex; align-items: center; gap: 8px; }
+        
+        .cat-pstock { 
+          padding:6px 14px; border-radius:10px; font-size:11px; font-weight:800; 
+          flex-shrink:0; text-transform:uppercase; letter-spacing:0.06em;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          border: 1px solid rgba(0,0,0,0.03);
+        }
+        .cat-parrow { 
+          color:#d1d5db; font-size:14px; transition:all .3s ease; 
+          background: #f9fafb; width: 32px; height: 32px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .cat-prow:hover .cat-parrow { color:#000; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateX(4px); }
+        .cat-prow.open .cat-parrow { transform:rotate(90deg); color:#fff; background: #000; }
 
         /* variants */
         .cat-var-wrap { background:#fcfcfc;border-bottom:1px solid rgba(0,0,0,0.1);padding:20px 24px 24px 98px;animation:cat-fade .3s ease; }
@@ -276,28 +328,34 @@ export default function Categories({ toast }) {
                 className={`cat-card${active ? ' active' : ''}`}
                 style={{ 
                   background: `linear-gradient(135deg, ${pal.bg} 0%, #fff 100%)`, 
-                  borderColor: active ? '#000' : pal.border, 
                   animationDelay:`${i*0.04}s`,
-                  padding: '16px 20px',
-                  minHeight: 'auto'
                 }}
                 onClick={() => openProducts(cat)}
               >
-                <div className="cat-card-top" style={{ marginBottom: 12 }}>
-                  <div className="cat-name" style={{ fontSize: 16, margin: 0 }}>{cat.name}</div>
+                <div className="cat-card-top">
+                  <div>
+                    <div className="cat-name">{cat.name}</div>
+                    <div className="cat-count">{cat.productCount || 0} Products</div>
+                  </div>
                   <div className="cat-card-btns" style={{ opacity: 1, transform: 'none' }}>
                     <button className="cat-btn" onClick={e => openEdit(cat, e)} title="Rename">✏️</button>
+                    <button className="cat-btn cat-btn-del" onClick={e => openDelete(cat, e)} title="Delete">🗑️</button>
                   </div>
                 </div>
 
-                <div className="cat-foot" style={{ marginTop: 8, paddingTop: 10 }}>
-                  <span className="cat-hint" style={{ fontSize: 11 }}>{active ? 'Close' : 'Preview'}</span>
+                <div className="cat-foot">
+                  <span className="cat-hint">{active ? 'Close Details' : 'View Collection'}</span>
+                  <div style={{ width:8, height:8, borderRadius:'50%', background:pal.dot, opacity: active ? 1 : 0.3 }} />
                 </div>
               </div>
             );
           })}
 
-          {/* Add card removed as requested */}
+          {/* Add Category Card */}
+          <div className="cat-add-card" onClick={openAdd}>
+            <span>＋</span>
+            <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Add Category</span>
+          </div>
         </div>
       )}
 
@@ -313,6 +371,7 @@ export default function Categories({ toast }) {
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button className="cat-btn" onClick={e => openEdit(viewCat, e)} title="Rename" style={{ background: '#fff', color: '#000' }}>✏️</button>
+              <button className="cat-btn cat-btn-del" onClick={e => openDelete(viewCat, e)} title="Delete" style={{ background: '#fff' }}>🗑️</button>
               <button className="cat-panel-close" onClick={() => { setViewCat(null); setProducts([]); setExpandProd(null); }} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>✕</button>
             </div>
           </div>
@@ -326,7 +385,7 @@ export default function Categories({ toast }) {
               </div>
             ) : products.map(prod => {
               const isOpen = expandProd === prod.id;
-              const sb = qtyBadge(prod.total_quantity);
+              const sb = qtyBadge(prod.quantity);
               const byColor = (prod.variants || []).reduce((acc, v) => {
                 const k = v.color || 'Universal';
                 if (!acc[k]) acc[k] = [];
@@ -338,7 +397,7 @@ export default function Categories({ toast }) {
                 <div key={prod.id} style={{ borderBottom:'1px solid rgba(0,0,0,0.1)' }}>
                   <div
                     className={`cat-prow${isOpen ? ' open' : ''}`}
-                    onClick={() => setExpandProd(isOpen ? null : prod.id)}
+                    onClick={() => toggleProductVariants(prod.id)}
                   >
                     <div className="cat-pthumb">
                       {prod.image_url ? <img src={prod.image_url} alt={prod.product_name} /> : '👕'}
@@ -347,12 +406,19 @@ export default function Categories({ toast }) {
                       <div className="cat-pname">{prod.product_name}</div>
                       <div className="cat-pprice">{fmt(prod.price)}</div>
                       <div className="cat-pmeta">
-                        {(prod.variants?.length || 0)} SKUs
-                        {prod.colors?.length > 0 && ` · ${prod.colors.join(', ')}`}
+                        {prod.variant_count > 0 && (
+                          <span>📦 {prod.variant_count} {prod.variant_count === 1 ? 'variant' : 'variants'}</span>
+                        )}
+                        {prod.variant_count > 0 && prod.color && (
+                          <><span>·</span><span>🎨 {prod.color}</span></>
+                        )}
+                        {prod.variant_count === 0 && (
+                          <span style={{ color: '#ef4444', fontWeight: 600 }}>⚠️ No inventory variants defined</span>
+                        )}
                       </div>
                     </div>
                     <span className="cat-pstock" style={{ background:sb.bg, color:sb.color }}>
-                      Stock: {prod.total_quantity}
+                      {sb.label}
                     </span>
                     <span className="cat-parrow">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -363,7 +429,7 @@ export default function Categories({ toast }) {
                     <div className="cat-var-wrap">
                       <div className="cat-var-title">Inventory Breakdown</div>
                       {!prod.variants?.length ? (
-                        <div style={{ color:'rgba(0,0,0,0.3)', fontSize:13, fontWeight:600 }}>No SKU data available.</div>
+                        <div style={{ color:'rgba(0,0,0,0.3)', fontSize:13, fontWeight:600 }}>No units data available.</div>
                       ) : Object.entries(byColor).map(([color, sizes]) => {
                         const el = document.createElement('div');
                         el.style.color = color.toLowerCase();
@@ -374,7 +440,7 @@ export default function Categories({ toast }) {
                               <span className="cat-cdot" style={{ background:dotBg }} />
                               {color}
                               <span style={{ fontSize:11, color:'rgba(0,0,0,0.3)', fontWeight:700 }}>
-                                ({sizes.reduce((s,v) => s+(v.quantity||0), 0)} PCS)
+                                ({sizes.reduce((s,v) => s+(v.quantity||0), 0)} units)
                               </span>
                             </div>
                             <div className="cat-sizes">

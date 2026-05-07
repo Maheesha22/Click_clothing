@@ -1,25 +1,96 @@
+// routes/productRoutes.js
+
 const express = require('express');
 const router = express.Router();
+
 const upload = require('../config/multer');
-const ctrl = require('../controllers/productController');
+const productController = require('../controllers/productController');
 
-router.post('/upload-image', upload.single('image'), ctrl.uploadImage);
-router.post('/bulk', ctrl.bulkCreateProducts);
-router.get('/categories/all', ctrl.getAllCategories);
-router.get('/category/:category', ctrl.getProductsByCategory);
+/* ─────────────────────────────────────────
+   IMAGE UPLOAD
+───────────────────────────────────────── */
+router.post(
+  '/upload-image',
+  upload.single('image'),
+  productController.uploadImage
+);
 
-router.route('/')
-  .get(ctrl.getAllProducts)
-  .post(ctrl.createProduct);
+/* ─────────────────────────────────────────
+   CATEGORIES
+───────────────────────────────────────── */
+router.get(
+  '/categories/all',
+  productController.getAllCategories
+);
 
-router.route('/:id')
-  .get(ctrl.getProductById)
-  .put(ctrl.updateProduct)
-  .delete(ctrl.deleteProduct);
+/* ─────────────────────────────────────────
+   PRODUCTS
+───────────────────────────────────────── */
 
-router.get('/:id/variants', ctrl.getProductVariants);
+// Create product
+router.post(
+  '/',
+  productController.createProduct
+);
 
-router.patch('/:id/availability', ctrl.updateAvailability);
-router.patch('/:id/quantity', ctrl.updateQuantity);
+// Get all products
+router.get(
+  '/',
+  productController.getAllProducts
+);
+
+// Bulk create
+router.post(
+  '/bulk',
+  productController.bulkCreateProducts
+);
+
+// Get products by category
+router.get(
+  '/category/:category',
+  productController.getProductsByCategory
+);
+
+// Get single product
+router.get(
+  '/:id',
+  productController.getProductById
+);
+
+// Update product
+router.put(
+  '/:id',
+  productController.updateProduct
+);
+
+// Delete product
+router.delete(
+  '/:id',
+  productController.deleteProduct
+);
+
+/* ─────────────────────────────────────────
+   PRODUCT VARIANTS
+───────────────────────────────────────── */
+
+// Get variants of product
+router.get(
+  '/:id/variants',
+  productController.getProductVariants
+);
+
+/* ─────────────────────────────────────────
+   AVAILABILITY & QUANTITY
+───────────────────────────────────────── */
+
+router.patch(
+  '/:id/availability',
+  productController.updateAvailability
+);
+
+router.patch(
+  '/:id/quantity',
+  productController.updateQuantity
+);
 
 module.exports = router;

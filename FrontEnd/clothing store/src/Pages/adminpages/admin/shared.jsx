@@ -38,36 +38,36 @@ export const INIT_CATEGORIES = [
 ];
 
 export const ORDERS_DATA = [
-  { id:'#ORD-7821', ini:'SL', cust:'Sophie Laurent',  prod:'Floral Maxi Dress',    oSt:'Delivered',  pSt:'Paid',    total:'$89.99'  },
-  { id:'#ORD-7820', ini:'MC', cust:'Marcus Chen',     prod:'Slim Fit Chinos',       oSt:'Processing', pSt:'Pending', total:'$64.50'  },
-  { id:'#ORD-7819', ini:'AP', cust:'Aisha Patel',     prod:'Oversized Blazer',      oSt:'Shipped',    pSt:'Paid',    total:'$129.00' },
-  { id:'#ORD-7818', ini:'TE', cust:'Tom Eriksen',     prod:'Graphic Tee Bundle',    oSt:'Pending',    pSt:'Pending', total:'$45.00'  },
-  { id:'#ORD-7817', ini:'ZW', cust:'Zara Williams',   prod:'High-Waist Jeans',      oSt:'Delivered',  pSt:'Paid',    total:'$78.00'  },
-  { id:'#ORD-7816', ini:'LO', cust:'Liam Ortega',     prod:'Linen Summer Shirt',    oSt:'Cancelled',  pSt:'Failed',  total:'$52.00'  },
-  { id:'#ORD-7815', ini:'NR', cust:'Nina Russo',      prod:'Wool Coat',             oSt:'Delivered',  pSt:'Paid',    total:'$199.00' },
-  { id:'#ORD-7814', ini:'JP', cust:'James Park',      prod:'Knit Cardigan',         oSt:'Processing', pSt:'Pending', total:'$69.00'  },
-  { id:'#ORD-7813', ini:'EK', cust:'Elena Kim',       prod:'Leather Loafers',       oSt:'Shipped',    pSt:'Paid',    total:'$89.99'  },
-  { id:'#ORD-7812', ini:'BT', cust:'Ben Torres',      prod:'Classic White T-Shirt', oSt:'Pending',    pSt:'Pending', total:'$24.99'  },
+  { id:'#ORD-7821', ini:'SL', cust:'Sophie Laurent',  prod:'Floral Maxi Dress',    oSt:'Delivered',  pSt:'Paid',    total:'Rs 89.99'  },
+  { id:'#ORD-7820', ini:'MC', cust:'Marcus Chen',     prod:'Slim Fit Chinos',       oSt:'Processing', pSt:'Pending', total:'Rs 64.50'  },
+  { id:'#ORD-7819', ini:'AP', cust:'Aisha Patel',     prod:'Oversized Blazer',      oSt:'Shipped',    pSt:'Paid',    total:'Rs 129.00' },
+  { id:'#ORD-7818', ini:'TE', cust:'Tom Eriksen',     prod:'Graphic Tee Bundle',    oSt:'Pending',    pSt:'Pending', total:'Rs 45.00'  },
+  { id:'#ORD-7817', ini:'ZW', cust:'Zara Williams',   prod:'High-Waist Jeans',      oSt:'Delivered',  pSt:'Paid',    total:'Rs 78.00'  },
+  { id:'#ORD-7816', ini:'LO', cust:'Liam Ortega',     prod:'Linen Summer Shirt',    oSt:'Cancelled',  pSt:'Failed',  total:'Rs 52.00'  },
+  { id:'#ORD-7815', ini:'NR', cust:'Nina Russo',      prod:'Wool Coat',             oSt:'Delivered',  pSt:'Paid',    total:'Rs 199.00' },
+  { id:'#ORD-7814', ini:'JP', cust:'James Park',      prod:'Knit Cardigan',         oSt:'Processing', pSt:'Pending', total:'Rs 69.00'  },
+  { id:'#ORD-7813', ini:'EK', cust:'Elena Kim',       prod:'Leather Loafers',       oSt:'Shipped',    pSt:'Paid',    total:'Rs 89.99'  },
+  { id:'#ORD-7812', ini:'BT', cust:'Ben Torres',      prod:'Classic White T-Shirt', oSt:'Pending',    pSt:'Pending', total:'Rs 24.99'  },
 ];
 
 export const CUSTOMERS_DATA = [
-  { ini:'SL', name:'Sophie Laurent', id:'CUST-001', email:'sophie@email.com',  orders:14, spent:'$1,240.00', joined:'Jan 2025', status:'Active'   },
-  { ini:'MC', name:'Marcus Chen',    id:'CUST-002', email:'marcus@email.com',  orders:8,  spent:'$876.50',   joined:'Mar 2025', status:'Active'   },
-  { ini:'AP', name:'Aisha Patel',    id:'CUST-003', email:'aisha@email.com',   orders:22, spent:'$3,102.00', joined:'Nov 2024', status:'Active'   },
-  { ini:'TE', name:'Tom Eriksen',    id:'CUST-004', email:'tom@email.com',     orders:3,  spent:'$145.00',   joined:'Feb 2026', status:'Inactive' },
-  { ini:'ZW', name:'Zara Williams',  id:'CUST-005', email:'zara@email.com',    orders:11, spent:'$982.00',   joined:'Jun 2025', status:'Active'   },
-  { ini:'LO', name:'Liam Ortega',    id:'CUST-006', email:'liam@email.com',    orders:7,  spent:'$563.00',   joined:'Sep 2025', status:'Active'   },
-  { ini:'NR', name:'Nina Russo',     id:'CUST-007', email:'nina@email.com',    orders:19, spent:'$2,447.00', joined:'Aug 2024', status:'Active'   },
+  { ini:'SL', name:'Sophie Laurent', id:'CUST-001', email:'sophie@email.com',  orders:14, spent:'Rs 1,240.00', joined:'Jan 2025', status:'Active'   },
+  { ini:'MC', name:'Marcus Chen',    id:'CUST-002', email:'marcus@email.com',  orders:8,  spent:'Rs 876.50',   joined:'Mar 2025', status:'Active'   },
+  { ini:'AP', name:'Aisha Patel',    id:'CUST-003', email:'aisha@email.com',   orders:22, spent:'Rs 3,102.00', joined:'Nov 2024', status:'Active'   },
+  { ini:'TE', name:'Tom Eriksen',    id:'CUST-004', email:'tom@email.com',     orders:3,  spent:'Rs 145.00',   joined:'Feb 2026', status:'Inactive' },
+  { ini:'ZW', name:'Zara Williams',  id:'CUST-005', email:'zara@email.com',    orders:11, spent:'Rs 982.00',   joined:'Jun 2025', status:'Active'   },
+  { ini:'LO', name:'Liam Ortega',    id:'CUST-006', email:'liam@email.com',    orders:7,  spent:'Rs 563.00',   joined:'Sep 2025', status:'Active'   },
+  { ini:'NR', name:'Nina Russo',     id:'CUST-007', email:'nina@email.com',    orders:19, spent:'Rs 2,447.00', joined:'Aug 2024', status:'Active'   },
 ];
 
 export const TRANSACTIONS = [
-  { id:'PAY-9001', ini:'SL', cust:'Sophie Laurent', order:'#ORD-7821', amount:'$89.99',  method:' COD',     status:'Paid',    date:'10 Mar 2026' },
-  { id:'PAY-9002', ini:'MC', cust:'Marcus Chen',    order:'#ORD-7820', amount:'$64.50',  method:' COD',     status:'Pending', date:'10 Mar 2026' },
-  { id:'PAY-9003', ini:'AP', cust:'Aisha Patel',    order:'#ORD-7819', amount:'$129.00', method:' COD',     status:'Paid',    date:'9 Mar 2026'  },
-  { id:'PAY-9004', ini:'TE', cust:'Tom Eriksen',    order:'#ORD-7818', amount:'$45.00',  method:' COD',     status:'Pending', date:'9 Mar 2026'  },
-  { id:'PAY-9005', ini:'ZW', cust:'Zara Williams',  order:'#ORD-7817', amount:'$78.00',  method:' COD',     status:'Paid',    date:'8 Mar 2026'  },
-  { id:'PAY-9006', ini:'LO', cust:'Liam Ortega',    order:'#ORD-7816', amount:'$52.00',  method:' COD',     status:'Failed',  date:'8 Mar 2026'  },
-  { id:'PAY-9007', ini:'NR', cust:'Nina Russo',     order:'#ORD-7815', amount:'$199.00', method:' COD',     status:'Paid',    date:'7 Mar 2026'  },
+  { id:'PAY-9001', ini:'SL', cust:'Sophie Laurent', order:'#ORD-7821', amount:'Rs 89.99',  method:' COD',     status:'Paid',    date:'10 Mar 2026' },
+  { id:'PAY-9002', ini:'MC', cust:'Marcus Chen',    order:'#ORD-7820', amount:'Rs 64.50',  method:' COD',     status:'Pending', date:'10 Mar 2026' },
+  { id:'PAY-9003', ini:'AP', cust:'Aisha Patel',    order:'#ORD-7819', amount:'Rs 129.00', method:' COD',     status:'Paid',    date:'9 Mar 2026'  },
+  { id:'PAY-9004', ini:'TE', cust:'Tom Eriksen',    order:'#ORD-7818', amount:'Rs 45.00',  method:' COD',     status:'Pending', date:'9 Mar 2026'  },
+  { id:'PAY-9005', ini:'ZW', cust:'Zara Williams',  order:'#ORD-7817', amount:'Rs 78.00',  method:' COD',     status:'Paid',    date:'8 Mar 2026'  },
+  { id:'PAY-9006', ini:'LO', cust:'Liam Ortega',    order:'#ORD-7816', amount:'Rs 52.00',  method:' COD',     status:'Failed',  date:'8 Mar 2026'  },
+  { id:'PAY-9007', ini:'NR', cust:'Nina Russo',     order:'#ORD-7815', amount:'Rs 199.00', method:' COD',     status:'Paid',    date:'7 Mar 2026'  },
 ];
 
 export const COURIERS = [
