@@ -15,7 +15,7 @@ const OrderHistory = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
-    
+
     if (!storedUser || !storedUser.id) {
       setLoading(false);
       return;
@@ -24,9 +24,8 @@ const OrderHistory = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        // Call the new isolated controller route
         const response = await API.get(`/customer-orders/user/${storedUser.id}`);
-        
+
         if (response.data.success) {
           setOrders(response.data.data || []);
         } else {
@@ -63,8 +62,15 @@ const OrderHistory = () => {
     }));
   };
 
+  // UPDATED: Navigate to Reviews page instead of Feedback
   const handleReviewOrder = (order) => {
-    navigate('/feedback', { state: { orderId: order.id, orderNumber: order.order_number } });
+    navigate('/user/reviews', {
+      state: {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        products: order.items || []
+      }
+    });
   };
 
   if (!isLoggedIn) {
@@ -114,7 +120,7 @@ const OrderHistory = () => {
   return (
     <div className="orders-section">
       <h2 className="section-title">Order History</h2>
-      
+
       <div className="orders-list">
         {orders.map(order => {
           const itemCount = order.items?.length || 0;
@@ -146,10 +152,10 @@ const OrderHistory = () => {
                     <span className="order-info-separator">•</span>
                     <span className="order-info-item">
                       <span className="order-info-icon">🗓</span>
-                      {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
+                      {new Date(order.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
                       })}
                     </span>
                   </div>
@@ -159,8 +165,8 @@ const OrderHistory = () => {
                     <span className="order-total-label">ORDER TOTAL</span>
                     <span className="order-total-value">
                       Rs.{parseFloat(
-                        order.total_bill || 
-                        order.items?.reduce((sum, item) => sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0) || 
+                        order.total_bill ||
+                        order.items?.reduce((sum, item) => sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0) ||
                         0
                       ).toFixed(2)}
                     </span>
@@ -169,7 +175,7 @@ const OrderHistory = () => {
                 </div>
               </div>
 
-              {/* Items Section - Grid layout 2 per row */}
+              {/* Items Section */}
               <div className="order-items-section">
                 <div className="items-header">
                   <span className="items-label">ITEMS IN THIS ORDER</span>
@@ -182,15 +188,13 @@ const OrderHistory = () => {
 
                 <div className="items-grid-2col">
                   {visibleItems?.map(item => {
-                    // 1. Try to find the exact match (size + color) that has an image
                     const exactVariant = item.Product?.variants?.find(
-                      v => 
-                        String(v.size || '').toLowerCase().trim() === String(item.size || '').toLowerCase().trim() && 
+                      v =>
+                        String(v.size || '').toLowerCase().trim() === String(item.size || '').toLowerCase().trim() &&
                         String(v.color || '').toLowerCase().trim() === String(item.color || '').toLowerCase().trim() &&
                         v.imageUrl
                     );
 
-                    // 2. Fallback: Find ANY variant that contains a similar color name (e.g., 'Brown' vs 'Light Brown')
                     const colorVariant = item.Product?.variants?.find(
                       v => {
                         if (!v.imageUrl || !v.color || !item.color) return false;
@@ -199,35 +203,35 @@ const OrderHistory = () => {
                         return vColor === iColor || vColor.includes(iColor) || iColor.includes(vColor);
                       }
                     );
-                    
-                    // 3. Fallback: Just get any image for this product
-                    const imageUrl = exactVariant?.imageUrl || 
-                                     colorVariant?.imageUrl ||
-                                     item.Product?.variants?.find(v => v.imageUrl)?.imageUrl || 
-                                     '/placeholder.png';
-                    
+
+                    const imageUrl = exactVariant?.imageUrl ||
+                      colorVariant?.imageUrl ||
+                      item.Product?.variants?.find(v => v.imageUrl)?.imageUrl ||
+                      '/placeholder.png';
+
                     return (
-                    <div key={item.id} className="product-card">
-                      <div className="product-image">
-                        <img 
-                          src={imageUrl} 
-                          alt={item.Product?.name || 'Product'}
-                          onClick={() => setViewingImage(imageUrl)}
-                          style={{ cursor: 'pointer' }}
-                          onError={(e) => { e.target.src = '/placeholder.png'; }}
-                        />
-                        {item.quantity > 1 && <div className="product-qty-badge">×{item.quantity}</div>}
-                      </div>
-                      <div className="product-details">
-                        <h4 className="product-title">{item.Product?.name || 'Product'}</h4>
-                        <div className="product-attributes">
-                          {item.color && <span className="product-color">{item.color}</span>}
-                          {item.size && <span className="product-size">{item.size}</span>}
+                      <div key={item.id} className="product-card">
+                        <div className="product-image">
+                          <img
+                            src={imageUrl}
+                            alt={item.Product?.name || 'Product'}
+                            onClick={() => setViewingImage(imageUrl)}
+                            style={{ cursor: 'pointer' }}
+                            onError={(e) => { e.target.src = '/placeholder.png'; }}
+                          />
+                          {item.quantity > 1 && <div className="product-qty-badge">×{item.quantity}</div>}
                         </div>
-                        <div className="product-price">Rs.{parseFloat(item.price || 0).toFixed(2)}</div>
+                        <div className="product-details">
+                          <h4 className="product-title">{item.Product?.name || 'Product'}</h4>
+                          <div className="product-attributes">
+                            {item.color && <span className="product-color">{item.color}</span>}
+                            {item.size && <span className="product-size">{item.size}</span>}
+                          </div>
+                          <div className="product-price">Rs.{parseFloat(item.price || 0).toFixed(2)}</div>
+                        </div>
                       </div>
-                    </div>
-                  )})}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -265,32 +269,32 @@ const OrderHistory = () => {
         <div className="modal-overlay track-modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content track-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-body track-modal-body">
-              
               <h4 className="track-section-title">DELIVERY PROGRESS</h4>
-              
+
               <div className="progress-container">
                 <div className="progress-line"></div>
-                
+
                 <div className={`progress-step ${['pending', 'confirmed', 'shipped', 'delivered'].includes(selectedOrder.status?.toLowerCase() || 'pending') ? 'completed' : ''}`}>
                   <div className="progress-icon">📋</div>
                   <span className="progress-label">PENDING</span>
                 </div>
-                
+
                 <div className={`progress-step ${['confirmed', 'shipped', 'delivered'].includes(selectedOrder.status?.toLowerCase() || 'pending') ? 'completed' : ''}`}>
                   <div className="progress-icon">⚙️</div>
                   <span className="progress-label">CONFIRMED</span>
                 </div>
-                
+
                 <div className={`progress-step ${['shipped', 'delivered'].includes(selectedOrder.status?.toLowerCase() || 'pending') ? 'completed' : ''}`}>
                   <div className="progress-icon">🚚</div>
                   <span className="progress-label">SHIPPED</span>
                 </div>
-                
+
                 <div className={`progress-step ${['delivered'].includes(selectedOrder.status?.toLowerCase() || 'pending') ? 'completed' : ''}`}>
                   <div className="progress-icon">✅</div>
                   <span className="progress-label">DELIVERED</span>
                 </div>
               </div>
+
               <div className="track-barcode-section">
                 <h4 className="track-section-title">TRACKING NUMBER</h4>
                 <div className="barcode-box">
@@ -302,7 +306,6 @@ const OrderHistory = () => {
                   📦 Copy your Tracking Number above and visit <a href="https://koombiyodelivery.lk/Track/" target="_blank" rel="noopener noreferrer" className="koombiyo-link">koombiyodelivery.lk</a> for live delivery updates!
                 </p>
               </div>
-
             </div>
             <div className="track-modal-footer">
               <button className="track-close-btn" onClick={handleCloseModal}>CLOSE</button>
