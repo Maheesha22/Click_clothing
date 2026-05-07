@@ -50,6 +50,12 @@ const User = () => {
     </svg>
   );
 
+  const ReviewsIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+
   const SettingsIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
       <circle cx="12" cy="12" r="3" />
@@ -92,7 +98,7 @@ const User = () => {
           </div>
 
           <nav className="sidebar-nav">
-            {/* Wishlist — available to everyone */}
+            {/* Wishlist */}
             <NavLink to="/user/wishlist" className={navClass}>
               <span className="nav-icon"><WishlistIcon /></span>
               <span className="nav-label">Wishlist</span>
@@ -104,11 +110,17 @@ const User = () => {
               <span className="nav-label">Order History</span>
             </NavLink>
 
-            {/* Cart — goes to /cart page */}
+            {/* Cart */}
             <button className="nav-item" onClick={() => navigate('/cart')}>
               <span className="nav-icon"><CartIcon /></span>
               <span className="nav-label">Cart</span>
             </button>
+
+            {/* Reviews - NEW */}
+            <NavLink to="/user/reviews" className={navClass}>
+              <span className="nav-icon"><ReviewsIcon /></span>
+              <span className="nav-label">My Reviews</span>
+            </NavLink>
 
             {/* Settings */}
             <NavLink to="/user/settings" className={navClass}>
@@ -132,7 +144,6 @@ const User = () => {
         </aside>
 
         <main className="main-content">
-          {/* Child route renders here */}
           <Outlet context={{ storedUser, isLoggedIn, orders }} />
         </main>
       </div>
