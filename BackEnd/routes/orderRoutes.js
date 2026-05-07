@@ -2,19 +2,22 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 
-// Configure multer for memory storage (or disk storage)
+// Configure multer to upload bank slips directly to Cloudinary
+const slipStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'click_clothing_slips',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'pdf'],
+    resource_type: 'auto',  // allows PDF uploads too
+  },
+});
+
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: slipStorage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only JPEG, PNG, and PDF files are allowed'), false);
-    }
-  }
 });
 
 // Order routes - use upload.none() for form-data without file, or upload.single() for with file
