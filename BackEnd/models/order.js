@@ -17,12 +17,20 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'orderId',
         as: 'detail'
       });
+
+      Order.belongsTo(models.Customer, {
+        foreignKey: 'userId',
+        targetKey: 'userId',
+        as: 'customer'
+      });
     }
   }
 
   Order.init({
     order_number: DataTypes.STRING,
     userId: DataTypes.INTEGER,
+    customerId: DataTypes.INTEGER,
+
     status: {
       type: DataTypes.STRING,
       defaultValue: 'pending'

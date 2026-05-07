@@ -4,7 +4,7 @@ const orderController = require('../controllers/orderController');
 const multer = require('multer');
 
 // Configure multer for memory storage (or disk storage)
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
@@ -22,6 +22,7 @@ router.post('/create', upload.single('bankSlip'), orderController.createOrder);
 router.get('/user/:userId', orderController.getUserOrders);
 router.get('/:id', orderController.getOrderDetails);
 router.get('/track/:barcode', orderController.getOrderByBarcode);
+router.get('/', orderController.getAllOrders);
 router.put('/:id/status', orderController.updateOrderStatus);
 router.put('/:id/payment', orderController.updatePaymentStatus);
 
