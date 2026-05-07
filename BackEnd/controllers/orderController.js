@@ -1,4 +1,4 @@
-const { Order, OrderItem, Cart } = require('../models');
+const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail } = require('../models');
 const { generateBarcode } = require('../utils/barcodeGenerator');
 
 // Generate unique order number
@@ -11,7 +11,7 @@ const generateOrderNumber = () => {
   return `ORD-${year}${month}${day}-${random}`;
 };
 
-// Ensure barcode is unique
+// Ensure barcode is unique (checking OrderDetail table now)
 const generateUniqueBarcode = async () => {
   let barcode;
   let isUnique = false;
@@ -20,8 +20,8 @@ const generateUniqueBarcode = async () => {
   
   while (!isUnique && attempts < maxAttempts) {
     barcode = generateBarcode();
-    const existingOrder = await Order.findOne({ where: { barcode } });
-    if (!existingOrder) {
+    const existingDetail = await OrderDetail.findOne({ where: { barcode } });
+    if (!existingDetail) {
       isUnique = true;
     }
     attempts++;
@@ -52,91 +52,141 @@ const createOrder = async (req, res) => {
       district,
       province,
       paymentMethod,
-      selectedItems,
       subtotal,
       shippingCost
     } = req.body;
 
-    // Parse selectedItems if it's a string
-    let items = selectedItems;
-    if (typeof selectedItems === 'string') {
-      items = JSON.parse(selectedItems);
-    }
+    const uId = parseInt(userId);
 
-    console.log('Items to purchase:', items);
-
-    if (!items || items.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No items selected for order'
-      });
-    }
-
-    const totalAmount = parseFloat(subtotal) + parseFloat(shippingCost || 400);
-    const orderNumber = generateOrderNumber();
-    const barcode = await generateUniqueBarcode();
-
-    // Create order
-    const order = await Order.create({
-      orderNumber,
-      barcode,
-      userId: parseInt(userId),
-      totalAmount,
-      subtotal: parseFloat(subtotal),
-      shippingCost: parseFloat(shippingCost || 400),
-      paymentMethod,
-      paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
-      status: 'pending',
-      email,
+    // 1. Customer management
+    let customer = await Customer.findOne({ where: { userId: uId } });
+    const customerData = {
+      userId: uId,
       firstName,
       lastName,
-      phone,
+      email,
       address,
       city,
       district,
-      province
+      province,
+      phone
+    };
+
+    if (customer) {
+      await customer.update(customerData);
+      console.log('Customer updated:', customer.id);
+    } else {
+      customer = await Customer.create(customerData);
+      console.log('New customer created:', customer.id);
+    }
+
+    // 2. Determine items to process
+    let itemsToProcess = [];
+    
+    // Check if selectedItems are provided in the request body (e.g., from Buy It Now)
+    if (req.body.selectedItems) {
+      try {
+        const rawItems = typeof req.body.selectedItems === 'string' 
+          ? JSON.parse(req.body.selectedItems) 
+          : req.body.selectedItems;
+        
+        if (Array.isArray(rawItems) && rawItems.length > 0) {
+          // Map frontend fields to backend model fields
+          itemsToProcess = rawItems.map(item => ({
+            productId: item.productId || item.id,
+            size: item.sizeLabel || item.size,
+            color: item.colorName || item.color,
+            quantity: item.quantity || item.qty || 1,
+            price: item.price
+          }));
+          console.log('Using items from request body:', itemsToProcess.length);
+        }
+      } catch (parseError) {
+        console.error('Error parsing selectedItems from body:', parseError);
+      }
+    }
+
+    // If no items in body, fallback to SelectedItems table
+    if (itemsToProcess.length === 0) {
+      const selectedItemsList = await SelectedItems.findAll({ where: { userId: uId } });
+      if (selectedItemsList && selectedItemsList.length > 0) {
+        itemsToProcess = selectedItemsList.map(item => item.toJSON ? item.toJSON() : item);
+        console.log('Using items from SelectedItems table:', itemsToProcess.length);
+      }
+    }
+
+    if (itemsToProcess.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No items found in selection. Please try again.'
+      });
+    }
+
+    const totalBill = parseFloat(subtotal) + parseFloat(shippingCost || 400);
+    const orderNumber = generateOrderNumber();
+    const barcode = await generateUniqueBarcode();
+
+    // 3. Create order
+    const order = await Order.create({
+      order_number: orderNumber,
+      userId: uId,
+      status: 'pending',
+      payment_method: paymentMethod,
+      payment_status: 'PENDING',
+      payment_slip: req.file ? req.file.originalname : null, // Store filename or handle upload to cloud/disk
+      delivery_charges: parseFloat(shippingCost || 400),
+      total_bill: totalBill
     });
 
     console.log('Order created:', order.id);
 
-    // Create order items
-    for (const item of items) {
+    // 4. Create order items
+    for (const item of itemsToProcess) {
       await OrderItem.create({
         orderId: order.id,
-        productId: item.id,
-        productName: item.name,
-        size: item.sizeLabel || item.size || 'N/A',
-        color: item.colorName || item.color || 'N/A',
-        quantity: item.qty,
+        userId: uId,
+        productId: item.productId,
+        size: item.size,
+        color: item.color,
+        quantity: item.quantity,
         price: item.price
       });
     }
 
     console.log('Order items created');
 
-    // IMPORTANT: Only delete the purchased items from cart, not all items
-    // Get the IDs of purchased items
-    const purchasedItemIds = items.map(item => item.id);
+    // 5. Create OrderDetail (Barcode)
+    await OrderDetail.create({
+      orderId: order.id,
+      barcode: barcode
+    });
+
+    console.log('Order details created');
+
+    // 6. Cleanup: Remove from Cart and SelectedItems
+    const productIds = itemsToProcess.map(item => item.productId);
     
-    // Delete only the purchased items from cart
-    const deletedCount = await Cart.destroy({
+    await Cart.destroy({
       where: {
-        userId: parseInt(userId),
-        productId: purchasedItemIds
+        userId: uId,
+        productId: productIds
       }
     });
     
-    console.log(`Removed ${deletedCount} purchased items from cart`);
-    console.log('Purchased product IDs removed:', purchasedItemIds);
+    await SelectedItems.destroy({
+      where: { userId: uId }
+    });
+    
+    console.log('Cleanup completed (Cart and SelectedItems cleared)');
 
     res.status(201).json({
       success: true,
       message: 'Order placed successfully',
       data: {
         orderId: order.id,
-        orderNumber: order.orderNumber,
-        barcode: order.barcode,
-        totalAmount: order.totalAmount
+        orderNumber: order.order_number,
+        barcode: barcode,
+        totalAmount: totalBill
       }
     });
 

@@ -40,9 +40,13 @@ app.use("/api/orders", orderRoutes);
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
+const customerOrderRoutes = require("./routes/customerOrderRoutes");
+const returnRoutes = require("./routes/returnRoutes");
 
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/bank-details", bankDetailRoutes);
+app.use("/api/customer-orders", customerOrderRoutes);
+app.use("/api/returns", returnRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)

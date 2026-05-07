@@ -18,7 +18,11 @@ const PROVINCES = [
   "Southern Province", "Uva Province", "Western Province",
 ];
 
-const SHIPPING = 400;
+// Shipping logic: Colombo = 400, Others = 500
+const getShippingCost = (district) => {
+  if (!district) return 0;
+  return district.toLowerCase() === 'colombo' ? 400 : 500;
+};
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 const CartIcon = () => (
@@ -55,13 +59,10 @@ const AlertIcon = () => (
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedItems = [], subtotal: cartSubtotal = 0 } = location.state || {};
-
-  const totalItemCount = selectedItems.reduce((sum, item) => sum + (item.qty || 1), 0);
-  const total = cartSubtotal + SHIPPING;
-
-  const [formError, setFormError] = useState("");
-  const [loading, setLoading] = useState(false);
+  
+  // Use state for items so we can clear them after confirmation
+  const [selectedItems, setSelectedItems] = useState(location.state?.selectedItems || []);
+  const [cartSubtotal, setCartSubtotal] = useState(location.state?.subtotal || 0);
   const [form, setForm] = useState({
     email: "",
     offers: false,
@@ -76,6 +77,12 @@ export default function CheckoutPage() {
     payment: "cod",
   });
 
+  const shippingCost = getShippingCost(form.district);
+  const totalItemCount = selectedItems.reduce((sum, item) => sum + (item.qty || 1), 0);
+  const total = cartSubtotal + shippingCost;
+
+  const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [phoneState, setPhoneState] = useState({ error: "", status: "" });
   const [slipFile, setSlipFile] = useState(null);
   const [toast, setToast] = useState(false);
@@ -268,7 +275,7 @@ export default function CheckoutPage() {
     formDataToSend.append('paymentMethod', form.payment);
     formDataToSend.append('selectedItems', JSON.stringify(selectedItems));
     formDataToSend.append('subtotal', cartSubtotal.toString());
-    formDataToSend.append('shippingCost', SHIPPING.toString());
+    formDataToSend.append('shippingCost', shippingCost.toString());
     
     if (slipFile) {
       formDataToSend.append('bankSlip', slipFile);
@@ -309,7 +316,7 @@ export default function CheckoutPage() {
           district: form.district,
           province: form.province,
           subtotal: cartSubtotal,
-          shipping: SHIPPING,
+          shipping: shippingCost,
         };
         
         setOrderData(orderDetails);
@@ -337,6 +344,10 @@ export default function CheckoutPage() {
         window.dispatchEvent(new CustomEvent('cartUpdated', { 
           detail: { purchasedItems: selectedItems } 
         }));
+        
+        // Clear order summary
+        setSelectedItems([]);
+        setCartSubtotal(0);
         
         setTimeout(() => setToast(false), 3500);
       } else {
@@ -389,12 +400,12 @@ export default function CheckoutPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [form, phoneState]);
 
-  // Redirect if no items selected
+  // Redirect if no items selected (only if not showing order confirmation)
   useEffect(() => {
-    if (selectedItems.length === 0) {
+    if (selectedItems.length === 0 && !showPopup) {
       navigate('/cart');
     }
-  }, [selectedItems, navigate]);
+  }, [selectedItems, navigate, showPopup]);
 
   // ── Input focus style helpers ───────────────────────────────────────────────
   const focusStyle = { borderColor: "#c9a882", background: "#fff", boxShadow: "0 0 0 3px rgba(201,168,130,0.12)" };
@@ -668,14 +679,29 @@ export default function CheckoutPage() {
             selectedItems.map((item) => (
               <div className="order-item" key={item.id}>
                 <div className="img-wrap">
-                  <div style={{
-                    width: 74,
-                    height: 90,
-                    borderRadius: 8,
-                    background: item.color,
-                    border: "1px solid #dedad4",
-                  }} />
-                  <span className="img-badge">{item.qty}</span>
+                  {item.imageUrl ? (
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      className="checkout-item-img" 
+                      style={{
+                        width: 74,
+                        height: 90,
+                        borderRadius: 8,
+                        objectFit: "cover",
+                        border: "1px solid #dedad4",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 74,
+                      height: 90,
+                      borderRadius: 8,
+                      background: item.color,
+                      border: "1px solid #dedad4",
+                    }} />
+                  )}
+                  <span className="img-badge">{item.qty || item.quantity}</span>
                 </div>
                 <div className="item-info">
                   <div className="item-name">{item.name}</div>
@@ -695,7 +721,7 @@ export default function CheckoutPage() {
           </div>
           <div className="total-row">
             <span className="total-label">Shipping</span>
-            <span className="total-val">Rs. {SHIPPING.toLocaleString()}.00</span>
+            <span className="total-val">Rs. {shippingCost.toLocaleString()}.00</span>
           </div>
           <div className="total-row grand">
             <span className="total-label">Total</span>
@@ -708,7 +734,10 @@ export default function CheckoutPage() {
       {showPopup && orderData && (
         <OrderConfirmationPopup 
           orderDetails={orderData}
-          onClose={() => setShowPopup(false)}
+          onClose={() => {
+            setShowPopup(false);
+            navigate('/'); // Go back to home after order
+          }}
         />
       )}
 
