@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NavBar from "../components/navsidebar";
@@ -140,6 +140,8 @@ const ReviewsModal = ({ product, onClose }) => {
 
 // Product Modal (detailed view, same as ShirtsPage)
 const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "#ffffff");
   const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -212,12 +214,34 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const handleBuyNow = () => {
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
-    const variant = variantDetails.find(v => v.size === selectedSize);
-    const details = `${product.name} | Size: ${selectedSize} | Color: ${colorName} | Qty: ${quantity}`;
-    if (variant) {
-      console.log(`Buy now with variant details:`, { ...variant, selectedQuantity: quantity });
+
+    const buyNowItem = {
+      id: product.id,
+      name: product.name,
+      price: product.basePrice,
+      imageUrl: currentImage,
+      color: selectedColor,
+      size: selectedSize,
+      qty: quantity
+    };
+
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      // Save purchase data to sessionStorage so RedirectHandler can pick it up after login
+      sessionStorage.setItem('pendingBuyNow', JSON.stringify({ 
+        selectedItems: [buyNowItem], 
+        subtotal: buyNowItem.price * quantity 
+      }));
+      navigate('/login');
+      return;
     }
-    alert(`Buy now: ${details}`);
+
+    navigate('/checkout', { 
+      state: { 
+        selectedItems: [buyNowItem], 
+        subtotal: buyNowItem.price * quantity 
+      } 
+    });
   };
 
   const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];

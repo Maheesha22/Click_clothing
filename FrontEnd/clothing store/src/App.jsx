@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 import HomePage from "./Pages/home";
 import Cart from "./Pages/cart";
@@ -19,17 +19,41 @@ import FeedbackForm from "./Pages/FeedbackForm";
 import FAQPage from "./Pages/FAQ";
 import AboutUs from "./Pages/AboutUs";
 import ProductPage from './Pages/ProductPage';
-
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
 import Settings from "./Pages/userpages/Settings";
+
+// Component to handle redirection after login (e.g., for Buy It Now)
+const RedirectHandler = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const user = sessionStorage.getItem('user');
+    const pendingBuyNow = sessionStorage.getItem('pendingBuyNow');
+    
+    if (user && pendingBuyNow) {
+      try {
+        const data = JSON.parse(pendingBuyNow);
+        sessionStorage.removeItem('pendingBuyNow');
+        navigate('/checkout', { state: data });
+      } catch (error) {
+        console.error("Error parsing pendingBuyNow:", error);
+        sessionStorage.removeItem('pendingBuyNow');
+      }
+    }
+  }, [navigate, location.pathname]);
+  
+  return null;
+};
 
 function App() {
   const handleForgotSuccess = () => {};
 
   return (
     <BrowserRouter>
+      <RedirectHandler />
       <Routes>
         {/*MAIN PAGES */}
         <Route path="/" element={<HomePage />} />
