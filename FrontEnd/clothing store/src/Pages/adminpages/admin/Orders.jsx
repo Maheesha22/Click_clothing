@@ -270,21 +270,32 @@ export default function Orders() {
               </div>
 
               {/* Payment Slip Section */}
-              {viewOrder.payment_slip && (
+              {viewOrder.payment_slip && (() => {
+                const slipUrl = viewOrder.payment_slip.startsWith('http') ? viewOrder.payment_slip : `http://localhost:3000/uploads/${viewOrder.payment_slip}`;
+                const isPdf = viewOrder.payment_slip.toLowerCase().endsWith('.pdf');
+                return (
                 <div style={{marginTop:'30px'}}>
                   <h3 style={{fontSize:'14px', fontWeight:800, marginBottom:'15px', display:'flex', alignItems:'center', gap:'10px'}}>
                     Payment Proof <span style={{height:'1px', flex:1, background:'var(--g3)'}}></span>
                   </h3>
                   <div style={{background:'var(--g1)', padding:'20px', borderRadius:'16px', border:'1px dashed var(--g4)', textAlign:'center'}}>
-                    <img 
-                      src={viewOrder.payment_slip.startsWith('http') ? viewOrder.payment_slip : `http://localhost:3000/uploads/${viewOrder.payment_slip}`} 
-                      alt="Payment Slip" 
-                      style={{maxWidth:'100%', maxHeight:'400px', borderRadius:'8px', boxShadow:'0 10px 30px rgba(0,0,0,0.1)', cursor:'pointer'}}
-                      onClick={() => window.open(viewOrder.payment_slip.startsWith('http') ? viewOrder.payment_slip : `http://localhost:3000/uploads/${viewOrder.payment_slip}`, '_blank')}
-                    />
+                    {isPdf ? (
+                      <iframe
+                        src={slipUrl}
+                        title="Payment Slip PDF"
+                        style={{width:'100%', height:'400px', borderRadius:'8px', border:'none', boxShadow:'0 10px 30px rgba(0,0,0,0.1)'}}
+                      />
+                    ) : (
+                      <img 
+                        src={slipUrl} 
+                        alt="Payment Slip" 
+                        style={{maxWidth:'100%', maxHeight:'400px', borderRadius:'8px', boxShadow:'0 10px 30px rgba(0,0,0,0.1)', cursor:'pointer'}}
+                        onClick={() => window.open(slipUrl, '_blank')}
+                      />
+                    )}
                     <div style={{marginTop:'12px'}}>
                       <button 
-                        onClick={() => window.open(viewOrder.payment_slip.startsWith('http') ? viewOrder.payment_slip : `http://localhost:3000/uploads/${viewOrder.payment_slip}`, '_blank')}
+                        onClick={() => window.open(slipUrl, '_blank')}
                         style={{background:'white', border:'1px solid var(--g3)', padding:'8px 16px', borderRadius:'8px', fontSize:'12px', fontWeight:700, cursor:'pointer', boxShadow:'var(--shadow)'}}
                       >
                         📂 View Full Document
@@ -292,7 +303,8 @@ export default function Orders() {
                     </div>
                   </div>
                 </div>
-              )}
+                );
+              })()}
             </div>
             
             <div style={{padding:'20px 24px', borderTop:'1px solid var(--g3)', background:'var(--g1)', textAlign:'right'}}>
