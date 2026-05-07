@@ -26,7 +26,7 @@ import Settings from "./Pages/userpages/Settings";
 import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
 
 // Component to handle redirection after login (e.g., for Buy It Now)
-const RedirectHandler = () => {
+const RedirectHandler = () => { 
   const navigate = useNavigate();
   const location = useLocation();
 
