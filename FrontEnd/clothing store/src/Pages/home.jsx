@@ -1,11 +1,12 @@
-// Home.jsx (updated)
+// Home.jsx (updated with Best Sellers section below New Arrivals)
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/whatsappbtn";
-import NavBar from "../components/navsidebar";   // new component
+import NavBar from "../components/navsidebar";   // unchanged
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
+import cartService from "../services/cartService";
 
 // ── Slideshow Data (unchanged) ─────────────────────────────────
 const SLIDES = [
@@ -188,9 +189,39 @@ function ProductPopup({ product, onClose }) {
     setCurrentImage(product.colorImages?.[color] || product.defaultImage || product.img);
   };
 
-  const handleAddToCart = () => {
-    alert(`Added ${quantity} x ${product.name} (${selectedColor} color, Size ${selectedSize}) to cart`);
-    onClose();
+  const handleAddToCart = async () => {
+    const userData = sessionStorage.getItem('user');
+    if (!userData) {
+      alert("Please login to add items to cart");
+      return;
+    }
+    const user = JSON.parse(userData);
+    const userId = user.id;
+
+    try {
+      const cartData = {
+        userId,
+        productId: product.id,
+        name: product.name,
+        price: parseFloat(product.price.replace(/,/g, "")),
+        imageUrl: currentImage,
+        color: selectedColor,
+        size: selectedSize,
+        quantity: quantity
+      };
+
+      const response = await cartService.addToCart(cartData);
+      if (response.success) {
+        alert("Product added to cart successfully!");
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+        onClose();
+      } else {
+        alert("Failed to add product to cart: " + response.message);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -390,12 +421,106 @@ function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   );
 }
 
-// ── Home Page (updated to use NavBar) ──────────────────────────
+// ── Home Page (updated with Best Sellers section) ──────────────
 export default function Home() {
   const [activeTab, setActiveTab] = useState("New Arrivals");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [youMayAlsoLikeKey, setYouMayAlsoLikeKey] = useState(0);
+  const [latestProducts, setLatestProducts] = useState(NEW_ARRIVALS);
+  const [bestSellers, setBestSellers] = useState(BEST_SELLERS);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Fetch latest 4 products from database
+  useEffect(() => {
+    const fetchLatestProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/category-data/latest-products');
+        const data = await response.json();
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedProducts = data.data.map((product) => {
+            const variants = product.variants || [];
+            const uniqueColors = [...new Set(variants.map(v => v.color))];
+            const uniqueSizes = [...new Set(variants.map(v => v.size))];
+            const colorImages = {};
+            uniqueColors.forEach(color => {
+              const variant = variants.find(v => v.color === color);
+              if (variant?.imageUrl) {
+                colorImages[color] = variant.imageUrl;
+              }
+            });
+            const firstImage = variants[0]?.imageUrl || '/trousers/default.jpeg';
+            return {
+              id: product.productId,
+              name: product.productName,
+              price: parseFloat(product.price).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              colors: uniqueColors,
+              colorImages: colorImages,
+              defaultImage: firstImage,
+              img: firstImage,
+              description: product.description || 'Premium quality product',
+              sizes: uniqueSizes,
+              category: product.categoryName,
+            };
+          });
+          setLatestProducts(transformedProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching latest products:', error);
+        setLatestProducts(NEW_ARRIVALS);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLatestProducts();
+  }, []);
+
+  // Fetch best-selling products from database
+  useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/category-data/best-sellers');
+        const data = await response.json();
+        
+        if (data.success && data.data && Array.isArray(data.data)) {
+          const transformedBestSellers = data.data.map((product) => {
+            const variants = product.variants || [];
+            const uniqueColors = [...new Set(variants.map(v => v.color))];
+            const uniqueSizes = [...new Set(variants.map(v => v.size))];
+            const colorImages = {};
+            uniqueColors.forEach(color => {
+              const variant = variants.find(v => v.color === color);
+              if (variant?.imageUrl) {
+                colorImages[color] = variant.imageUrl;
+              }
+            });
+            const firstImage = variants[0]?.imageUrl || '/trousers/default.jpeg';
+            return {
+              id: product.productId,
+              name: product.productName,
+              price: parseFloat(product.price).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              colors: uniqueColors,
+              colorImages: colorImages,
+              defaultImage: firstImage,
+              img: firstImage,
+              description: product.description || 'Premium quality product',
+              sizes: uniqueSizes,
+              category: product.categoryName,
+              totalSold: product.totalSold || 0
+            };
+          });
+          setBestSellers(transformedBestSellers);
+        }
+      } catch (error) {
+        console.error('Error fetching best sellers:', error);
+        setBestSellers(BEST_SELLERS);
+      }
+    };
+
+    fetchBestSellers();
+  }, []);
 
   const handleProductClick = (product) => {
     setSelectedProduct(product);
@@ -403,14 +528,6 @@ export default function Home() {
   };
 
   const handleClosePopup = () => setSelectedProduct(null);
-
-  const getProductsForTab = () => {
-    switch (activeTab) {
-      case "New Arrivals": return NEW_ARRIVALS;
-      case "Best Sellers": return BEST_SELLERS;
-      default: return NEW_ARRIVALS;
-    }
-  };
 
   const whatsappContext = selectedProduct
     ? {
@@ -421,12 +538,11 @@ export default function Home() {
       }
     : { page: "home" };
 
-  const currentProducts = getProductsForTab();
   const currentProductId = selectedProduct?.id || null;
 
   return (
     <div className="home-page">
-      <Header />
+      <Header onProductClick={handleProductClick} />
       
       <main className="home-main">
         <NavBar activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -435,9 +551,11 @@ export default function Home() {
             <div className="home-slideshow-area">
               <Slideshow />
             </div>
+
+            {/* ── NEW ARRIVALS SECTION ── */}
             <div className="home-section">
               <div className="home-section-header">
-                <h2 className="home-section-title">{activeTab.toUpperCase()}</h2>
+                <h2 className="home-section-title">NEW ARRIVALS</h2>
                 <div className="home-section-controls">
                   <button className="home-see-all">EXPLORE ALL</button>
                   <button className="home-nav-arrow">
@@ -448,8 +566,38 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-              <ProductGrid items={currentProducts} onProductClick={handleProductClick} maxItems={4} />
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  <p>Loading latest products...</p>
+                </div>
+              ) : (
+                <ProductGrid items={latestProducts} onProductClick={handleProductClick} maxItems={4} />
+              )}
             </div>
+
+            {/* ── NEW BEST SELLERS SECTION (updated with database data) ── */}
+            <div className="home-section">
+              <div className="home-section-header">
+                <h2 className="home-section-title">BEST SELLERS</h2>
+                <div className="home-section-controls">
+                  <button className="home-see-all">EXPLORE ALL</button>
+                  <button className="home-nav-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
+                  </button>
+                  <button className="home-nav-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6" /></svg>
+                  </button>
+                </div>
+              </div>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  <p>Loading best sellers...</p>
+                </div>
+              ) : (
+                <ProductGrid items={bestSellers} onProductClick={handleProductClick} maxItems={4} />
+              )}
+            </div>
+
             <YouMayAlsoLike
               key={youMayAlsoLikeKey}
               onProductClick={handleProductClick}

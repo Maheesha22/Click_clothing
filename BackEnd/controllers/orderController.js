@@ -1,4 +1,4 @@
-const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail } = require('../models');
+const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail, Product, ProductVariant } = require('../models');
 const { generateBarcode } = require('../utils/barcodeGenerator');
 
 // Generate unique order number
@@ -80,10 +80,42 @@ const createOrder = async (req, res) => {
       console.log('New customer created:', customer.id);
     }
 
-    // 2. Get selected items from SelectedItems table
-    const selectedItemsList = await SelectedItems.findAll({ where: { userId: uId } });
+    // 2. Determine items to process
+    let itemsToProcess = [];
+    
+    // Check if selectedItems are provided in the request body (e.g., from Buy It Now)
+    if (req.body.selectedItems) {
+      try {
+        const rawItems = typeof req.body.selectedItems === 'string' 
+          ? JSON.parse(req.body.selectedItems) 
+          : req.body.selectedItems;
+        
+        if (Array.isArray(rawItems) && rawItems.length > 0) {
+          // Map frontend fields to backend model fields
+          itemsToProcess = rawItems.map(item => ({
+            productId: item.productId || item.id,
+            size: item.sizeLabel || item.size,
+            color: item.colorName || item.color,
+            quantity: item.quantity || item.qty || 1,
+            price: item.price
+          }));
+          console.log('Using items from request body:', itemsToProcess.length);
+        }
+      } catch (parseError) {
+        console.error('Error parsing selectedItems from body:', parseError);
+      }
+    }
 
-    if (!selectedItemsList || selectedItemsList.length === 0) {
+    // If no items in body, fallback to SelectedItems table
+    if (itemsToProcess.length === 0) {
+      const selectedItemsList = await SelectedItems.findAll({ where: { userId: uId } });
+      if (selectedItemsList && selectedItemsList.length > 0) {
+        itemsToProcess = selectedItemsList.map(item => item.toJSON ? item.toJSON() : item);
+        console.log('Using items from SelectedItems table:', itemsToProcess.length);
+      }
+    }
+
+    if (itemsToProcess.length === 0) {
       return res.status(400).json({
         success: false,
         message: 'No items found in selection. Please try again.'
@@ -101,15 +133,15 @@ const createOrder = async (req, res) => {
       status: 'pending',
       payment_method: paymentMethod,
       payment_status: 'PENDING',
-      payment_slip: req.file ? req.file.originalname : null, // Store filename or handle upload to cloud/disk
+      payment_slip: req.file ? req.file.path : null, // Cloudinary URL
       delivery_charges: parseFloat(shippingCost || 400),
       total_bill: totalBill
     });
 
     console.log('Order created:', order.id);
 
-    // 4. Create order items from SelectedItems
-    for (const item of selectedItemsList) {
+    // 4. Create order items
+    for (const item of itemsToProcess) {
       await OrderItem.create({
         orderId: order.id,
         userId: uId,
@@ -132,7 +164,7 @@ const createOrder = async (req, res) => {
     console.log('Order details created');
 
     // 6. Cleanup: Remove from Cart and SelectedItems
-    const productIds = selectedItemsList.map(item => item.productId);
+    const productIds = itemsToProcess.map(item => item.productId);
     
     await Cart.destroy({
       where: {
@@ -274,7 +306,14 @@ const updateOrderStatus = async (req, res) => {
       });
     }
     
-    await order.update({ status });
+    const updateData = { status };
+
+    // Automatic payment confirmation for COD when delivered
+    if (status.toLowerCase() === 'delivered' && order.payment_method === 'Cash on Delivery') {
+      updateData.payment_status = 'Confirmed';
+    }
+
+    await order.update(updateData);
     
     res.status(200).json({
       success: true,
@@ -289,6 +328,48 @@ const updateOrderStatus = async (req, res) => {
     });
   }
 };
+
+// Get all orders (Admin)
+const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{
+            model: Product,
+            include: [{
+              model: ProductVariant,
+              as: 'variants'
+            }]
+          }]
+        },
+        {
+          model: OrderDetail,
+          as: 'detail'
+        },
+        {
+          model: Customer,
+          as: 'customer'
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching all orders'
+    });
+  }
+};
+
 
 // Update payment status (Admin)
 const updatePaymentStatus = async (req, res) => {
@@ -305,7 +386,15 @@ const updatePaymentStatus = async (req, res) => {
       });
     }
     
-    await order.update({ paymentStatus });
+    // Prevent changing payment status if it's already Confirmed
+    if (order.payment_status === 'Confirmed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment status is already confirmed and cannot be changed.'
+      });
+    }
+
+    await order.update({ payment_status: paymentStatus });
     
     res.status(200).json({
       success: true,
@@ -327,5 +416,6 @@ module.exports = {
   getOrderDetails,
   getOrderByBarcode,
   updateOrderStatus,
-  updatePaymentStatus
+  updatePaymentStatus,
+  getAllOrders
 };

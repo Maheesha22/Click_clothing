@@ -26,14 +26,14 @@ import Settings from "./Pages/userpages/Settings";
 import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
 
 // Component to handle redirection after login (e.g., for Buy It Now)
-const RedirectHandler = () => { 
+const RedirectHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   React.useEffect(() => {
     const user = sessionStorage.getItem('user');
     const pendingBuyNow = sessionStorage.getItem('pendingBuyNow');
-
+    
     if (user && pendingBuyNow) {
       try {
         const data = JSON.parse(pendingBuyNow);
@@ -45,7 +45,7 @@ const RedirectHandler = () => {
       }
     }
   }, [navigate, location.pathname]);
-
+  
   return null;
 };
 
