@@ -32,7 +32,10 @@ const cartRoutes = require("./routes/CartRoutes");
 const contactRoutes = require('./routes/contactRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const categoryRoutes = require("./routes/categoryRoutes");   // ✅ Added
-const categoryDataRoutes = require("./routes/categoryDataRoutes"); // ✅ Added
+const searchRoutes = require("./routes/searchRoutes");   // ✅ Search routes
+const searchHistoryRoutes = require("./routes/searchHistoryRoutes"); // ✅ Search history routes
+
+
 
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);
@@ -41,6 +44,9 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/categories", categoryRoutes);                  // ✅ Added
 app.use("/api/category-data", categoryDataRoutes);           // ✅ Added
+
+app.use("/api/search", searchRoutes);                        // ✅ Search routes
+app.use("/api/search-history", searchHistoryRoutes); 
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
