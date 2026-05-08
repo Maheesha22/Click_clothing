@@ -43,6 +43,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/categories", categoryRoutes);                  // ✅ Added
+app.use("/api/category-data", categoryDataRoutes);           // ✅ Added
 
 app.use("/api/search", searchRoutes);                        // ✅ Search routes
 app.use("/api/search-history", searchHistoryRoutes); 
@@ -52,12 +53,15 @@ const bankDetailRoutes = require("./routes/bankDetailRoutes");
 const customerOrderRoutes = require("./routes/customerOrderRoutes");
 const returnRoutes = require("./routes/returnRoutes");
 const adminCustomerRoutes = require("./routes/adminCustomerRoutes");
+const selectedItemsRoutes = require("./routes/SelectedItemsRoutes");
+
 
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/bank-details", bankDetailRoutes);
 app.use("/api/customer-orders", customerOrderRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/admin-customers", adminCustomerRoutes);
+app.use("/api/selected-items", selectedItemsRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
