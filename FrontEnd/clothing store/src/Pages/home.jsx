@@ -629,14 +629,14 @@ export default function Home() {
       <div className="home-shop-category">
         <p className="home-shop-category-label">Shopping By Category</p>
         <div className="home-cat-top-row">
-          <div className="home-cat-card home-cat-mens" onClick={() => navigate("/sarong")}>
+          <div className="home-cat-card home-cat-mens" onClick={() => navigate("/category")}>
             <img src="/mens.jpg" alt="Mens" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">
               <span className="home-cat-text home-cat-text-white">MENS</span>
             </div>
           </div>
-          <div className="home-cat-card home-cat-gifts" onClick={() => navigate("/category")}>
+          <div className="home-cat-card home-cat-gifts" onClick={() => navigate("/category/10")}>
             <img src="/mens_cover_page.jpg" alt="Mens Wear" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">
