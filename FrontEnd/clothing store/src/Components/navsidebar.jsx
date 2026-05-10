@@ -58,8 +58,8 @@ function NavBar({ activeTab, setActiveTab }) {
         };
       })
     },
-    { label: "Men Accessories", page: "men-accessories" },
-    { label: "Recently Viewed", page: "recently-viewed" },
+    { label: "Men Accessories", page: "category/10" },
+    //{ label: "Recently Viewed", page: "recently-viewed" },
   ], [categories]);
 
   // Flatten all category labels for search suggestions (search works with both tab labels and menu items)
