@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import WhatsAppButton from "../components/whatsappbtn";
 import NavBar from "../components/navsidebar";   // unchanged
 import "./Home.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import cartService from "../services/cartService";
 
 // ── Slideshow Data (unchanged) ─────────────────────────────────
@@ -450,6 +450,19 @@ export default function Home() {
   const [bestSellers, setBestSellers] = useState(BEST_SELLERS);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      setTimeout(() => {
+        const id = location.hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  }, [location]);
 
   // Fetch latest 4 products from database
   useEffect(() => {
@@ -573,7 +586,7 @@ export default function Home() {
             </div>
 
             {/* ── NEW ARRIVALS SECTION ── */}
-            <div className="home-section">
+            <div className="home-section" id="new-arrivals">
               <div className="home-section-header">
                 <h2 className="home-section-title">NEW ARRIVALS</h2>
                 <div className="home-section-controls">
@@ -596,7 +609,7 @@ export default function Home() {
             </div>
 
             {/* ── NEW BEST SELLERS SECTION (updated with database data) ── */}
-            <div className="home-section">
+            <div className="home-section" id="best-sellers">
               <div className="home-section-header">
                 <h2 className="home-section-title">BEST SELLERS</h2>
                 <div className="home-section-controls">
