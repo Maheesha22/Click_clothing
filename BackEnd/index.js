@@ -31,9 +31,10 @@ const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/CartRoutes");
 const contactRoutes = require('./routes/contactRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const categoryRoutes = require("./routes/categoryRoutes");   // ✅ Added
-const searchRoutes = require("./routes/searchRoutes");   // ✅ Search routes
-const searchHistoryRoutes = require("./routes/searchHistoryRoutes"); // ✅ Search history routes
+const categoryRoutes = require("./routes/categoryRoutes");   
+const categoryDataRoutes = require("./routes/categoryDataRoutes"); 
+const searchRoutes = require("./routes/searchRoutes");   
+const searchHistoryRoutes = require("./routes/searchHistoryRoutes"); 
 
 
 
@@ -42,10 +43,10 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api/categories", categoryRoutes);                  // ✅ Added
-app.use("/api/category-data", categoryDataRoutes);           // ✅ Added
+app.use("/api/categories", categoryRoutes);                  
+app.use("/api/category-data", categoryDataRoutes);           
 
-app.use("/api/search", searchRoutes);                        // ✅ Search routes
+app.use("/api/search", searchRoutes);                        
 app.use("/api/search-history", searchHistoryRoutes); 
 
 const wishlistRoutes = require("./routes/WishlistRoutes");

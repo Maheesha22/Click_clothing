@@ -501,9 +501,22 @@ const ProductPage = () => {
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(`wishlist_${category}`)) || [];
-    setWishlist(saved);
-  }, [category]);
+    if (isLoggedIn) {
+      getWishlistDB(storedUser.id)
+        .then(res => {
+          // DB items have productId as string; convert to number for comparison
+          const ids = res.data.map(item => Number(item.productId));
+          setWishlist(ids);
+        })
+        .catch(() => {
+          // Backend unavailable — fall back silently
+          setWishlist([]);
+        });
+    } else {
+      const guestItems = getGuestWishlist();
+      setWishlist(guestItems.map(item => Number(item.productId)));
+    }
+  }, [category, storedUser?.id]);
 
   const transformProduct = (apiProduct) => {
     const variants = apiProduct.variants || [];
