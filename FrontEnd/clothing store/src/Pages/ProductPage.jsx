@@ -4,7 +4,16 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NavBar from "../components/navsidebar";
 import WhatsAppButton from "../components/whatsappbtn";
+import cartService from "../services/cartService";
 import SizeChart from "../components/SizeChart";
+import {
+  getWishlistDB,
+  addToWishlistDB,
+  removeFromWishlistByProductDB,
+  getGuestWishlist,
+  addToGuestWishlist,
+  removeFromGuestWishlist,
+} from "../services/wishlistService";
 import "./ProductPage.css";
 
 // Helper: reviews mock (can be replaced with API call)
@@ -155,7 +164,6 @@ const ReviewsModal = ({ product, onClose }) => {
 // ─────────────────────────────────────────────
 const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [selectedColor, setSelectedColor]       = useState(product.colors?.[0] || "#ffffff");
   const [selectedSize, setSelectedSize]         = useState(null);
@@ -339,7 +347,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 </button>
               </div>
 
-              {/* ── Size section ── */}
+              {/* ── Size section with SizeChart button ── */}
               <div className="sh-modal-section">
                 <div className="sh-modal-section-header">
                   <label className="sh-modal-label">
@@ -442,7 +450,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 BUY IT NOW
               </button>
 
-              {/* ── Info badges: only show low-stock warning, shipping/payment lines REMOVED ── */}
+              {/* Low stock warning only */}
               {product.inStock && product.stockCount <= 5 && (
                 <div className="sh-modal-info-badges">
                   <div className="sh-info-badge warning">
@@ -500,16 +508,19 @@ const ProductPage = () => {
   const [visibleCount, setVisibleCount]             = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
 
+  // Resolve current user from sessionStorage
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = !!(storedUser?.email);
+
+  // Load wishlist (DB or sessionStorage) – from first file
   useEffect(() => {
     if (isLoggedIn) {
       getWishlistDB(storedUser.id)
         .then(res => {
-          // DB items have productId as string; convert to number for comparison
           const ids = res.data.map(item => Number(item.productId));
           setWishlist(ids);
         })
         .catch(() => {
-          // Backend unavailable — fall back silently
           setWishlist([]);
         });
     } else {
@@ -582,6 +593,7 @@ const ProductPage = () => {
     };
   };
 
+  // Fetch products for this category by categoryId
   useEffect(() => {
     setLoading(true);
     const categoryId = parseInt(category, 10);
@@ -610,14 +622,53 @@ const ProductPage = () => {
       });
   }, [category]);
 
-  const toggleWishlist = (productId) => {
-    const updated = wishlist.includes(productId)
-      ? wishlist.filter((id) => id !== productId)
-      : [...wishlist, productId];
-    setWishlist(updated);
-    localStorage.setItem(`wishlist_${category}`, JSON.stringify(updated));
+  // Wishlist toggle with backend + guest support (from first file)
+  const toggleWishlist = async (productId) => {
+    const isWished = wishlist.includes(productId);
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    // Optimistic UI update
+    setWishlist(prev =>
+      isWished ? prev.filter(id => id !== productId) : [...prev, productId]
+    );
+
+    if (isLoggedIn) {
+      try {
+        if (isWished) {
+          await removeFromWishlistByProductDB(storedUser.id, String(productId));
+        } else {
+          await addToWishlistDB({
+            userId: storedUser.id,
+            productId: String(productId),
+            productName: product.name,
+            price: product.price,
+            imageUrl: product.img,
+          });
+        }
+      } catch (err) {
+        // Revert optimistic update on failure
+        setWishlist(prev =>
+          isWished ? [...prev, productId] : prev.filter(id => id !== productId)
+        );
+        console.error('Wishlist error:', err);
+      }
+    } else {
+      // Guest: use sessionStorage
+      if (isWished) {
+        removeFromGuestWishlist(String(productId));
+      } else {
+        addToGuestWishlist({
+          productId: String(productId),
+          productName: product.name,
+          price: product.price,
+          imageUrl: product.img,
+        });
+      }
+    }
   };
 
+  // Filtering & Sorting
   let filtered = [...products];
   if (searchTerm)
     filtered = filtered.filter((p) =>
