@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./navsidebar.css";
 
 const MAX_RECENT_SEARCHES = 7;
@@ -8,6 +8,7 @@ const API_BASE_URL = 'http://localhost:3000/api/search';
 
 function NavBar({ activeTab, setActiveTab }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
@@ -46,8 +47,8 @@ function NavBar({ activeTab, setActiveTab }) {
 
   // ✅ Build navigation tabs – category menu items go to ProductPage with categoryId
   const navTabs = useMemo(() => [
-    { label: "New Arrivals", page: "new-arrivals" },
-    { label: "Best Sellers", page: "best-sellers" },
+    { label: "New Arrivals", hash: "new-arrivals" },
+    { label: "Best Sellers", hash: "best-sellers" },
     {
       label: "Men",
       menu: categories.map(cat => {
@@ -174,9 +175,24 @@ function NavBar({ activeTab, setActiveTab }) {
     });
   };
 
+  const navigateToTab = (tab) => {
+    if (setActiveTab) setActiveTab(tab.label);
+    if (tab.hash) {
+      if (location.pathname === '/') {
+        const element = document.getElementById(tab.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        navigate(`/#${tab.hash}`);
+      }
+    } else if (tab.page) {
+      navigate(`/${tab.page}`);
+    }
+  };
+
   const handleTabClick = (tab) => {
-    setActiveTab(tab.label);
-    if (tab.page) navigate(`/${tab.page}`);
+    navigateToTab(tab);
   };
 
   const handleSearchSubmit = (e) => {
@@ -186,10 +202,10 @@ function NavBar({ activeTab, setActiveTab }) {
 
       // Check if search query matches a category
       const matchedTab = navTabs.find(t => t.label.toLowerCase() === query.toLowerCase());
-      if (matchedTab && matchedTab.page) {
-        setActiveTab(matchedTab.label);
+      if (matchedTab && (matchedTab.page || matchedTab.hash)) {
+        if (setActiveTab) setActiveTab(matchedTab.label);
         addToRecentSearches(matchedTab.label);
-        navigate(`/${matchedTab.page}`);
+        navigateToTab(matchedTab);
         setSearchQuery("");
         setShowDropdown(false);
         return;
@@ -244,10 +260,9 @@ function NavBar({ activeTab, setActiveTab }) {
 
     // Handle category type - find the matching category in navTabs
     const matchedTab = navTabs.find(t => t.label === suggestion.label);
-    if (matchedTab && matchedTab.page) {
-      setActiveTab(matchedTab.label);
+    if (matchedTab && (matchedTab.page || matchedTab.hash)) {
       addToRecentSearches(suggestion.label);
-      navigate(`/${matchedTab.page}`);
+      navigateToTab(matchedTab);
       setSearchQuery("");
       setShowDropdown(false);
       return;
@@ -283,9 +298,8 @@ function NavBar({ activeTab, setActiveTab }) {
 
     // Check if recent search is a category in navTabs
     const matchedTab = navTabs.find(t => t.label === recentQuery);
-    if (matchedTab && matchedTab.page) {
-      setActiveTab(matchedTab.label);
-      navigate(`/${matchedTab.page}`);
+    if (matchedTab && (matchedTab.page || matchedTab.hash)) {
+      navigateToTab(matchedTab);
       setSearchQuery("");
       setShowDropdown(false);
       return;
@@ -400,12 +414,12 @@ function NavBar({ activeTab, setActiveTab }) {
               <>
                 <div className="navbar-suggestions-header">
                   <span>Recently searched</span>
-                  <button type="button" className="navbar-clear-recent" onClick={handleClearRecent}>
+                  <button type="button" className="navbar-clear-recent" onMouseDown={(e) => { e.preventDefault(); handleClearRecent(); }}>
                     Clear
                   </button>
                 </div>
                 {recentSearches.map((query, idx) => (
-                  <div key={idx} className="navbar-suggestion-item" onClick={() => handleRecentClick(query)}>
+                  <div key={idx} className="navbar-suggestion-item" onMouseDown={(e) => { e.preventDefault(); handleRecentClick(query); }}>
                     <span className="recent-icon">🕒</span> {query}
                   </div>
                 ))}
@@ -418,7 +432,7 @@ function NavBar({ activeTab, setActiveTab }) {
                   <div
                     key={idx}
                     className={`navbar-suggestion-item ${sug.type === 'product' ? 'navbar-product-suggestion' : ''}`}
-                    onClick={() => handleSuggestionClick(sug)}
+                    onMouseDown={(e) => { e.preventDefault(); handleSuggestionClick(sug); }}
                   >
                     {sug.type === 'product' ? (
                       <div className="navbar-product-suggestion-content">
