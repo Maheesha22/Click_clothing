@@ -649,7 +649,7 @@ export default function Home() {
               <span className="home-cat-text home-cat-text-white">MENS</span>
             </div>
           </div>
-          <div className="home-cat-card home-cat-gifts" onClick={() => navigate("/category/10")}>
+          <div className="home-cat-card home-cat-gifts" onClick={() => navigate("/category")}>
             <img src="/mens_cover_page.jpg" alt="Mens Wear" className="home-cat-img" />
             <div className="home-cat-overlay" />
             <div className="home-cat-label-wrap">
