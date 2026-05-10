@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import NavBar from "../components/navsidebar";
 import WhatsAppButton from "../components/whatsappbtn";
-import SizeChart from "../components/SizeChart";          // <-- Added from updated code
+import SizeChart from "../components/SizeChart";
 import cartService from "../services/cartService";
 import {
   getWishlistDB,
@@ -15,6 +15,18 @@ import {
   removeFromGuestWishlist,
 } from "../services/wishlistService";
 import "./ProductPage.css";
+
+// ---------- Helper: Convert any color name to a consistent hex code ----------
+const stringToHexColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0; // Convert to 32-bit integer
+  }
+  // Get a full 6-digit hex value (e.g., #a1b2c3)
+  let color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+  return "#" + "00000".substring(0, 6 - color.length) + color;
+};
 
 // ---------- Helper: Reviews mock (can be replaced with API call) ----------
 const getReviews = (productId) => {
@@ -60,7 +72,7 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
   </div>
 );
 
-// ---------- Product Card Component (same in both versions) ----------
+// ---------- Product Card Component ----------
 const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "#ffffff");
   const images = product.colorImages?.[selectedColor] || [product.img];
@@ -110,7 +122,7 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
   );
 };
 
-// ---------- Reviews Modal (unchanged) ----------
+// ---------- Reviews Modal ----------
 const ReviewsModal = ({ product, onClose }) => {
   const reviews = getReviews(product.id);
   const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
@@ -449,7 +461,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 BUY IT NOW
               </button>
 
-              {/* Simplified info badges: only low-stock warning (shipping/payment removed) */}
+              {/* Simplified info badges: only low-stock warning */}
               {product.inStock && product.stockCount <= 5 && (
                 <div className="sh-modal-info-badges">
                   <div className="sh-info-badge warning">
@@ -485,7 +497,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
         <ReviewsModal product={product} onClose={() => setShowReviews(false)} />
       )}
 
-      {/* SizeChart panel (from updated code) */}
+      {/* SizeChart panel */}
       <SizeChart open={showSizeChart} onClose={() => setShowSizeChart(false)} />
     </>
   );
@@ -532,6 +544,7 @@ const ProductPage = () => {
     const sizes    = [...new Set(variants.map(v => v.size).filter(s => s))];
     const colors   = [...new Set(variants.map(v => v.color).filter(c => c))];
 
+    // Hardcoded map for common colors (optional – you can keep or remove)
     const colorHexMap = {
       red: "#FF0000", blue: "#0000FF", black: "#000000",
       white: "#FFFFFF", green: "#00FF00", yellow: "#FFFF00",
@@ -540,9 +553,12 @@ const ProductPage = () => {
       beige: "#F5F5DC", khaki: "#F0E68C", maroon: "#800000",
     };
 
-    const colorArray = colors.map(
-      (c) => colorHexMap[c.toLowerCase()] || `#${Math.floor(Math.random() * 16777215).toString(16)}`
-    );
+    // Generate hex for each color name using the deterministic function
+    const colorArray = colors.map((c) => {
+      const lowerName = c.toLowerCase();
+      // Use hardcoded hex if available, otherwise generate from the name
+      return colorHexMap[lowerName] || stringToHexColor(c);
+    });
 
     const imagesByColor = {};
     colors.forEach((color) => {
