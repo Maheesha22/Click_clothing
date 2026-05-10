@@ -35,6 +35,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const categoryDataRoutes = require("./routes/categoryDataRoutes"); 
 const searchRoutes = require("./routes/searchRoutes");   
 const searchHistoryRoutes = require("./routes/searchHistoryRoutes"); 
+const youMayAlsoLikeRoutes = require("./routes/youMayAlsoLikeRoutes");
 
 
 
@@ -48,6 +49,7 @@ app.use("/api/category-data", categoryDataRoutes);
 
 app.use("/api/search", searchRoutes);                        
 app.use("/api/search-history", searchHistoryRoutes); 
+app.use("/api/you-may-also-like", youMayAlsoLikeRoutes); 
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
