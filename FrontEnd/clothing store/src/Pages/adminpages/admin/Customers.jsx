@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { IcoSearch, Avatar, Badge, MiniStats, IcoUsers, IcoCart, IcoCard } from './shared';
+import { IcoSearch, Avatar, Badge, MiniStats, IcoUsers, IcoCart, IcoCard } from './shared'; 
 import API from '../../../services/api';
 
 export default function Customers() {
