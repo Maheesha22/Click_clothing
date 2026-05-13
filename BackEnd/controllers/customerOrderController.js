@@ -1,11 +1,9 @@
 const { Order, OrderItem, Product, Customer, ProductVariant, OrderDetail } = require('../models');
 
-// Get user's orders with their items AND their attached customer details
 const getCustomerOrders = async (req, res) => {
   try {
     const { userId } = req.params;
     
-    // Fetch the raw orders with nested Product info just like the original controller
     const orders = await Order.findAll({
       where: { userId },
       include: [
