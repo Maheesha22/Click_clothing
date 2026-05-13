@@ -1,7 +1,7 @@
 const { Return, User, Order, Product, OrderItem } = require('../models');
 const { Op } = require('sequelize'); 
 
-// Get all returns with product details enriched
+
 const getAllReturns = async (req, res) => {
   try {
     const returns = await Return.findAll({
@@ -12,7 +12,7 @@ const getAllReturns = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    // Enrich with product details for each product in the return
+   
     const enrichedReturns = await Promise.all(returns.map(async (ret) => {
       const productsWithDetails = await Promise.all(
         (ret.products || []).map(async (product) => {
@@ -47,7 +47,7 @@ const getAllReturns = async (req, res) => {
   }
 };
 
-// Get returns for a specific user
+
 const getUserReturns = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -75,7 +75,7 @@ const getUserReturns = async (req, res) => {
   }
 };
 
-// Get returns by date range (month/week)
+
 const getReturnsByDateRange = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -111,7 +111,7 @@ const getReturnsByDateRange = async (req, res) => {
   }
 };
 
-// Get returns statistics (monthly/weekly)
+
 const getReturnsStats = async (req, res) => {
   try {
     const { period = 'month' } = req.query;
@@ -144,7 +144,7 @@ const getReturnsStats = async (req, res) => {
 
       stats[key].count += 1;
 
-      // Sum quantities from all products in this return
+      
       const totalQty = (ret.products || []).reduce((sum, p) => sum + (p.quantity || 0), 0);
       stats[key].quantity += totalQty;
 
@@ -166,7 +166,7 @@ const getReturnsStats = async (req, res) => {
   }
 };
 
-// Create new return with MULTIPLE products and ONE reason
+
 const createMultiProductReturn = async (req, res) => {
   try {
     console.log('=== CREATE MULTI-PRODUCT RETURN ===');
@@ -174,7 +174,7 @@ const createMultiProductReturn = async (req, res) => {
 
     const { userId, orderId, products, reason } = req.body;
 
-    // Validation
+    
     if (!userId || !orderId || !products || products.length === 0) {
       console.log('Validation failed - missing fields');
       return res.status(400).json({
@@ -223,7 +223,7 @@ const createMultiProductReturn = async (req, res) => {
     }
 
     console.log('Creating return...');
-    // Create return with ALL products
+    
     const newReturn = await Return.create({
       userId,
       orderId,
@@ -239,7 +239,7 @@ const createMultiProductReturn = async (req, res) => {
 
     console.log('Return created with ID:', newReturn.id);
 
-    // Enrich response with product details
+    
     const productsWithDetails = await Promise.all(
       (newReturn.products || []).map(async (product) => {
         const productData = await Product.findByPk(product.productId, {
@@ -278,7 +278,7 @@ const createMultiProductReturn = async (req, res) => {
   }
 };
 
-// Legacy single product create (for backward compatibility)
+
 const createReturn = async (req, res) => {
   try {
     const { userId, orderId, productId, size, color, quantity, reason } = req.body;
@@ -314,7 +314,7 @@ const createReturn = async (req, res) => {
       });
     }
 
-    // Create as single product return
+    
     const newReturn = await Return.create({
       userId,
       orderId,
@@ -350,18 +350,17 @@ const createReturn = async (req, res) => {
   }
 };
 
-// Get eligible orders for returns (shipped or delivered + COD payment only)
-// Excludes orders that already have a return record
+
 const getEligibleOrdersForReturns = async (req, res) => {
   try {
-    // Step 1: Get all orderIds that already have a return record
+    //Get all orderIds that already have a return record
     const existingReturns = await Return.findAll({
       attributes: ['orderId'],
       raw: true
     });
     const alreadyReturnedOrderIds = existingReturns.map(r => r.orderId);
 
-    // Step 2: Build where clause - exclude already-returned orders
+    //Build where clause - exclude already-returned orders
     const whereClause = {
       status: { [Op.in]: ['shipped', 'delivered', 'Shipped', 'Delivered'] },
       payment_method: { [Op.in]: ['Cash on Delivery', 'cash on delivery'] }
@@ -371,7 +370,7 @@ const getEligibleOrdersForReturns = async (req, res) => {
       whereClause.id = { [Op.notIn]: alreadyReturnedOrderIds };
     }
 
-    // Step 3: Fetch eligible orders
+    //Fetch eligible orders
     const orders = await Order.findAll({
       where: whereClause,
       attributes: ['id', 'order_number', 'status', 'total_bill', 'createdAt', 'payment_method'],
