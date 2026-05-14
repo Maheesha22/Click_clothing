@@ -1,57 +1,49 @@
-// Home.jsx 
+// Home.jsx – Clean version, uses only categoryDataController for New Arrivals & Best Sellers
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import WhatsAppButton from "../components/whatsappbtn";
-import NavBar from "../components/navsidebar";   
+import NavBar from "../components/navsidebar";
 import "./Home.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import cartService from "../services/cartService";
 
-// ── Slideshow Data 
+// ── Slideshow Data ─────────────────────────────────────────────
 const SLIDES = [
-  {
-    img: "/splash1.jpg",
-    tag: "New Collection 2026",
-    title: "Style That Speaks\nFor You",
-    sub: "Discover the latest trends curated for every occasion.",
-  },
-  {
-    img: "/splash2.jpg",
-    tag: "Men's Fashion",
-    title: "Elegance In\nEvery Detail",
-    sub: "Premium men's wear for the modern lifestyle.",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1400&q=85",
-    tag: "Top Sales",
-    title: "Fashion Made\nFor You",
-    sub: "Explore outfits designed to keep you stylish and comfortable.",
-  },
-  {
-    img: "splash4.jpg",
-    tag: "Men's Collection",
-     title: "Own The Look,\nOwn The Moment",
-     sub: "Fashion that helps you stand out effortlessly.",
-  },
+  { img: "/splash1.jpg", tag: "New Collection 2026", title: "Style That Speaks\nFor You", sub: "Discover the latest trends curated for every occasion." },
+  { img: "/splash2.jpg", tag: "Men's Fashion", title: "Elegance In\nEvery Detail", sub: "Premium men's wear for the modern lifestyle." },
+  { img: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=1400&q=85", tag: "Top Sales", title: "Fashion Made\nFor You", sub: "Explore outfits designed to keep you stylish and comfortable." },
+  { img: "splash4.jpg", tag: "Men's Collection", title: "Own The Look,\nOwn The Moment", sub: "Fashion that helps you stand out effortlessly." },
 ];
 
-// ── Product Data 
-const NEW_ARRIVALS = [
-  ];
+// ── Helper: transform backend product to frontend format ──────
+const transformProduct = (backendProduct) => {
+  const variants = backendProduct.variants || [];
+  const uniqueColors = [...new Set(variants.map(v => v.color))];
+  const uniqueSizes = [...new Set(variants.map(v => v.size))];
+  const colorImages = {};
+  uniqueColors.forEach(color => {
+    const variant = variants.find(v => v.color === color);
+    if (variant?.imageUrl) colorImages[color] = variant.imageUrl;
+  });
+  const firstImage = variants[0]?.imageUrl || '/trousers/default.jpeg';
 
-const BEST_SELLERS = [
- ];
-
-const ALL_PRODUCTS = [...NEW_ARRIVALS, ...BEST_SELLERS];
-
-const getSuggestedProducts = (excludeProductId = null, count = 4) => {
-  let available = [...ALL_PRODUCTS];
-  if (excludeProductId) available = available.filter((p) => p.id !== excludeProductId);
-  return [...available].sort(() => 0.5 - Math.random()).slice(0, count);
+  return {
+    id: backendProduct.productId,
+    name: backendProduct.productName,
+    price: parseFloat(backendProduct.price).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    colors: uniqueColors,
+    colorImages: colorImages,
+    defaultImage: firstImage,
+    img: firstImage,
+    description: backendProduct.description || 'Premium quality product',
+    sizes: uniqueSizes,
+    category: backendProduct.categoryName,
+    totalSold: backendProduct.totalSold || 0
+  };
 };
 
-// ── Product Popup Modal 
+// ── Product Popup Modal ───────────────────────────────────────
 function ProductPopup({ product, onClose }) {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -166,7 +158,7 @@ function ProductPopup({ product, onClose }) {
   );
 }
 
-// ── Slideshow 
+// ── Slideshow ─────────────────────────────────────────────────
 function Slideshow() {
   const [current, setCurrent] = useState(0);
 
@@ -206,7 +198,7 @@ function Slideshow() {
   );
 }
 
-// ── Product Grid 
+// ── Product Grid (unchanged) ──────────────────────────────────
 function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches = true }) {
   const [selectedColors, setSelectedColors] = useState({});
   const [productImages, setProductImages] = useState({});
@@ -272,7 +264,7 @@ function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches
   );
 }
 
-// ── You May Also Like 
+// ── You May Also Like (backend only, no fallback) ─────────────
 function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   const [suggestions, setSuggestions] = useState([]);
 
@@ -281,22 +273,18 @@ function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
       try {
         const response = await fetch('http://localhost:3000/api/you-may-also-like');
         const data = await response.json();
-        
         if (data.success && data.data && Array.isArray(data.data)) {
           let filteredData = data.data;
-          if (excludeProductId) {
-            filteredData = filteredData.filter(p => p.id !== excludeProductId);
-          }
+          if (excludeProductId) filteredData = filteredData.filter(p => p.id !== excludeProductId);
           setSuggestions(filteredData.slice(0, 4));
         } else {
-          setSuggestions(getSuggestedProducts(excludeProductId, 4));
+          setSuggestions([]);
         }
       } catch (error) {
         console.error('Error fetching You May Also Like:', error);
-        setSuggestions(getSuggestedProducts(excludeProductId, 4));
+        setSuggestions([]);
       }
     };
-
     fetchRecommendations();
   }, [excludeProductId]);
 
@@ -304,124 +292,74 @@ function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
     <div className="home-section home-you-may-like-section">
       <div className="home-section-header">
         <h2 className="home-section-title">YOU MAY ALSO LIKE</h2>
-       
       </div>
       <ProductGrid items={suggestions} onProductClick={onProductClick} maxItems={4} showColorSwatches={true} />
     </div>
   );
 }
 
-// ── Home Page_Best Sellers section
+// ── Home Page (fully cleaned) ─────────────────────────────────
 export default function Home() {
   const [activeTab, setActiveTab] = useState("New Arrivals");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [youMayAlsoLikeKey, setYouMayAlsoLikeKey] = useState(0);
-  const [latestProducts, setLatestProducts] = useState(NEW_ARRIVALS);
-  const [bestSellers, setBestSellers] = useState(BEST_SELLERS);
-  const [loading, setLoading] = useState(true);
+  const [latestProducts, setLatestProducts] = useState([]);
+  const [bestSellers, setBestSellers] = useState([]);
+  const [loadingLatest, setLoadingLatest] = useState(true);
+  const [loadingBest, setLoadingBest] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Scroll to hash if present
   useEffect(() => {
     if (location.hash) {
       setTimeout(() => {
         const id = location.hash.replace('#', '');
         const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
   }, [location]);
 
-  // latest products 
+  // Fetch New Arrivals (latest 4 products) – uses categoryDataController
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
         const response = await fetch('http://localhost:3000/api/category-data/latest-products');
         const data = await response.json();
-        
-        if (data.success && data.data && Array.isArray(data.data)) {
-          const transformedProducts = data.data.map((product) => {
-            const variants = product.variants || [];
-            const uniqueColors = [...new Set(variants.map(v => v.color))];
-            const uniqueSizes = [...new Set(variants.map(v => v.size))];
-            const colorImages = {};
-            uniqueColors.forEach(color => {
-              const variant = variants.find(v => v.color === color);
-              if (variant?.imageUrl) {
-                colorImages[color] = variant.imageUrl;
-              }
-            });
-            const firstImage = variants[0]?.imageUrl || '/trousers/default.jpeg';
-            return {
-              id: product.productId,
-              name: product.productName,
-              price: parseFloat(product.price).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-              colors: uniqueColors,
-              colorImages: colorImages,
-              defaultImage: firstImage,
-              img: firstImage,
-              description: product.description || 'Premium quality product',
-              sizes: uniqueSizes,
-              category: product.categoryName,
-            };
-          });
-          setLatestProducts(transformedProducts);
+        if (data.success && Array.isArray(data.data)) {
+          setLatestProducts(data.data.map(transformProduct));
+        } else {
+          setLatestProducts([]);
         }
       } catch (error) {
         console.error('Error fetching latest products:', error);
-        setLatestProducts(NEW_ARRIVALS);
+        setLatestProducts([]);
       } finally {
-        setLoading(false);
+        setLoadingLatest(false);
       }
     };
-
     fetchLatestProducts();
   }, []);
 
-  // Fetch best-selling products from database
+  // Fetch Best Sellers (top 4 from order history) – uses categoryDataController
   useEffect(() => {
     const fetchBestSellers = async () => {
       try {
         const response = await fetch('http://localhost:3000/api/category-data/best-sellers');
         const data = await response.json();
-        
-        if (data.success && data.data && Array.isArray(data.data)) {
-          const transformedBestSellers = data.data.map((product) => {
-            const variants = product.variants || [];
-            const uniqueColors = [...new Set(variants.map(v => v.color))];
-            const uniqueSizes = [...new Set(variants.map(v => v.size))];
-            const colorImages = {};
-            uniqueColors.forEach(color => {
-              const variant = variants.find(v => v.color === color);
-              if (variant?.imageUrl) {
-                colorImages[color] = variant.imageUrl;
-              }
-            });
-            const firstImage = variants[0]?.imageUrl || '/trousers/default.jpeg';
-            return {
-              id: product.productId,
-              name: product.productName,
-              price: parseFloat(product.price).toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-              colors: uniqueColors,
-              colorImages: colorImages,
-              defaultImage: firstImage,
-              img: firstImage,
-              description: product.description || 'Premium quality product',
-              sizes: uniqueSizes,
-              category: product.categoryName,
-              totalSold: product.totalSold || 0
-            };
-          });
-          setBestSellers(transformedBestSellers);
+        if (data.success && Array.isArray(data.data)) {
+          setBestSellers(data.data.map(transformProduct));
+        } else {
+          setBestSellers([]);
         }
       } catch (error) {
         console.error('Error fetching best sellers:', error);
-        setBestSellers(BEST_SELLERS);
+        setBestSellers([]);
+      } finally {
+        setLoadingBest(false);
       }
     };
-
     fetchBestSellers();
   }, []);
 
@@ -433,12 +371,7 @@ export default function Home() {
   const handleClosePopup = () => setSelectedProduct(null);
 
   const whatsappContext = selectedProduct
-    ? {
-        productName: selectedProduct.name,
-        category: selectedProduct.category,
-        price: selectedProduct.price,
-        page: "home",
-      }
+    ? { productName: selectedProduct.name, category: selectedProduct.category, price: selectedProduct.price, page: "home" }
     : { page: "home" };
 
   const currentProductId = selectedProduct?.id || null;
@@ -446,7 +379,6 @@ export default function Home() {
   return (
     <div className="home-page">
       <Header onProductClick={handleProductClick} />
-      
       <main className="home-main">
         <NavBar activeTab={activeTab} setActiveTab={setActiveTab} />
         <div className="home-content-area">
@@ -455,35 +387,25 @@ export default function Home() {
               <Slideshow />
             </div>
 
-            {/* ── NEW ARRIVALS SECTION ── */}
+            {/* NEW ARRIVALS – from categoryDataController */}
             <div className="home-section" id="new-arrivals">
               <div className="home-section-header">
                 <h2 className="home-section-title">NEW ARRIVALS</h2>
-                <div className="home-section-controls">
-                
-                </div>
               </div>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                  <p>Loading latest products...</p>
-                </div>
+              {loadingLatest ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Loading latest products...</div>
               ) : (
                 <ProductGrid items={latestProducts} onProductClick={handleProductClick} maxItems={4} />
               )}
             </div>
 
-            {/* ── NEW BEST SELLERS SECTION (database data) ── */}
+            {/* BEST SELLERS – from categoryDataController */}
             <div className="home-section" id="best-sellers">
               <div className="home-section-header">
                 <h2 className="home-section-title">BEST SELLERS</h2>
-                <div className="home-section-controls">
-                 
-                </div>
               </div>
-              {loading ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                  <p>Loading best sellers...</p>
-                </div>
+              {loadingBest ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Loading best sellers...</div>
               ) : (
                 <ProductGrid items={bestSellers} onProductClick={handleProductClick} maxItems={4} />
               )}
@@ -497,6 +419,8 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* SHOPPING BY CATEGORY GRID – unchanged */}
       <div className="home-shop-category">
         <p className="home-shop-category-label">Shopping By Category</p>
         <div className="home-cat-top-row">
@@ -532,6 +456,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+
       <Footer />
       <WhatsAppButton context={whatsappContext} />
       {selectedProduct && <ProductPopup product={selectedProduct} onClose={handleClosePopup} />}
