@@ -1,7 +1,6 @@
 
 // SizeChart.jsx
-// Controlled component: open/onClose props are passed in by the parent (ProductModal).
-// Import this and place <SizeChart open={...} onClose={...} /> wherever needed.
+
 
 import { useState, useEffect } from "react";
 import "./SizeChart.css";
