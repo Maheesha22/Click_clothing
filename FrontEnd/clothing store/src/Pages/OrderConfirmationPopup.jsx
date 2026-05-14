@@ -9,9 +9,9 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
     const pageWidth = doc.internal.pageSize.getWidth();
     let yPos = 20;
 
-    // Header - Black & White
+  
     doc.setFontSize(22);
-    doc.setTextColor(0, 0, 0); // Black
+    doc.setTextColor(0, 0, 0);
     doc.text('Order Received', pageWidth / 2, yPos, { align: 'center' });
     
     yPos += 15;
@@ -117,7 +117,7 @@ const OrderConfirmationPopup = ({ orderDetails, onClose }) => {
     yPos += lineHeight;
     doc.text(`Date: ${new Date().toLocaleDateString()}`, leftMargin, yPos);
     
-    // Footer
+  
     yPos = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
