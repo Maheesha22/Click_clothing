@@ -45,7 +45,7 @@ function NavBar({ activeTab, setActiveTab }) {
       .catch(err => console.error("Failed to load categories:", err));
   }, []);
 
-  // ✅ Build navigation tabs – category menu items go to ProductPage with categoryId
+  //  Build navigation tabs – category menu items go to ProductPage with categoryId
   const navTabs = useMemo(() => [
     { label: "New Arrivals", hash: "new-arrivals" },
     { label: "Best Sellers", hash: "best-sellers" },
@@ -54,7 +54,7 @@ function NavBar({ activeTab, setActiveTab }) {
       menu: categories.map(cat => {
         return {
           label: cat.name,
-          page: `category/${cat.id}`,   // ✅ navigates with categoryId: /category/1, /category/2, etc.
+          page: `category/${cat.id}`,   //  navigates with categoryId: /category/1, /category/2, etc.
           categoryId: cat.id
         };
       })
@@ -78,7 +78,7 @@ function NavBar({ activeTab, setActiveTab }) {
     return [...new Set(labels)];
   }, [navTabs]);
 
-  // Update suggestions based on search query - fetch from backend API
+  // Update suggestions based on search query 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
       const lowerQuery = searchQuery.toLowerCase();
