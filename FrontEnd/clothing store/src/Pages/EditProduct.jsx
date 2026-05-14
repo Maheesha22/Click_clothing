@@ -13,30 +13,30 @@ const EditProductModal = ({
 }) => {
   if (!isOpen) return null;
 
-  // Extract available variants from the product data
+ 
   const variants = product?.availableVariants || [];
   
-  // Get all unique colors available for this product
+  
   const allUniqueColors = [...new Set(variants.map(v => v.color))];
   
-  // Get all unique sizes available for this product
+  
   const allUniqueSizes = [...new Set(variants.map(v => v.size))];
 
-  // Logic to determine if a size is available for the currently selected color
+
   const isSizeAvailableForColor = (size) => {
     return variants.some(v => v.color === tempColor && v.size === size);
   };
 
-  // Logic to determine if a color is available for the currently selected size
+  
   const isColorAvailableForSize = (color) => {
     return variants.some(v => v.color === color && v.size === tempSize);
   };
 
-  // Get current image based on selected color
+ 
   const currentVariant = variants.find(v => v.color === tempColor) || variants[0];
   const currentImage = currentVariant?.imageUrl || product?.imageUrl;
 
-  // Product SVG component (fallback)
+  
   const ProductSVG = () => (
     <svg viewBox="0 0 82 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="82" height="100" fill="#e8ddd5" />
@@ -58,7 +58,7 @@ const EditProductModal = ({
         </div>
 
         <div className="modal-body">
-          {/* Product Preview Section */}
+         
           <div className="product-preview-row">
             <div className="preview-image">
               {currentImage ? (
@@ -76,7 +76,7 @@ const EditProductModal = ({
             </div>
           </div>
 
-          {/* Color Selection - Showing all from Variants */}
+          
           <div className="edit-group">
             <div className="edit-label">Select Color</div>
             <div className="color-options">
@@ -86,7 +86,7 @@ const EditProductModal = ({
                   className={`color-badge ${tempColor === color ? "selected" : ""} ${!isColorAvailableForSize(color) ? "not-available" : ""}`}
                   onClick={() => {
                     setTempColor(color);
-                    // If the current size isn't available for the new color, auto-select the first available size
+                   
                     const availableSizesForNewColor = variants.filter(v => v.color === color).map(v => v.size);
                     if (!availableSizesForNewColor.includes(tempSize)) {
                       setTempSize(availableSizesForNewColor[0]);
@@ -100,7 +100,7 @@ const EditProductModal = ({
             </div>
           </div>
 
-          {/* Size Selection - Showing all from Variants */}
+          
           <div className="edit-group">
             <div className="edit-label">Select Size</div>
             <div className="size-options">
@@ -112,8 +112,7 @@ const EditProductModal = ({
                     if (isSizeAvailableForColor(size)) {
                       setTempSize(size);
                     } else {
-                      // Optionally switch color to one that has this size, 
-                      // but let's keep it simple: just select the size and find first color that matches
+                      
                       const firstColorForSize = variants.find(v => v.size === size)?.color;
                       if (firstColorForSize) {
                         setTempColor(firstColorForSize);
