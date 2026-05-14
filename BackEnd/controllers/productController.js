@@ -1,7 +1,7 @@
-// controllers/productController.js
+
 const { Product, Category, ProductVariant } = require('../models');
 
-/* ─── POST /api/products/upload-image ────────────────────── */
+/*  POST /api/products/upload-image*/
 exports.uploadImage = (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file received.' });
@@ -14,7 +14,7 @@ exports.uploadImage = (req, res) => {
   });
 };
 
-/* ─── POST /api/products (handles simple or advanced payload) ── */
+/*  POST /api/products */
 exports.createProduct = async (req, res) => {
   try {
     const { product_name, description, categoryId, price, variants } = req.body;
@@ -34,7 +34,7 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Valid price is required' });
     }
 
-    // Create the product first
+   
     const product = await Product.create({
       name: name.trim(),
       description: (description || req.body.product_description || '').trim(),
@@ -42,7 +42,7 @@ exports.createProduct = async (req, res) => {
       categoryId: catId,
     });
 
-    // If variants provided, create them
+  
     if (variants && Array.isArray(variants) && variants.length > 0) {
       const validVariants = variants.filter(v =>
         v.color && v.color.trim() &&
@@ -70,7 +70,7 @@ exports.createProduct = async (req, res) => {
     return res.status(201).json({ success: true, data: { id: product.id }, message: 'Product created successfully' });
   } catch (error) {
     console.error('Create product error:', error);
-    // Return a clear message for unique constraint violations
+    
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ success: false, message: 'Duplicate variant: same color + size combination already exists for this product' });
     }
@@ -78,7 +78,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-/* ─── GET /api/products ───────────────────────────────────── */
+/* GET /api/products  */
 exports.getAllProducts = async (req, res) => {
   try {
     const { category, categoryId } = req.query;
@@ -154,7 +154,7 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-/* ─── GET /api/products/categories/all ───────────────────── */
+/* GET /api/products/categories/all */
 exports.getAllCategories = async (req, res) => {
   try {
     const categories = await Category.findAll({ order: [['name', 'ASC']], attributes: ['id', 'name'] });
@@ -164,7 +164,7 @@ exports.getAllCategories = async (req, res) => {
   }
 };
 
-/* ─── GET /api/products/:id ──────────────────────────────── */
+/*GET /api/products/:id */
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id, {
@@ -186,7 +186,7 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-/* ─── PUT /api/products/:id ──────────────────────────────── */
+/*  PUT /api/products/:id*/
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -218,18 +218,18 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-/* ─── PATCH /api/products/:id/availability ───────────────── */
+/* ─ PATCH /api/products/:id/availability */
 exports.updateAvailability = async (req, res) => {
   // This endpoint is kept for compatibility – availability is now computed from variants
   res.status(200).json({ success: true, message: 'Availability is auto-calculated from variant quantities' });
 };
 
-/* ─── PATCH /api/products/:id/quantity ───────────────────── */
+/*  PATCH /api/products/:id/quantity */
 exports.updateQuantity = async (req, res) => {
   res.status(501).json({ success: false, message: 'Update variant quantities directly' });
 };
 
-/* ─── POST /api/products/bulk ────────────────────────────── */
+/*  POST /api/products/bulk  */
 exports.bulkCreateProducts = async (req, res) => {
   try {
     const { products } = req.body;
@@ -243,7 +243,7 @@ exports.bulkCreateProducts = async (req, res) => {
   }
 };
 
-/* ─── GET /api/products/category/:category ───────────────── */
+/* GET /api/products/category/:category */
 exports.getProductsByCategory = async (req, res) => {
   try {
     const categoryId = parseInt(req.params.category, 10);
@@ -298,7 +298,7 @@ exports.getProductsByCategory = async (req, res) => {
   }
 };
 
-/* ─── GET /api/products/:id/variants ─────────────────────── */
+/* GET /api/products/:id/variants */
 exports.getProductVariants = async (req, res) => {
   try {
     const variants = await ProductVariant.findAll({
