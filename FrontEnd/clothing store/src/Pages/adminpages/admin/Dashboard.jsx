@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ORDERS_DATA, O_BADGE, Avatar, Badge, MiniStats } from './shared';
 
-/* ── Sales Analytics — grouped bar chart (Dashboard only) ── */
+/* ── Sales Analytics */
 function ChartSalesBar() {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const rev = [62, 88, 75, 112, 118, 120, 100];
