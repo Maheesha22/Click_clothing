@@ -11,7 +11,7 @@ const generateOrderNumber = () => {
   return `ORD-${year}${month}${day}-${random}`;
 };
 
-// Ensure barcode is unique (checking OrderDetail table now)
+
 const generateUniqueBarcode = async () => {
   let barcode;
   let isUnique = false;
@@ -40,7 +40,7 @@ const createOrder = async (req, res) => {
     console.log('=== ORDER CREATION DEBUG ===');
     console.log('Request body:', req.body);
     
-    // Extract data from request body
+  
     const {
       userId,
       email,
@@ -80,10 +80,10 @@ const createOrder = async (req, res) => {
       console.log('New customer created:', customer.id);
     }
 
-    // 2. Determine items to process
+    
     let itemsToProcess = [];
     
-    // Check if selectedItems are provided in the request body (e.g., from Buy It Now)
+  
     if (req.body.selectedItems) {
       try {
         const rawItems = typeof req.body.selectedItems === 'string' 
@@ -91,7 +91,7 @@ const createOrder = async (req, res) => {
           : req.body.selectedItems;
         
         if (Array.isArray(rawItems) && rawItems.length > 0) {
-          // Map frontend fields to backend model fields
+         
           itemsToProcess = rawItems.map(item => ({
             productId: item.productId || item.id,
             size: item.sizeLabel || item.size,
@@ -106,7 +106,7 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // If no items in body, fallback to SelectedItems table
+    
     if (itemsToProcess.length === 0) {
       const selectedItemsList = await SelectedItems.findAll({ where: { userId: uId } });
       if (selectedItemsList && selectedItemsList.length > 0) {
@@ -163,7 +163,7 @@ const createOrder = async (req, res) => {
 
     console.log('Order details created');
 
-    // 6. Cleanup: Remove from Cart and SelectedItems
+    
     const productIds = itemsToProcess.map(item => item.productId);
     
     await Cart.destroy({
@@ -199,7 +199,7 @@ const createOrder = async (req, res) => {
   }
 };
 
-// Get user's orders with their items
+
 const getUserOrders = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -226,7 +226,7 @@ const getUserOrders = async (req, res) => {
   }
 };
 
-// Get single order details with items
+
 const getOrderDetails = async (req, res) => {
   try {
     const { id } = req.params;
