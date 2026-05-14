@@ -1,7 +1,7 @@
 const { Return, User, Order, Product, OrderItem } = require('../models');
 const { Op } = require('sequelize'); 
 
-
+//used
 const getAllReturns = async (req, res) => {
   try {
     const returns = await Return.findAll({
@@ -111,7 +111,7 @@ const getReturnsByDateRange = async (req, res) => {
   }
 };
 
-
+//used
 const getReturnsStats = async (req, res) => {
   try {
     const { period = 'month' } = req.query;
@@ -350,7 +350,7 @@ const createReturn = async (req, res) => {
   }
 };
 
-
+//used
 const getEligibleOrdersForReturns = async (req, res) => {
   try {
     //Get all orderIds that already have a return record
