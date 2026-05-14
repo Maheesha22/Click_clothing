@@ -1,4 +1,4 @@
-// Home.jsx – Clean version, uses only categoryDataController for New Arrivals & Best Sellers
+// Home.jsx 
 import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,7 +8,7 @@ import "./Home.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import cartService from "../services/cartService";
 
-// ── Slideshow Data ─────────────────────────────────────────────
+// ── Slideshow Data 
 const SLIDES = [
   { img: "/splash1.jpg", tag: "New Collection 2026", title: "Style That Speaks\nFor You", sub: "Discover the latest trends curated for every occasion." },
   { img: "/splash2.jpg", tag: "Men's Fashion", title: "Elegance In\nEvery Detail", sub: "Premium men's wear for the modern lifestyle." },
@@ -16,7 +16,7 @@ const SLIDES = [
   { img: "splash4.jpg", tag: "Men's Collection", title: "Own The Look,\nOwn The Moment", sub: "Fashion that helps you stand out effortlessly." },
 ];
 
-// ── Helper: transform backend product to frontend format ──────
+//  transform backend product to frontend format 
 const transformProduct = (backendProduct) => {
   const variants = backendProduct.variants || [];
   const uniqueColors = [...new Set(variants.map(v => v.color))];
@@ -43,7 +43,7 @@ const transformProduct = (backendProduct) => {
   };
 };
 
-// ── Product Popup Modal ───────────────────────────────────────
+// Product Popup Modal
 function ProductPopup({ product, onClose }) {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -158,7 +158,7 @@ function ProductPopup({ product, onClose }) {
   );
 }
 
-// ── Slideshow ─────────────────────────────────────────────────
+//  Slideshow
 function Slideshow() {
   const [current, setCurrent] = useState(0);
 
@@ -198,7 +198,7 @@ function Slideshow() {
   );
 }
 
-// ── Product Grid (unchanged) ──────────────────────────────────
+// Product Grid 
 function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches = true }) {
   const [selectedColors, setSelectedColors] = useState({});
   const [productImages, setProductImages] = useState({});
@@ -264,7 +264,7 @@ function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches
   );
 }
 
-// ── You May Also Like (backend only, no fallback) ─────────────
+// You May Also Like 
 function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   const [suggestions, setSuggestions] = useState([]);
 
@@ -298,7 +298,7 @@ function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   );
 }
 
-// ── Home Page (fully cleaned) ─────────────────────────────────
+// ── Home Page 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("New Arrivals");
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -321,7 +321,7 @@ export default function Home() {
     }
   }, [location]);
 
-  // Fetch New Arrivals (latest 4 products) – uses categoryDataController
+  // Fetch New Arrivals(categoryDataController)
   useEffect(() => {
     const fetchLatestProducts = async () => {
       try {
@@ -342,7 +342,7 @@ export default function Home() {
     fetchLatestProducts();
   }, []);
 
-  // Fetch Best Sellers (top 4 from order history) – uses categoryDataController
+  // Fetch Best Sellers(categoryDataController)
   useEffect(() => {
     const fetchBestSellers = async () => {
       try {
@@ -420,7 +420,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* SHOPPING BY CATEGORY GRID – unchanged */}
+      {/* SHOPPING BY CATEGORY GRID  */}
       <div className="home-shop-category">
         <p className="home-shop-category-label">Shopping By Category</p>
         <div className="home-cat-top-row">
