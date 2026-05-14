@@ -4,9 +4,7 @@ const { Category, Product, ProductVariant, OrderItem, Order } = require('../mode
 const { Sequelize } = require('sequelize');
 
 /**
- * GET /api/categories/data/latest-products
  * Returns the latest 4 products with their categories and variants
- * Used for "New Arrivals" section on homepage
  */
 exports.getLatestProducts = async (req, res) => {
   try {
@@ -58,15 +56,13 @@ exports.getLatestProducts = async (req, res) => {
   }
 };
 
-/**
- * GET /api/category-data/best-sellers
+/*
  * Returns the top 4 best-selling products based on order history
  * Only includes products from completed orders (confirmed, shipped, delivered)
- * Includes product details, categories, and variants with images
  */
 exports.getBestSellers = async (req, res) => {
   try {
-    // Step 1: Get top 4 best-selling products from order_items and orders
+    //  Get top 4 best-selling products from order_items and orders
     const bestSellingProductIds = await OrderItem.findAll({
       attributes: [
         'productId',
@@ -97,7 +93,7 @@ exports.getBestSellers = async (req, res) => {
       return res.json({ success: true, data: [] });
     }
 
-    // Step 2: Fetch the product details with variants and categories
+    //  Fetch the product details with variants and categories
     const bestSellingProducts = await Product.findAll({
       where: {
         id: {
@@ -119,13 +115,13 @@ exports.getBestSellers = async (req, res) => {
       attributes: ['id', 'name', 'description', 'price', 'categoryId']
     });
 
-    // Step 3: Create a map of total_sold from the first query
+    //  Create a map of total_sold from the first query
     const salesMap = {};
     bestSellingProductIds.forEach(item => {
       salesMap[item.productId] = item.total_sold;
     });
 
-    // Step 4: Format and sort response by total_sold
+    //  Format and sort response by total_sold
     const formattedProducts = bestSellingProducts.map(product => {
       const variants = product.variants || [];
       const categoryName = product.category?.name || 'Unknown';
