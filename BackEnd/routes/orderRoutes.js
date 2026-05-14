@@ -11,7 +11,7 @@ const slipStorage = new CloudinaryStorage({
   params: {
     folder: 'click_clothing_slips',
     allowed_formats: ['jpg', 'jpeg', 'png', 'pdf'],
-    resource_type: 'auto',  // allows PDF uploads too
+    resource_type: 'auto',  
   },
 });
 
@@ -20,7 +20,7 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
 
-// Order routes - use upload.none() for form-data without file, or upload.single() for with file
+// Order routes
 router.post('/create', upload.single('bankSlip'), orderController.createOrder);
 router.get('/user/:userId', orderController.getUserOrders);
 router.get('/:id', orderController.getOrderDetails);
