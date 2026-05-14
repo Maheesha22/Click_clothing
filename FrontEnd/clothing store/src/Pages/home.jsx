@@ -8,7 +8,7 @@ import "./Home.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import cartService from "../services/cartService";
 
-// ── Slideshow Data (unchanged) ─────────────────────────────────
+// ── Slideshow Data 
 const SLIDES = [
   {
     img: "/splash1.jpg",
@@ -36,7 +36,7 @@ const SLIDES = [
   },
 ];
 
-// ── Product Data (unchanged) ───────────────────────────────────
+// ── Product Data 
 const NEW_ARRIVALS = [
   ];
 
@@ -51,7 +51,7 @@ const getSuggestedProducts = (excludeProductId = null, count = 4) => {
   return [...available].sort(() => 0.5 - Math.random()).slice(0, count);
 };
 
-// ── Product Popup Modal (unchanged) ────────────────────────────
+// ── Product Popup Modal 
 function ProductPopup({ product, onClose }) {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -166,7 +166,7 @@ function ProductPopup({ product, onClose }) {
   );
 }
 
-// ── Slideshow (unchanged) ──────────────────────────────────────
+// ── Slideshow 
 function Slideshow() {
   const [current, setCurrent] = useState(0);
 
@@ -206,7 +206,7 @@ function Slideshow() {
   );
 }
 
-// ── Product Grid (unchanged) ───────────────────────────────────
+// ── Product Grid 
 function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches = true }) {
   const [selectedColors, setSelectedColors] = useState({});
   const [productImages, setProductImages] = useState({});
@@ -272,7 +272,7 @@ function ProductGrid({ items, onProductClick, maxItems = null, showColorSwatches
   );
 }
 
-// ── You May Also Like (updated to use backend API) ──────────────
+// ── You May Also Like 
 function YouMayAlsoLike({ onProductClick, excludeProductId = null }) {
   const [suggestions, setSuggestions] = useState([]);
 
@@ -472,7 +472,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* ── NEW BEST SELLERS SECTION (updated with database data) ── */}
+            {/* ── NEW BEST SELLERS SECTION (database data) ── */}
             <div className="home-section" id="best-sellers">
               <div className="home-section-header">
                 <h2 className="home-section-title">BEST SELLERS</h2>
