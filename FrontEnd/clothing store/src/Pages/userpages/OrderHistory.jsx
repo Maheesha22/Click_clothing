@@ -62,7 +62,6 @@ const OrderHistory = () => {
     }));
   };
 
-  // UPDATED: Navigate to Reviews page instead of Feedback
   const handleReviewOrder = (order) => {
     navigate('/user/reviews', {
       state: {
