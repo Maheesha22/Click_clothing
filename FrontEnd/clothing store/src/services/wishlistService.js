@@ -1,6 +1,6 @@
 import API from './api';
 
-// ── Logged-in user: DB calls ─────────────────────────────────────
+// Logged in user database call
 export const getWishlistDB = (userId) =>
   API.get(`/wishlist/${userId}`);
 
@@ -10,11 +10,10 @@ export const addToWishlistDB = (item) =>
 export const removeFromWishlistDB = (id) =>
   API.delete(`/wishlist/${id}`);
 
-// Remove by userId + productId (no need to know the DB row id)
 export const removeFromWishlistByProductDB = (userId, productId) =>
   API.delete(`/wishlist/by-product/${userId}/${productId}`);
 
-// ── Guest user: sessionStorage helpers ───────────────────────────
+// guest user session storage part
 const GUEST_KEY = 'guestWishlist';
 
 export const getGuestWishlist = () => {
