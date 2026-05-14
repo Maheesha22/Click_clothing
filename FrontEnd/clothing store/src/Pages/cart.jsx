@@ -104,20 +104,20 @@ export default function Cart() {
     }
   }, [userId]);
 
-  // Fetch cart on mount and when userId changes
+
   useEffect(() => {
     console.log('Cart - useEffect triggered');
     fetchCartItems();
   }, [userId, fetchCartItems]);
 
-  // Listen for cart updates - UPDATED to handle partial removal
+  
   useEffect(() => {
     const handleCartUpdate = (event) => {
       console.log('Cart - Received cartUpdated event:', event.detail);
       
-      // Check if this is a partial update (only purchased items)
+      
       if (event.detail && event.detail.purchasedItems) {
-        // Remove only the purchased items from cart state
+        
         const purchasedProductIds = event.detail.purchasedItems.map(item => item.id);
         console.log('Cart - Removing purchased items with IDs:', purchasedProductIds);
         
@@ -125,14 +125,14 @@ export default function Cart() {
           prevItems.filter(item => !purchasedProductIds.includes(item.id))
         );
         
-        // Also remove from selected set if any purchased items were selected
+       
         setSelected(prevSelected => {
           const newSelected = new Set(prevSelected);
           purchasedProductIds.forEach(id => newSelected.delete(id));
           return newSelected;
         });
       } else {
-        // Full refresh if no specific items provided (for other cart updates)
+        
         console.log('Cart - Full cart refresh');
         fetchCartItems();
       }
@@ -212,7 +212,7 @@ export default function Cart() {
     if (editingItem) {
       try {
         setLoading(true);
-        // Find the selected variant to get its image if needed (though backend handles storage)
+       
         const selectedVariant = editingItem.availableVariants.find(v => 
           v.color === tempColor && v.size === tempSize
         );
