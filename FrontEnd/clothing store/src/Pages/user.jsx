@@ -144,7 +144,7 @@ const User = () => {
         </aside>
 
         <main className="main-content">
-          <Outlet context={{ storedUser, isLoggedIn, orders }} />
+          <Outlet context={{ storedUser, isLoggedIn }} />
         </main>
       </div>
       <Footer />
