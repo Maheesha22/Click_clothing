@@ -12,11 +12,11 @@ const User = () => {
   const displayName = isLoggedIn ? `${storedUser.firstName} ${storedUser.lastName}` : 'Guest';
   const displayEmail = isLoggedIn ? storedUser.email : 'Not signed in';
 
-  const [orders] = useState([
-    { id: 'ORD-2024001', date: '2024-01-15', items: 3, total: 459.97, status: 'Delivered' },
-    { id: 'ORD-2024002', date: '2024-01-20', items: 2, total: 189.98, status: 'Shipped' },
-    { id: 'ORD-2024003', date: '2024-01-22', items: 5, total: 799.95, status: 'Delivered' }
-  ]);
+  // const [orders] = useState([
+  //   { id: 'ORD-2024001', date: '2024-01-15', items: 3, total: 459.97, status: 'Delivered' },
+  //   { id: 'ORD-2024002', date: '2024-01-20', items: 2, total: 189.98, status: 'Shipped' },
+  //   { id: 'ORD-2024003', date: '2024-01-22', items: 5, total: 799.95, status: 'Delivered' }
+  // ]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('user');
