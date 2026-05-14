@@ -1,10 +1,7 @@
 const { sequelize } = require('../models');
 const { QueryTypes } = require('sequelize');
 
-/**
- * Fetches professional customer dashboard data including total orders and spending.
- * Uses LEFT JOIN to ensure customers without orders are still included.
- */
+
 const getCustomerDashboardData = async (req, res) => {
   try {
     const query = `
