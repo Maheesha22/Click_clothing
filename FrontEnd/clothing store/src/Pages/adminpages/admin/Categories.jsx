@@ -1,17 +1,3 @@
-/**
- * Categories.jsx  — Click Clothing Admin
- * ─────────────────────────────────────────────────────────────
- * Fully database-driven. No hardcoded categories.
- *
- * Features:
- *  ✅ Load categories from  GET /api/categories
- *  ✅ Add new category       POST /api/categories
- *  ✅ Rename category        PUT  /api/categories/:id
- *  ✅ Delete category        DELETE /api/categories/:id (blocked if has products)
- *  ✅ Click category card → products  GET /api/categories/:id/products
- *  ✅ Click product row → Color → Size → Quantity variants inline
- * ─────────────────────────────────────────────────────────────
- */
 
 import { useState, useEffect, useCallback } from 'react';
 import { MiniStats, Badge } from './shared';
@@ -359,7 +345,7 @@ export default function Categories({ toast }) {
         </div>
       )}
 
-      {/* ── Products Details Panel (Inline below grid) ── */}
+      {/* ── Products Details Panel  ── */}
       {viewCat && (
         <div className="cat-panel" style={{ marginTop: 20 }}>
           <div className="cat-panel-hdr" style={{ background: '#000', color: '#fff' }}>
