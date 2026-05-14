@@ -460,13 +460,7 @@ export default function Home() {
               <div className="home-section-header">
                 <h2 className="home-section-title">NEW ARRIVALS</h2>
                 <div className="home-section-controls">
-                 {/* <button className="home-see-all">EXPLORE ALL</button> */}
-                  {/*<button className="home-nav-arrow">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 18l-6-6 6-6" /></svg>
-                  </button>
-                  <button className="home-nav-arrow">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 18l6-6-6-6" /></svg>
-                  </button>*/}
+                
                 </div>
               </div>
               {loading ? (
