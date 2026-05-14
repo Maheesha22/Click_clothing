@@ -1,10 +1,7 @@
 'use strict';
 const { Category, Product, ProductVariant } = require('../models');
 
-/**
- * GET /api/categories
- * Returns all categories with product counts
- */
+
 exports.getAllCategories = async (req, res) => {
   try {
     const categories = await Category.findAll({
@@ -12,7 +9,7 @@ exports.getAllCategories = async (req, res) => {
       order: [['name', 'ASC']]
     });
 
-    // Manually count products for each category (or use sequelize.fn if preferred)
+    // Manually count products..
     const result = await Promise.all(categories.map(async (cat) => {
       const productCount = await Product.count({ where: { categoryId: cat.id } });
       return {
@@ -63,7 +60,7 @@ exports.updateCategory = async (req, res) => {
 };
 
 /**
- * DELETE /api/categories/:id
+ * DELETE /api/categories/:id..
  */
 exports.deleteCategory = async (req, res) => {
   try {
@@ -86,8 +83,7 @@ exports.deleteCategory = async (req, res) => {
 };
 
 /**
- * GET /api/categories/:id/products
- * (Kept for compatibility, though requirements suggest using /api/products?categoryId=ID)
+ * GET /api/categories/:id/products..
  */
 exports.getProductsByCategory = async (req, res) => {
   try {
