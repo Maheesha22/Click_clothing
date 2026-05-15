@@ -4,9 +4,7 @@ const { Product, Category, ProductVariant } = require('../models');
 const { Sequelize } = require('sequelize');
 
 /**
- * GET /api/search?q=query
  * Searches for products by name, description, or category
- * Returns matching products with their details and variants
  */
 exports.searchProducts = async (req, res) => {
   try {

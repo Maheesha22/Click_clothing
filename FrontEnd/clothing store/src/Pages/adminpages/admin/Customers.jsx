@@ -118,17 +118,17 @@ export default function Customers() {
                     <td className="cell-dim">{c.email}</td>
                     <td className="cell-dim" style={{ whiteSpace: 'normal', minWidth: '350px', lineHeight: '1.5', padding: '15px 14px' }}>
                       {c.address ? (
-                        <>
-                          <div style={{ color: 'var(--black)', fontWeight: '500', marginBottom: '4px' }}>{c.address}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--g5)' }}>
+                        <div style={{ fontSize: '13px' }}>
+                          <div style={{ marginBottom: '2px' }}>{c.address}</div>
+                          <div style={{ marginBottom: '2px' }}>
                             {[c.city, c.district, c.province].filter(Boolean).join(', ')}
                           </div>
                           {c.phone && (
-                            <div style={{ fontSize: '11px', color: 'var(--g6)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span>📞</span> {c.phone}
                             </div>
                           )}
-                        </>
+                        </div>
                       ) : (
                         <span style={{ color: 'var(--g4)', fontStyle: 'italic' }}>No address provided</span>
                       )}

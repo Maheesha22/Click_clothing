@@ -3,7 +3,6 @@ const { Product, Category, ProductVariant } = require('../models');
 const { Sequelize } = require('sequelize');
 
 /**
- * GET /api/you-may-also-like
  * Returns 4 random products for the "You May Also Like" section
  */
 exports.getRecommendations = async (req, res) => {

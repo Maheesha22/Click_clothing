@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import "./checkout.css";
 import OrderConfirmationPopup from "./OrderConfirmationPopup";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+
 const DISTRICTS = [
   "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo", "Galle", "Gampaha",
   "Hambantota", "Jaffna", "Kalutara", "Kandy", "Kegalle", "Kilinochchi", "Kurunegala",
@@ -18,13 +18,13 @@ const PROVINCES = [
   "Southern Province", "Uva Province", "Western Province",
 ];
 
-// Shipping logic: Colombo = 400, Others = 500
+
 const getShippingCost = (district) => {
   if (!district) return 0;
   return district.toLowerCase() === 'colombo' ? 400 : 500;
 };
 
-// ── Icons ──────────────────────────────────────────────────────────────────────
+
 const CartIcon = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="9" cy="21" r="1" />
@@ -55,7 +55,7 @@ const AlertIcon = () => (
   </svg>
 );
 
-// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -103,7 +103,7 @@ export default function CheckoutPage() {
         const response = await fetch('http://localhost:3000/api/bank-details');
         const data = await response.json();
         if (data.success && data.data.length > 0) {
-          const detail = data.data[0]; // Assuming we use the first active one
+          const detail = data.data[0]; 
           setBankDetails([
             { label: "Bank Name", value: detail.bankName },
             { label: "Account Name", value: detail.accountName },
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
     return null;
   };
 
-  // ── Phone validation helpers ────────────────────────────────────────────────
+  // ── Phone number validation 
   const phoneError = (msg) => setPhoneState({ error: msg, status: "error" });
   const phoneClear = () => setPhoneState({ error: "", status: "" });
   const phoneSuccess = () => setPhoneState({ error: "", status: "success" });
@@ -175,7 +175,7 @@ export default function CheckoutPage() {
     if (phoneState.status !== "error" && phoneState.status !== "success") phoneClear();
   };
 
-  // ── Slip upload ─────────────────────────────────────────────────────────────
+  // Slip upload 
   const handleSlipUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -188,12 +188,12 @@ export default function CheckoutPage() {
     if (slipInputRef.current) slipInputRef.current.value = "";
   };
 
-  // ── Confirm order with backend integration ───────────────────────────────────
+  //order confirmation
   const confirmOrder = async () => {
     setFormError("");
     setLoading(true);
 
-    // Validation in order of your form
+    
     if (!form.email) {
       setFormError("Email is required");
       setLoading(false);
@@ -259,11 +259,11 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Prepare form data for backend
+ 
     const formDataToSend = new FormData();
     formDataToSend.append('userId', user.id);
     
-    // Send in order: email first, then name, address, phone, payment
+  
     formDataToSend.append('email', form.email);
     formDataToSend.append('firstName', form.firstName);
     formDataToSend.append('lastName', form.lastName);
@@ -340,7 +340,7 @@ export default function CheckoutPage() {
         });
         setSlipFile(null);
         
-        // Dispatch event to update cart (remove only purchased items)
+        //remove only purchased items
         window.dispatchEvent(new CustomEvent('cartUpdated', { 
           detail: { purchasedItems: selectedItems } 
         }));
@@ -361,7 +361,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Keyboard Enter support ──────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key !== "Enter") return;
@@ -400,14 +399,14 @@ export default function CheckoutPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [form, phoneState]);
 
-  // Redirect if no items selected (only if not showing order confirmation)
+  
   useEffect(() => {
     if (selectedItems.length === 0 && !showPopup) {
       navigate('/cart');
     }
   }, [selectedItems, navigate, showPopup]);
 
-  // ── Input focus style helpers ───────────────────────────────────────────────
+
   const focusStyle = { borderColor: "#c9a882", background: "#fff", boxShadow: "0 0 0 3px rgba(201,168,130,0.12)" };
   const blurStyle = { borderColor: "transparent", background: "#f5f5f5", boxShadow: "none" };
   const inputEvents = {
@@ -736,7 +735,7 @@ export default function CheckoutPage() {
           orderDetails={orderData}
           onClose={() => {
             setShowPopup(false);
-            navigate('/'); // Go back to home after order
+            navigate('/'); 
           }}
         />
       )}

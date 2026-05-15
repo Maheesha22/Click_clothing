@@ -20,7 +20,7 @@ const ContactUs = () => {
       ...prevState,
       [name]: value
     }));
-    // Clear message when user starts typing
+    
     if (message.text) {
       setMessage({ type: '', text: '' });
     }
@@ -29,12 +29,12 @@ const ContactUs = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Set loading state
+   
     setLoading(true);
     setMessage({ type: '', text: '' });
     
     try {
-      // Send data to backend
+      
       const response = await fetch('http://localhost:3000/api/contact/submit', {
         method: 'POST',
         headers: {
@@ -46,12 +46,12 @@ const ContactUs = () => {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        // Success
+     
         setMessage({ 
           type: 'success', 
           text: 'Thank you for contacting us! We will get back to you soon.' 
         });
-        // Reset form
+        
         setFormData({
           name: '',
           phone: '',
@@ -59,7 +59,7 @@ const ContactUs = () => {
           comment: ''
         });
       } else {
-        // Error from server
+        
         setMessage({ 
           type: 'error', 
           text: data.message || 'Something went wrong. Please try again.' 
@@ -84,7 +84,7 @@ const ContactUs = () => {
           <div className="contact-form-section">
             <h2>Contact Us</h2>
             
-            {/* Display success/error message */}
+           
             {message.text && (
               <div className={`message ${message.type}`}>
                 {message.text}

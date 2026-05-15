@@ -59,9 +59,7 @@ const Reviews = () => {
     setError('');
 
     try {
-      // Assuming there's a reviews endpoint. 
-      // If not, we might need to use the feedbacks endpoint or create a new one.
-      // For now, I'll use a generic /reviews endpoint as per standard practices.
+      // still there is no end point 
       await API.post('/reviews', {
         userId: storedUser?.id,
         orderId: orderId,

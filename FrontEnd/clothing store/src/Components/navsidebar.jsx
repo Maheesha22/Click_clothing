@@ -98,108 +98,19 @@ function NavBar({ activeTab, setActiveTab }) {
       .catch(err => console.error("Failed to load categories:", err));
   }, []);
 
-  // When recent tab opens, build recentSearchDetails
-  useEffect(() => {
-    if (activeSearchTab === 'recent' && recentSearches.length > 0 && categories.length > 0) {
-      const details = recentSearches.map(query => {
-        const matched = categories.find(c => c.name.toLowerCase() === query.toLowerCase());
-        return { query, categoryId: matched?.id || null, categoryName: matched?.name || query };
-      });
-      setRecentSearchDetails(details);
-    }
-  }, [activeSearchTab, recentSearches, categories]);
-
-  // Fetch products for current search (by categoryId from first suggestion)
-  useEffect(() => {
-    if (activeSearchTab === 'current') {
-      if (!searchQuery.trim()) {
-        setCurrentSearchProducts([]);
-        setCurrentSearchCategory(null);
-        return;
-      }
-      // Find categoryId from suggestions or categories
-      const matchedCat = categories.find(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      if (matchedCat) {
-        setCurrentSearchLoading(true);
-        setCurrentSearchCategory(matchedCat);
-        fetch(`http://localhost:3000/api/products/category/${matchedCat.id}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.success && Array.isArray(data.data)) {
-              setCurrentSearchProducts(data.data.map(transformProduct));
-            } else {
-              setCurrentSearchProducts([]);
-            }
-            setCurrentSearchLoading(false);
-          })
-          .catch(() => {
-            setCurrentSearchProducts([]);
-            setCurrentSearchLoading(false);
-          });
-      } else {
-        // Search by product API
-        setCurrentSearchLoading(true);
-        fetch(`${API_BASE_URL}?q=${encodeURIComponent(searchQuery)}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.success && data.data.length > 0) {
-              const firstCatId = data.data[0].categoryId;
-              const firstCatName = data.data[0].categoryName;
-              setCurrentSearchCategory({ id: firstCatId, name: firstCatName });
-              fetch(`http://localhost:3000/api/products/category/${firstCatId}`)
-                .then(r => r.json())
-                .then(d => {
-                  setCurrentSearchProducts(d.success ? d.data.map(transformProduct) : []);
-                  setCurrentSearchLoading(false);
-                })
-                .catch(() => { setCurrentSearchProducts([]); setCurrentSearchLoading(false); });
-            } else {
-              setCurrentSearchProducts([]);
-              setCurrentSearchCategory(null);
-              setCurrentSearchLoading(false);
-            }
-          })
-          .catch(() => { setCurrentSearchProducts([]); setCurrentSearchLoading(false); });
-      }
-    }
-  }, [activeSearchTab, searchQuery, categories]);
-
-  // Show/hide panel
-  useEffect(() => {
-    if (activeSearchTab) {
-      setPanelVisible(true);
-    } else {
-      setPanelVisible(false);
-    }
-  }, [activeSearchTab]);
-
-  // Close panel on outside click
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
-        // Check if click is on the tab buttons themselves
-        const tabBtns = document.querySelectorAll('.search-tab-btn');
-        let onTab = false;
-        tabBtns.forEach(btn => { if (btn.contains(e.target)) onTab = true; });
-        if (!onTab) setActiveSearchTab(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
+  //  Build navigation tabs – category menu items go to ProductPage with categoryId
   const navTabs = useMemo(() => [
     { label: "New Arrivals", hash: "new-arrivals" },
     { label: "Best Sellers", hash: "best-sellers" },
     {
       label: "Men",
-      menu: categories.map(cat => ({
-        label: cat.name,
-        page: `category/${cat.id}`,
-        categoryId: cat.id
-      }))
+      menu: categories.map(cat => {
+        return {
+          label: cat.name,
+          page: `category/${cat.id}`,   //  navigates with categoryId: /category/1, /category/2, etc.
+          categoryId: cat.id
+        };
+      })
     },
     { label: "Men Accessories", page: "category/10" },
   ], [categories]);
@@ -213,6 +124,7 @@ function NavBar({ activeTab, setActiveTab }) {
     return [...new Set(labels)];
   }, [navTabs]);
 
+  // Update suggestions based on search query 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
       const lowerQuery = searchQuery.toLowerCase();
