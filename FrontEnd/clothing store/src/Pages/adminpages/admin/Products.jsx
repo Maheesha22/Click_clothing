@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   PER_PAGE,
   IcoPlus, IcoSearch,
-  Badge, StockBar, MiniStats, Modal,
 } from './shared';
 
 const API = 'http://localhost:3000/api/products';
