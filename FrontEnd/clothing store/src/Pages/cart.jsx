@@ -284,7 +284,18 @@ export default function Cart() {
     return (
       <div className="cart-page-wrapper">
         <header className="cart-header">
-          <img src="/logo.jpeg" alt="CLiCK" className="cart-logo-img" />
+          <div className="logo" onClick={() => navigate('/')}>
+            <img
+              src="/assets/logo.png"
+              alt="CLiCK Logo"
+              className="logo-img"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+            <span className="logo-text logo-fallback">CLiCK</span>
+          </div>
         </header>
         <main className="cart-main">
           <div style={{ textAlign: 'center', padding: '50px' }}>Loading your cart...</div>
@@ -297,7 +308,18 @@ export default function Cart() {
   return (
     <div className="cart-page-wrapper">
       <header className="cart-header">
-        <img src="/logo.jpeg" alt="CLiCK" className="cart-logo-img" />
+        <div className="logo" onClick={() => navigate('/')}>
+          <img
+            src="/assets/logo.png"
+            alt="CLiCK Logo"
+            className="logo-img"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'block';
+            }}
+          />
+          <span className="logo-text logo-fallback">CLiCK</span>
+        </div>
         <div className="cart-icon-wrap">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
             stroke="#1e1e1e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
