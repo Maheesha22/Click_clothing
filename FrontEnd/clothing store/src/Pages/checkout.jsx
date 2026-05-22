@@ -60,7 +60,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Use state for items so we can clear them after confirmation
+  
   const [selectedItems, setSelectedItems] = useState(location.state?.selectedItems || []);
   const [cartSubtotal, setCartSubtotal] = useState(location.state?.subtotal || 0);
   const [form, setForm] = useState({
@@ -90,6 +90,8 @@ export default function CheckoutPage() {
   const [showPopup, setShowPopup] = useState(false);
   const [orderData, setOrderData] = useState(null);
   const [bankDetails, setBankDetails] = useState([]);
+  const [useDifferentAddress, setUseDifferentAddress] = useState(false);
+  const [savedAddress, setSavedAddress] = useState(null);
 
   const phoneRef = useRef(null);
   const slipInputRef = useRef(null);
@@ -130,6 +132,78 @@ export default function CheckoutPage() {
       console.error('Error parsing user data:', error);
     }
     return null;
+  };
+
+  // Fetch previous user address
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = getUserFromSession();
+      if (!user) return;
+
+      // Pre-fill from session storage first
+      setForm(prev => ({
+        ...prev,
+        email: prev.email || user.email || "",
+        firstName: prev.firstName || user.firstName || "",
+        lastName: prev.lastName || user.lastName || ""
+      }));
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/customer-orders/user/${user.id}`);
+        const data = await response.json();
+        
+        if (data.success && data.data && data.data.length > 0) {
+         
+          const customer = data.data[0].customer;
+          if (customer) {
+            setSavedAddress(customer);
+            setForm(prev => ({
+              ...prev,
+              address: prev.address || customer.address || "",
+              city: prev.city || customer.city || "",
+              district: prev.district || customer.district || "",
+              province: prev.province || customer.province || "",
+              phone: prev.phone || customer.phone || "",
+              // Override names if present in customer
+              firstName: prev.firstName || customer.firstName || user.firstName || "",
+              lastName: prev.lastName || customer.lastName || user.lastName || ""
+            }));
+            
+            // Re-validate phone to show success checkmark if exactly 10 digits
+            if (customer.phone && customer.phone.length === 10) {
+              setPhoneState({ error: "", status: "success" });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user previous details:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Handle switching to a different address
+  const handleDifferentAddressChange = (e) => {
+    const checked = e.target.checked;
+    setUseDifferentAddress(checked);
+    if (checked) {
+      setForm(prev => ({
+        ...prev,
+        address: "",
+        city: "",
+        district: "",
+        province: ""
+      }));
+    } else if (savedAddress) {
+      setForm(prev => ({
+        ...prev,
+        address: savedAddress.address || "",
+        city: savedAddress.city || "",
+        district: savedAddress.district || "",
+        province: savedAddress.province || ""
+      }));
+    }
   };
 
   // ── Phone number validation 
@@ -548,6 +622,18 @@ export default function CheckoutPage() {
                 {PROVINCES.map(p => <option key={p}>{p}</option>)}
               </select>
             </div>
+          </div>
+
+          {/* Another Shipping Address */}
+          <div className="cb-row" style={{ marginTop: '10px', marginBottom: '20px' }}>
+            <input 
+              type="checkbox" 
+              id="differentAddress" 
+              checked={useDifferentAddress}
+              onChange={handleDifferentAddressChange} 
+              disabled={loading} 
+            />
+            <label className="cb-label" htmlFor="differentAddress">Another shipping address</label>
           </div>
 
           {/* Phone */}
