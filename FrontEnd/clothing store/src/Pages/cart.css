@@ -1,5 +1,6 @@
 /* ── Import Font ── */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 
 /* ── CSS Variables (scoped to cart page only) ── */
@@ -41,10 +42,33 @@ body {
   margin-bottom: 28px;
 }
 
-.cart-logo-img {
-  height: 44px;
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logo-img {
+  height: 40px;
   width: auto;
   object-fit: contain;
+  display: block;
+}
+
+.logo-fallback {
+  display: none;
+}
+
+.logo-text {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: #111111;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
 }
 
 .cart-icon-wrap {
