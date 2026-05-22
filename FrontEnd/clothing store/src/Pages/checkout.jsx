@@ -757,60 +757,55 @@ export default function CheckoutPage() {
         </div>
 
         {/* ── RIGHT PANEL ── */}
-        <div className="panel">
-          {selectedItems.length === 0 ? (
-            <p style={{ color: "#9a958d", fontSize: "14px" }}>No items selected.</p>
-          ) : (
-            selectedItems.map((item) => (
-              <div className="order-item" key={item.id}>
-                <div className="img-wrap">
-                  {item.imageUrl ? (
-                    <img 
-                      src={item.imageUrl} 
-                      alt={item.name} 
-                      className="checkout-item-img" 
-                      style={{
-                        width: 74,
-                        height: 90,
-                        borderRadius: 8,
-                        objectFit: "cover",
-                        border: "1px solid #dedad4",
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: 74,
-                      height: 90,
-                      borderRadius: 8,
-                      background: item.color,
-                      border: "1px solid #dedad4",
-                    }} />
-                  )}
-                  <span className="img-badge">{item.qty || item.quantity}</span>
+        <div className="summary-panel">
+          <h2 className="summary-title">Order Summary</h2>
+          <div className="summary-items-list">
+            {selectedItems.length === 0 ? (
+              <p className="empty-summary">No items selected.</p>
+            ) : (
+              selectedItems.map((item) => (
+                <div className="summary-item" key={item.id}>
+                  <div className="summary-img-wrap">
+                    {item.imageUrl ? (
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.name} 
+                        className="summary-item-img" 
+                      />
+                    ) : (
+                      <div className="summary-img-placeholder" style={{ background: item.color }} />
+                    )}
+                    <span className="summary-img-badge">{item.qty || item.quantity}</span>
+                  </div>
+                  <div className="summary-item-info">
+                    <div className="summary-item-name">{item.name}</div>
+                    <div className="summary-item-meta">
+                      Size: {item.sizeLabel || item.size}
+                      <span className="summary-color-dot" style={{ background: item.color }} />
+                    </div>
+                  </div>
+                  <div className="summary-item-price">Rs. {(item.price * item.qty).toLocaleString()}.00</div>
                 </div>
-                <div className="item-info">
-                  <div className="item-name">{item.name}</div>
-                  <div className="item-size">{item.sizeLabel || item.size}</div>
-                  <div className="color-dot" style={{ background: item.color }} />
-                </div>
-                <div className="item-price">Rs. {(item.price * item.qty).toLocaleString()}.00</div>
-              </div>
-            ))
-          )}
-
-          <div className="divider" />
-
-          <div className="total-row">
-            <span className="total-label">Subtotal</span>
-            <span className="total-val">Rs. {cartSubtotal.toLocaleString()}.00</span>
+              ))
+            )}
           </div>
-          <div className="total-row">
-            <span className="total-label">Shipping</span>
-            <span className="total-val">Rs. {shippingCost.toLocaleString()}.00</span>
-          </div>
-          <div className="total-row grand">
-            <span className="total-label">Total</span>
-            <span className="total-val">Rs. {total.toLocaleString()}.00</span>
+
+          <div className="summary-divider" />
+
+          <div className="summary-totals">
+            <div className="summary-row">
+              <span className="summary-label">Subtotal</span>
+              <span className="summary-val">Rs. {cartSubtotal.toLocaleString()}.00</span>
+            </div>
+            <div className="summary-row">
+              <span className="summary-label">Shipping</span>
+              <span className="summary-val">Rs. {shippingCost.toLocaleString()}.00</span>
+            </div>
+            <div className="summary-divider" />
+            <div className="summary-row grand">
+              <span className="summary-label">Total</span>
+              <span className="summary-val">Rs. {total.toLocaleString()}.00</span>
+            </div>
           </div>
         </div>
       </div>
