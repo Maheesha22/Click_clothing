@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import "./checkout.css";
-import OrderConfirmationPopup from "./OrderConfirmationPopup";
+
 
 
 const DISTRICTS = [
@@ -87,8 +87,6 @@ export default function CheckoutPage() {
   const [slipFile, setSlipFile] = useState(null);
   const [toast, setToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
-  const [orderData, setOrderData] = useState(null);
   const [bankDetails, setBankDetails] = useState([]);
   const [useDifferentAddress, setUseDifferentAddress] = useState(false);
   const [savedAddress, setSavedAddress] = useState(null);
@@ -364,7 +362,6 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Prepare order details for popup
         const currentDate = new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
@@ -392,38 +389,14 @@ export default function CheckoutPage() {
           subtotal: cartSubtotal,
           shipping: shippingCost,
         };
-        
-        setOrderData(orderDetails);
-        setShowPopup(true);
-        setToastMessage("✓ Order confirmed successfully!");
-        setToast(true);
-        
-        // Clear form
-        setForm({
-          email: "",
-          offers: false,
-          ship: false,
-          firstName: "",
-          lastName: "",
-          address: "",
-          city: "",
-          district: "",
-          province: "",
-          phone: "",
-          payment: "cod",
-        });
-        setSlipFile(null);
-        
-        //remove only purchased items
-        window.dispatchEvent(new CustomEvent('cartUpdated', { 
-          detail: { purchasedItems: selectedItems } 
+
+        // Remove purchased items from cart
+        window.dispatchEvent(new CustomEvent('cartUpdated', {
+          detail: { purchasedItems: selectedItems }
         }));
-        
-        // Clear order summary
-        setSelectedItems([]);
-        setCartSubtotal(0);
-        
-        setTimeout(() => setToast(false), 3500);
+
+        // Redirect to dedicated confirmation page
+        navigate('/order/confirmation', { state: { orderDetails } });
       } else {
         setFormError(data.message || "Error placing order. Please try again.");
       }
@@ -475,10 +448,10 @@ export default function CheckoutPage() {
 
   
   useEffect(() => {
-    if (selectedItems.length === 0 && !showPopup) {
+    if (selectedItems.length === 0) {
       navigate('/cart');
     }
-  }, [selectedItems, navigate, showPopup]);
+  }, [selectedItems, navigate]);
 
 
   const focusStyle = { borderColor: "#c9a882", background: "#fff", boxShadow: "0 0 0 3px rgba(201,168,130,0.12)" };
@@ -809,17 +782,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-
-      {/* ── ORDER CONFIRMATION POPUP ── */}
-      {showPopup && orderData && (
-        <OrderConfirmationPopup 
-          orderDetails={orderData}
-          onClose={() => {
-            setShowPopup(false);
-            navigate('/'); 
-          }}
-        />
-      )}
 
       {/* ── TOAST ── */}
       <div className={`toast ${toast ? "show" : ""}`}>
