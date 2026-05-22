@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Jost:wght@300;400;500&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: 'Jost', sans-serif;
 }
 
 /* Message styles */
@@ -57,7 +60,7 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Jost', sans-serif;
   background-color: #f5f5f5;
 }
 
@@ -83,10 +86,11 @@ body {
 }
 
 .contact-form-section h2 {
-  font-size: 24px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
   margin-bottom: 25px;
   color: #333;
-  font-weight: normal;
+  font-weight: 700;
 }
 
 .form-group {
@@ -119,7 +123,7 @@ body {
 
 .form-group textarea {
   resize: vertical;
-  font-family: Arial, sans-serif;
+  font-family: 'Jost', sans-serif;
 }
 
 .submit-btn {
@@ -130,7 +134,8 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  float: right;
+  float:left;
+  margin: 0 auto;
   transition: background-color 0.3s ease;
 }
 
