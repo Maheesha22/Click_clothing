@@ -23,6 +23,7 @@ import ProductPage from './Pages/ProductPage';
 import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
 import Settings from "./Pages/userpages/Settings";
+import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
 
 // Component to handle redirection after login (e.g., for Buy It Now)
 const RedirectHandler = () => {
@@ -49,7 +50,7 @@ const RedirectHandler = () => {
 };
 
 function App() {
-  const handleForgotSuccess = () => {};
+  const handleForgotSuccess = () => { };
 
   return (
     <BrowserRouter>
@@ -57,7 +58,7 @@ function App() {
       <Routes>
         {/*MAIN PAGES */}
         <Route path="/" element={<HomePage />} />
-          <Route path="/Category" element={<HomePage />} />
+        <Route path="/Category" element={<HomePage />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/Contactus" element={<ContactUs />} />
@@ -69,7 +70,6 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
-        
 
         {/*Admin */}
         <Route path="/dashboard" element={<Dashboard />} />
@@ -80,6 +80,7 @@ function App() {
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="orders" element={<OrderHistory />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="reviews" element={<Reviews />} />  {/* ← ADD THIS */}
         </Route>
 
         {/*PRODUCT PAGES */}

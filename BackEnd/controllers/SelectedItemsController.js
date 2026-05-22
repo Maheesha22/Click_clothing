@@ -16,7 +16,7 @@ exports.saveSelectedItems = async (req, res) => {
       where: { userId }
     });
 
-    // 2. Format items for bulk create
+   
     console.log('SelectedItemsController - Received items:', JSON.stringify(items, null, 2));
     
     const itemsToSave = items.map(item => {
@@ -34,7 +34,7 @@ exports.saveSelectedItems = async (req, res) => {
       };
     });
 
-    // 3. Bulk create
+    
     const savedItems = await SelectedItems.bulkCreate(itemsToSave);
 
     res.status(201).json({

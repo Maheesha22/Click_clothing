@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./navsidebar.css";
 
-const MAX_RECENT_SEARCHES = 5;
+const MAX_RECENT_SEARCHES = 7;
 const STORAGE_KEY = "navbar_recent_searches";
+const API_BASE_URL = 'http://localhost:3000/api/search';
 
 function NavBar({ activeTab, setActiveTab }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [recentSearches, setRecentSearches] = useState([]);
@@ -17,25 +19,17 @@ function NavBar({ activeTab, setActiveTab }) {
   const dropdownRef = useRef(null);
   const blurTimeoutRef = useRef(null);
 
-  // Load recent searches from localStorage
+  // Load recent searches from database
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setRecentSearches(parsed.slice(0, MAX_RECENT_SEARCHES));
+    fetch("http://localhost:3000/api/search-history")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          setRecentSearches(data.data);
         }
-      } catch (e) {
-        console.error("Failed to load recent searches", e);
-      }
-    }
+      })
+      .catch(err => console.error("Failed to load recent searches", err));
   }, []);
-
-  // Save recent searches
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(recentSearches));
-  }, [recentSearches]);
 
   // Fetch categories from backend
   useEffect(() => {
@@ -51,22 +45,22 @@ function NavBar({ activeTab, setActiveTab }) {
       .catch(err => console.error("Failed to load categories:", err));
   }, []);
 
-  // ✅ Build navigation tabs – category menu items go to ProductPage with categoryId
+  //  Build navigation tabs – category menu items go to ProductPage with categoryId
   const navTabs = useMemo(() => [
-    { label: "New Arrivals", page: "new-arrivals" },
-    { label: "Best Sellers", page: "best-sellers" },
-    { 
-      label: "Men", 
+    { label: "New Arrivals", hash: "new-arrivals" },
+    { label: "Best Sellers", hash: "best-sellers" },
+    {
+      label: "Men",
       menu: categories.map(cat => {
-        return { 
-          label: cat.name, 
-          page: `category/${cat.id}`,   // ✅ navigates with categoryId: /category/1, /category/2, etc.
+        return {
+          label: cat.name,
+          page: `category/${cat.id}`,   //  navigates with categoryId: /category/1, /category/2, etc.
           categoryId: cat.id
         };
       })
     },
-    { label: "Men Accessories", page: "men-accessories" },
-    { label: "Recently Viewed", page: "recently-viewed" },
+    { label: "Men Accessories", page: "category/10" },
+    //{ label: "Recently Viewed", page: "recently-viewed" },
   ], [categories]);
 
   // Flatten all category labels for search suggestions (search works with both tab labels and menu items)
@@ -84,19 +78,61 @@ function NavBar({ activeTab, setActiveTab }) {
     return [...new Set(labels)];
   }, [navTabs]);
 
-  // Update suggestions based on search query
+  // Update suggestions based on search query 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
       const lowerQuery = searchQuery.toLowerCase();
-      const filtered = allCategories.filter(cat =>
+
+      // Filter categories and include their IDs
+      const filteredCats = allCategories.filter(cat =>
         cat.toLowerCase().includes(lowerQuery)
       );
-      setSuggestions(filtered.slice(0, 8));
-      setShowDropdown(true);
+
+      // Build category suggestions with their category IDs
+      const categorySuggestions = filteredCats.map(catLabel => {
+        // Find the matching category from the categories list to get the ID
+        const matchedCategory = categories.find(c => c.name === catLabel);
+        return {
+          type: 'category',
+          label: catLabel,
+          categoryId: matchedCategory?.id,
+          page: matchedCategory ? `category/${matchedCategory.id}` : null
+        };
+      });
+
+      // Then fetch products from backend API
+      fetch(`${API_BASE_URL}?q=${encodeURIComponent(searchQuery)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && Array.isArray(data.data)) {
+            // Transform API results to include product info
+            const productSuggestions = data.data.map(product => ({
+              type: 'product',
+              label: product.productName,
+              categoryId: product.categoryId,
+              categoryName: product.categoryName,
+              productId: product.productId,
+              price: product.price,
+              imageUrl: product.variants?.[0]?.imageUrl
+            }));
+
+            const combined = [...categorySuggestions, ...productSuggestions].slice(0, 8);
+            setSuggestions(combined);
+            setShowDropdown(true);
+          } else {
+            setSuggestions(categorySuggestions.slice(0, 8));
+            setShowDropdown(true);
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching search suggestions:', err);
+          setSuggestions(categorySuggestions.slice(0, 8));
+          setShowDropdown(true);
+        });
     } else {
       setSuggestions([]);
     }
-  }, [searchQuery, allCategories]);
+  }, [searchQuery, allCategories, categories]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -124,6 +160,14 @@ function NavBar({ activeTab, setActiveTab }) {
   const addToRecentSearches = (query) => {
     if (!query.trim()) return;
     const trimmed = query.trim();
+
+    // Save to database
+    fetch("http://localhost:3000/api/search-history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: trimmed })
+    }).catch(err => console.error("Failed to save search history:", err));
+
     setRecentSearches(prev => {
       const filtered = prev.filter(item => item !== trimmed);
       const updated = [trimmed, ...filtered];
@@ -131,15 +175,63 @@ function NavBar({ activeTab, setActiveTab }) {
     });
   };
 
+  const navigateToTab = (tab) => {
+    if (setActiveTab) setActiveTab(tab.label);
+    if (tab.hash) {
+      if (location.pathname === '/') {
+        const element = document.getElementById(tab.hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        navigate(`/#${tab.hash}`);
+      }
+    } else if (tab.page) {
+      navigate(`/${tab.page}`);
+    }
+  };
+
   const handleTabClick = (tab) => {
-    setActiveTab(tab.label);
-    if (tab.page) navigate(`/${tab.page}`);
+    navigateToTab(tab);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       const query = searchQuery.trim();
+
+      // Check if search query matches a category
+      const matchedTab = navTabs.find(t => t.label.toLowerCase() === query.toLowerCase());
+      if (matchedTab && (matchedTab.page || matchedTab.hash)) {
+        if (setActiveTab) setActiveTab(matchedTab.label);
+        addToRecentSearches(matchedTab.label);
+        navigateToTab(matchedTab);
+        setSearchQuery("");
+        setShowDropdown(false);
+        return;
+      }
+
+      // Check if it matches a category directly from the database
+      const matchedCategory = categories.find(c => c.name.toLowerCase() === query.toLowerCase());
+      if (matchedCategory) {
+        addToRecentSearches(matchedCategory.name);
+        navigate(`/category/${matchedCategory.id}`);
+        setSearchQuery("");
+        setShowDropdown(false);
+        return;
+      }
+
+      // Check if it's a category in a menu
+      const menuItem = navTabs.find(t => t.menu)?.menu.find(m => m.label.toLowerCase() === query.toLowerCase());
+      if (menuItem && menuItem.page) {
+        addToRecentSearches(menuItem.label);
+        navigate(`/${menuItem.page}`);
+        setSearchQuery("");
+        setShowDropdown(false);
+        return;
+      }
+
+      // Otherwise, do a product search
       addToRecentSearches(query);
       navigate(`/search?q=${encodeURIComponent(query)}`);
       setSearchQuery("");
@@ -148,33 +240,91 @@ function NavBar({ activeTab, setActiveTab }) {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    const matchedTab = navTabs.find(t => t.label === suggestion);
-    if (matchedTab && matchedTab.page) {
-      setActiveTab(matchedTab.label);
-      navigate(`/${matchedTab.page}`);
-      addToRecentSearches(suggestion);
-    } else {
-      const menuItem = navTabs.find(t => t.menu)?.menu.find(m => m.label === suggestion);
-      if (menuItem && menuItem.page) {
-        navigate(`/${menuItem.page}`);
-        addToRecentSearches(suggestion);
-      } else {
-        addToRecentSearches(suggestion);
-        navigate(`/search?q=${encodeURIComponent(suggestion)}`);
-      }
+    // Handle product type - navigate to category page
+    if (suggestion.type === 'product') {
+      addToRecentSearches(suggestion.label);
+      navigate(`/category/${suggestion.categoryId}`);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
     }
+
+    // Check if it matched a category from database (which populates suggestion.categoryId for category types)
+    if (suggestion.type === 'category' && suggestion.categoryId) {
+      addToRecentSearches(suggestion.label);
+      navigate(`/category/${suggestion.categoryId}`);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    // Handle category type - find the matching category in navTabs
+    const matchedTab = navTabs.find(t => t.label === suggestion.label);
+    if (matchedTab && (matchedTab.page || matchedTab.hash)) {
+      addToRecentSearches(suggestion.label);
+      navigateToTab(matchedTab);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    // Check if it's a category in a menu (like categories under "Men")
+    const menuItem = navTabs.find(t => t.menu)?.menu.find(m => m.label === suggestion.label);
+    if (menuItem && menuItem.page) {
+      addToRecentSearches(suggestion.label);
+      navigate(`/${menuItem.page}`);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    // If not a category, treat as general search
+    addToRecentSearches(suggestion.label);
+    navigate(`/search?q=${encodeURIComponent(suggestion.label)}`);
     setSearchQuery("");
     setShowDropdown(false);
   };
 
   const handleRecentClick = (recentQuery) => {
-    addToRecentSearches(recentQuery);
+    // Check if recent search is a category from database
+    const matchedCategory = categories.find(c => c.name.toLowerCase() === recentQuery.toLowerCase());
+    if (matchedCategory) {
+      addToRecentSearches(matchedCategory.name);
+      navigate(`/category/${matchedCategory.id}`);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    // Check if recent search is a category in navTabs
+    const matchedTab = navTabs.find(t => t.label === recentQuery);
+    if (matchedTab && (matchedTab.page || matchedTab.hash)) {
+      navigateToTab(matchedTab);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    // Check if it's a category in a menu
+    const menuItem = navTabs.find(t => t.menu)?.menu.find(m => m.label === recentQuery);
+    if (menuItem && menuItem.page) {
+      navigate(`/${menuItem.page}`);
+      setSearchQuery("");
+      setShowDropdown(false);
+      return;
+    }
+
+    // If not a category, do a product search
     navigate(`/search?q=${encodeURIComponent(recentQuery)}`);
     setSearchQuery("");
     setShowDropdown(false);
   };
 
   const handleClearRecent = () => {
+    fetch("http://localhost:3000/api/search-history", {
+      method: "DELETE"
+    }).catch(err => console.error("Failed to clear search history:", err));
+
     setRecentSearches([]);
     setShowDropdown(false);
   };
@@ -264,12 +414,12 @@ function NavBar({ activeTab, setActiveTab }) {
               <>
                 <div className="navbar-suggestions-header">
                   <span>Recently searched</span>
-                  <button type="button" className="navbar-clear-recent" onClick={handleClearRecent}>
+                  <button type="button" className="navbar-clear-recent" onMouseDown={(e) => { e.preventDefault(); handleClearRecent(); }}>
                     Clear
                   </button>
                 </div>
                 {recentSearches.map((query, idx) => (
-                  <div key={idx} className="navbar-suggestion-item" onClick={() => handleRecentClick(query)}>
+                  <div key={idx} className="navbar-suggestion-item" onMouseDown={(e) => { e.preventDefault(); handleRecentClick(query); }}>
                     <span className="recent-icon">🕒</span> {query}
                   </div>
                 ))}
@@ -279,8 +429,25 @@ function NavBar({ activeTab, setActiveTab }) {
             {showFilteredSuggestions && (
               <>
                 {suggestions.map((sug, idx) => (
-                  <div key={idx} className="navbar-suggestion-item" onClick={() => handleSuggestionClick(sug)}>
-                    {sug}
+                  <div
+                    key={idx}
+                    className={`navbar-suggestion-item ${sug.type === 'product' ? 'navbar-product-suggestion' : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); handleSuggestionClick(sug); }}
+                  >
+                    {sug.type === 'product' ? (
+                      <div className="navbar-product-suggestion-content">
+                        {sug.imageUrl && (
+                          <img src={sug.imageUrl} alt={sug.label} className="navbar-product-thumbnail" />
+                        )}
+                        <div className="navbar-product-suggestion-info">
+                          <div className="navbar-product-name">{sug.label}</div>
+                          <div className="navbar-product-category">{sug.categoryName}</div>
+                          <div className="navbar-product-price">Rs. {sug.price}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <span>{sug.label}</span>
+                    )}
                   </div>
                 ))}
               </>

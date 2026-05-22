@@ -25,7 +25,7 @@ class CartController {
       });
 
       if (existingItem) {
-        // Update quantity if exists
+       
         existingItem.quantity += quantity || 1;
         await existingItem.save();
         

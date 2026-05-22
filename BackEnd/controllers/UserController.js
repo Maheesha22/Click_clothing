@@ -36,7 +36,6 @@ exports.register = async (req, res) => {
   }
 };
 
-// LOGIN - Updated to support both hashed and plain text passwords
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -47,14 +46,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Check if password is hashed (starts with $2b$) or plain text
     let isValid = false;
     
     if (user.password && user.password.startsWith('$2b$')) {
       // Hashed password
       isValid = await bcrypt.compare(password, user.password);
     } else {
-      // Plain text password (for admin123)
+      // Plain text password 
       isValid = (user.password === password);
     }
 
@@ -182,7 +180,6 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// CREATE ADMIN WITH PLAIN TEXT PASSWORD (For testing)
 exports.createPlainTextAdmin = async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;

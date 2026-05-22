@@ -1,4 +1,3 @@
-// routes/productRoutes.js
 
 const express = require('express');
 const router = express.Router();
@@ -6,26 +5,16 @@ const router = express.Router();
 const upload = require('../config/multer');
 const productController = require('../controllers/productController');
 
-/* ─────────────────────────────────────────
-   IMAGE UPLOAD
-───────────────────────────────────────── */
 router.post(
   '/upload-image',
   upload.single('image'),
   productController.uploadImage
 );
 
-/* ─────────────────────────────────────────
-   CATEGORIES
-───────────────────────────────────────── */
 router.get(
   '/categories/all',
   productController.getAllCategories
 );
-
-/* ─────────────────────────────────────────
-   PRODUCTS
-───────────────────────────────────────── */
 
 // Create product
 router.post(
@@ -69,9 +58,7 @@ router.delete(
   productController.deleteProduct
 );
 
-/* ─────────────────────────────────────────
-   PRODUCT VARIANTS
-───────────────────────────────────────── */
+
 
 // Get variants of product
 router.get(
@@ -79,9 +66,6 @@ router.get(
   productController.getProductVariants
 );
 
-/* ─────────────────────────────────────────
-   AVAILABILITY & QUANTITY
-───────────────────────────────────────── */
 
 router.patch(
   '/:id/availability',

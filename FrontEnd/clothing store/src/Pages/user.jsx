@@ -12,11 +12,11 @@ const User = () => {
   const displayName = isLoggedIn ? `${storedUser.firstName} ${storedUser.lastName}` : 'Guest';
   const displayEmail = isLoggedIn ? storedUser.email : 'Not signed in';
 
-  const [orders] = useState([
-    { id: 'ORD-2024001', date: '2024-01-15', items: 3, total: 459.97, status: 'Delivered' },
-    { id: 'ORD-2024002', date: '2024-01-20', items: 2, total: 189.98, status: 'Shipped' },
-    { id: 'ORD-2024003', date: '2024-01-22', items: 5, total: 799.95, status: 'Delivered' }
-  ]);
+  // const [orders] = useState([
+  //   { id: 'ORD-2024001', date: '2024-01-15', items: 3, total: 459.97, status: 'Delivered' },
+  //   { id: 'ORD-2024002', date: '2024-01-20', items: 2, total: 189.98, status: 'Shipped' },
+  //   { id: 'ORD-2024003', date: '2024-01-22', items: 5, total: 799.95, status: 'Delivered' }
+  // ]);
 
   const handleLogout = () => {
     sessionStorage.removeItem('user');
@@ -47,6 +47,12 @@ const User = () => {
       <circle cx="9" cy="21" r="1" />
       <circle cx="20" cy="21" r="1" />
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    </svg>
+  );
+
+  const ReviewsIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
     </svg>
   );
 
@@ -92,7 +98,7 @@ const User = () => {
           </div>
 
           <nav className="sidebar-nav">
-            {/* Wishlist — available to everyone */}
+            {/* Wishlist */}
             <NavLink to="/user/wishlist" className={navClass}>
               <span className="nav-icon"><WishlistIcon /></span>
               <span className="nav-label">Wishlist</span>
@@ -104,11 +110,17 @@ const User = () => {
               <span className="nav-label">Order History</span>
             </NavLink>
 
-            {/* Cart — goes to /cart page */}
+            {/* Cart */}
             <button className="nav-item" onClick={() => navigate('/cart')}>
               <span className="nav-icon"><CartIcon /></span>
               <span className="nav-label">Cart</span>
             </button>
+
+            {/* Reviews - NEW */}
+            <NavLink to="/user/reviews" className={navClass}>
+              <span className="nav-icon"><ReviewsIcon /></span>
+              <span className="nav-label">My Reviews</span>
+            </NavLink>
 
             {/* Settings */}
             <NavLink to="/user/settings" className={navClass}>
@@ -132,8 +144,7 @@ const User = () => {
         </aside>
 
         <main className="main-content">
-          {/* Child route renders here */}
-          <Outlet context={{ storedUser, isLoggedIn, orders }} />
+          <Outlet context={{ storedUser, isLoggedIn }} />
         </main>
       </div>
       <Footer />

@@ -1,6 +1,6 @@
 const { Wishlist, Product, ProductVariant } = require('../models');
 
-// GET /api/wishlist/:userId
+
 const getWishlist = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -43,7 +43,6 @@ const getWishlist = async (req, res) => {
   }
 };
 
-// POST /api/wishlist
 const addToWishlist = async (req, res) => {
   try {
     const { userId, productId, productName, price, imageUrl } = req.body;
@@ -61,7 +60,7 @@ const addToWishlist = async (req, res) => {
   }
 };
 
-// DELETE /api/wishlist/:id
+// DELETE 
 const removeFromWishlist = async (req, res) => {
   try {
     const { id } = req.params;
@@ -73,7 +72,7 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
-// DELETE /api/wishlist/by-product/:userId/:productId
+// DELETE 
 const removeFromWishlistByProduct = async (req, res) => {
   try {
     const { userId, productId } = req.params;

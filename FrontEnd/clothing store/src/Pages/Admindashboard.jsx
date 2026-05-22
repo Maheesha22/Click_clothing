@@ -1,17 +1,4 @@
-/**
- * Click Clothing Store — Admin Dashboard
- * ─────────────────────────────────────────
- * ZERO external libraries.
- * Only React (useState, useRef, useCallback) is used.
- * All charts are pure inline SVG.
- *
- * Setup:
- *   1. Place all files in the same folder as AdminDashboard.css.
- *   2. In index.jsx / App.jsx:
- *        import AdminDashboard from './AdminDashboard';
- *   3. Add DM Sans to public/index.html <head>:
- *        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"/>
- */
+
 import { useState } from 'react';
 import './AdminDashboard.css';
 
@@ -34,9 +21,7 @@ import Reports from './adminpages/admin/Reports';
 import Settings from './adminpages/admin/Settings';
 import Logout from './adminpages/admin/Logout';
 
-/* ═══════════════════════════════════════════════════════════
-   SIDEBAR NAV CONFIG
-═══════════════════════════════════════════════════════════ */
+
 const NAV = [
   { id: 'dash', label: 'Dashboard', Icon: IcoDash, group: 'Main' },
   { id: 'products', label: 'Products', Icon: IcoBox, group: 'Main' },
@@ -50,9 +35,7 @@ const NAV = [
   { id: 'settings', label: 'Settings', Icon: IcoGear, group: null },
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   ROOT COMPONENT
-═══════════════════════════════════════════════════════════ */
+
 export default function AdminDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState('dash');

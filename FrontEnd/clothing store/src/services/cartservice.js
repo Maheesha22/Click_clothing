@@ -12,7 +12,7 @@ const cartService = {
         }
     },
     
-    // Get user's cart
+    // Get user's cart item
     getCart: async (userId) => {
         try {
             const response = await API.get(`/cart/${userId}`);

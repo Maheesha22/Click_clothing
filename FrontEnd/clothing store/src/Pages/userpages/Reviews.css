@@ -1,0 +1,316 @@
+.reviews-section {
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.review-header {
+  margin-bottom: 30px;
+}
+
+.review-subtitle {
+  font-family: 'Jost', sans-serif;
+  color: #888;
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.3px;
+  margin-bottom: 25px;
+}
+
+.review-form-card {
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ede9e4;
+}
+
+.input-label {
+  display: block;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #111;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.rating-section {
+  margin-bottom: 35px;
+  text-align: center;
+}
+
+.star-rating {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.star-btn {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 2.5rem;
+  padding: 0;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-btn.on {
+  color: #c8a97e;
+}
+
+.star-btn.off {
+  color: #e0e0e0;
+}
+
+.rating-text {
+  display: block;
+  font-family: 'Jost', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #c8a97e;
+  min-height: 1.5rem;
+}
+
+.comment-section {
+  margin-bottom: 30px;
+}
+
+.review-textarea {
+  width: 100%;
+  padding: 15px;
+  border-radius: 2px;
+  border: 1px solid #ede9e4;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  resize: vertical;
+  transition: all 0.3s;
+  background-color: #fcfbf9;
+}
+
+.review-textarea:focus {
+  outline: none;
+  border-color: #c8a97e;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(200, 169, 126, 0.1);
+}
+
+.review-error {
+  background-color: #fff1f0;
+  color: #f5222d;
+  padding: 12px 16px;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  border-left: 4px solid #f5222d;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit-review-btn {
+  background-color: #111;
+  color: white;
+  padding: 14px 32px;
+  border-radius: 2px;
+  border: none;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.submit-review-btn:hover:not(:disabled) {
+  background-color: #c8a97e;
+  transform: translateY(-1px);
+}
+
+.submit-review-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Success State */
+.success-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.success-card {
+  text-align: center;
+  padding: 50px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ede9e4;
+  max-width: 500px;
+}
+
+.success-icon {
+  width: 60px;
+  height: 60px;
+  background: #c8a97e;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin: 0 auto 25px;
+}
+
+.success-card h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+.success-card p {
+  font-family: 'Jost', sans-serif;
+  color: #888;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.redirect-text {
+  font-style: italic;
+  font-size: 12px;
+  margin-top: 20px !important;
+}
+
+/* Reviewable Orders List */
+.reviewable-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.reviewable-order-card {
+  background: white;
+  padding: 20px 24px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #ede9e4;
+  transition: all 0.3s;
+}
+
+.reviewable-order-card:hover {
+  transform: translateX(5px);
+  border-color: #c8a97e;
+}
+
+.order-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-number {
+  font-family: 'Jost', sans-serif;
+  font-weight: 600;
+  color: #111;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+}
+
+.order-date {
+  font-family: 'Jost', sans-serif;
+  color: #888;
+  font-size: 13px;
+  font-weight: 300;
+}
+
+.write-review-btn-small {
+  background: #111;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 2px;
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.write-review-btn-small:hover {
+  background: #c8a97e;
+}
+
+.empty-reviews-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #ede9e4;
+  color: #888;
+  font-family: 'Jost', sans-serif;
+}
+
+.shop-now-btn {
+  margin-top: 20px;
+  background: #111;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 2px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-family: 'Jost', sans-serif;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .review-form-card {
+    padding: 25px;
+  }
+  
+  .star-btn {
+    font-size: 2rem;
+  }
+  
+  .reviewable-order-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .write-review-btn-small {
+    width: 100%;
+  }
+}

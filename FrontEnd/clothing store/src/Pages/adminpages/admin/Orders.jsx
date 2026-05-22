@@ -9,7 +9,7 @@ export default function Orders() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   
-  // Modal states
+  
   const [viewOrder, setViewOrder] = useState(null);
   const [editOrder, setEditOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -43,10 +43,10 @@ export default function Orders() {
       
       const response = await axios.put(`http://localhost:3000/api/orders/${orderId}/${endpoint}`, payload);
       if (response.data.success) {
-        // Update local state
+        
         setOrders(prev => prev.map(o => o.id === orderId ? { ...o, [type === 'order' ? 'status' : 'payment_status']: value } : o));
         setEditOrder(null);
-        // showToast('success', 'Status updated successfully!');
+       
       }
     } catch (error) {
       console.error('Update error:', error);
@@ -56,13 +56,13 @@ export default function Orders() {
     }
   };
 
-  // Custom Badge Mapping based on User Request
+  
   const getStatusBadge = (status) => {
     const s = (status || 'pending').toLowerCase();
-    if (s === 'confirmed' || s === 'delivered') return 'b-delivered'; // Green
-    if (s === 'shipped') return 'b-shipped'; // Purple
-    if (s === 'cancelled') return 'b-cancelled'; // Red
-    return 'b-pending'; // Orange/Amber for pending/processing
+    if (s === 'confirmed' || s === 'delivered') return 'b-delivered'; 
+    if (s === 'shipped') return 'b-shipped'; 
+    if (s === 'cancelled') return 'b-cancelled'; 
+    return 'b-pending'; 
   };
 
   const pills = ['all', 'Delivered', 'Processing', 'Shipped', 'Confirmed', 'pending', 'Cancelled'];
@@ -179,7 +179,7 @@ export default function Orders() {
         </div>
       </div>
 
-      {/* --- PROFESSIONAL VIEW MODAL --- */}
+      {/* ---  VIEW POPUP --- */}
       <Modal 
         open={!!viewOrder} 
         onClose={() => setViewOrder(null)} 
@@ -187,7 +187,7 @@ export default function Orders() {
       >
         {viewOrder && (
           <div className="premium-order-view">
-            {/* Modal Header */}
+           
             <div style={{background:'var(--black)', color:'white', padding:'24px', borderRadius:'16px 16px 0 0', position:'relative'}}>
               <button onClick={() => setViewOrder(null)} style={{position:'absolute', right:'20px', top:'20px', background:'rgba(255,255,255,0.1)', border:'none', color:'white', padding:'5px', borderRadius:'50%', cursor:'pointer'}}><IcoClose /></button>
               <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end'}}>
@@ -202,7 +202,7 @@ export default function Orders() {
             </div>
 
             <div style={{padding:'24px', maxHeight:'75vh', overflowY:'auto'}}>
-              {/* Info Grid */}
+             
               <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'20px', marginBottom:'30px'}}>
                 <div className="info-card" style={{background:'var(--g1)', padding:'16px', borderRadius:'12px', border:'1px solid var(--g3)'}}>
                   <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', color:'var(--g5)', fontSize:'11px', fontWeight:700, textTransform:'uppercase'}}>
@@ -236,14 +236,14 @@ export default function Orders() {
                 </div>
               </div>
 
-              {/* Items Table */}
+            
               <h3 style={{fontSize:'14px', fontWeight:800, marginBottom:'15px', display:'flex', alignItems:'center', gap:'10px'}}>
                 Items Purchased <span style={{height:'1px', flex:1, background:'var(--g3)'}}></span>
               </h3>
               
               <div style={{display:'flex', flexDirection:'column', gap:'12px'}}>
                 {viewOrder.items?.map((item, idx) => {
-                  // Find the image URL from Product -> variants
+                  
                   const variant = item.Product?.variants?.find(v => v.color === item.color && v.size === item.size) || item.Product?.variants?.[0];
                   const imgUrl = variant?.imageUrl || 'https://via.placeholder.com/100?text=No+Image';
 
@@ -269,7 +269,6 @@ export default function Orders() {
                 })}
               </div>
 
-              {/* Payment Slip Section */}
               {viewOrder.payment_slip && (() => {
                 const slipUrl = viewOrder.payment_slip.startsWith('http') ? viewOrder.payment_slip : `http://localhost:3000/uploads/${viewOrder.payment_slip}`;
                 const isPdf = viewOrder.payment_slip.toLowerCase().endsWith('.pdf');
@@ -314,7 +313,7 @@ export default function Orders() {
         )}
       </Modal>
 
-      {/* --- PROFESSIONAL EDIT MODAL --- */}
+      {/* ---  EDIT POPUP --- */}
       <Modal 
         open={!!editOrder} 
         onClose={() => setEditOrder(null)} 
@@ -340,11 +339,11 @@ export default function Orders() {
                       value={editOrder.status}
                       onChange={(e) => setEditOrder({...editOrder, status: e.target.value})}
                     >
-                      <option value="pending">🟡 Pending</option>
-                      <option value="confirmed">🟢 Confirmed</option>
-                      <option value="shipped">🟣 Shipped</option>
-                      <option value="delivered">✅ Delivered</option>
-                      <option value="cancelled">🔴 Cancelled</option>
+                      <option value="pending"> Pending</option>
+                      <option value="confirmed"> Confirmed</option>
+                      <option value="shipped"> Shipped</option>
+                      <option value="delivered"> Delivered</option>
+                      <option value="cancelled"> Cancelled</option>
                     </select>
                   </div>
 
@@ -355,9 +354,9 @@ export default function Orders() {
                       value={editOrder.payment_status}
                       onChange={(e) => setEditOrder({...editOrder, payment_status: e.target.value})}
                     >
-                      <option value="PENDING">🟡 Payment Pending</option>
-                      <option value="Confirmed">🟢 Payment Confirmed</option>
-                      <option value="Cancelled">🔴 Payment Cancelled</option>
+                      <option value="PENDING"> Payment Pending</option>
+                      <option value="Confirmed"> Payment Confirmed</option>
+                      <option value="Cancelled"> Payment Cancelled</option>
                     </select>
                   </div>
                 </div>
@@ -393,7 +392,6 @@ export default function Orders() {
         .info-card { transition: transform 0.2s; }
         .info-card:hover { transform: translateY(-2px); border-color: var(--black) !important; }
         
-        /* Modal Fixes */
         .overlay {
           position: fixed !important;
           top: 0 !important;
