@@ -3,8 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import "./checkout.css";
 
-
-
 const DISTRICTS = [
   "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo", "Galle", "Gampaha",
   "Hambantota", "Jaffna", "Kalutara", "Kandy", "Kegalle", "Kilinochchi", "Kurunegala",
@@ -18,25 +16,21 @@ const PROVINCES = [
   "Southern Province", "Uva Province", "Western Province",
 ];
 
-
 const getShippingCost = (district) => {
   if (!district) return 0;
-  return district.toLowerCase() === 'colombo' ? 400 : 500;
+  return district.toLowerCase() === "colombo" ? 400 : 500;
 };
-
 
 const CartIcon = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="9" cy="21" r="1" />
-    <circle cx="20" cy="21" r="1" />
+    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
   </svg>
 );
 
 const UploadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="16 16 12 12 8 16" />
-    <line x1="12" y1="12" x2="12" y2="21" />
+    <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" />
     <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
   </svg>
 );
@@ -49,325 +43,363 @@ const CheckIcon = () => (
 
 const AlertIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
+    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
   </svg>
 );
 
+const PlusIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
+const EditIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+);
+
+const emptyAddressForm = {
+  label: "Home",
+  firstName: "",
+  lastName: "",
+  address: "",
+  city: "",
+  district: "",
+  province: "",
+  phone: "",
+};
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  
-  const [selectedItems, setSelectedItems] = useState(location.state?.selectedItems || []);
-  const [cartSubtotal, setCartSubtotal] = useState(location.state?.subtotal || 0);
+
+  const [selectedItems] = useState(location.state?.selectedItems || []);
+  const [cartSubtotal] = useState(location.state?.subtotal || 0);
+
   const [form, setForm] = useState({
     email: "",
     offers: false,
-    ship: false,
-    firstName: "",
-    lastName: "",
-    address: "",
-    city: "",
-    district: "",
-    province: "",
-    phone: "",
     payment: "cod",
   });
 
-  const shippingCost = getShippingCost(form.district);
-  const totalItemCount = selectedItems.reduce((sum, item) => sum + (item.qty || 1), 0);
-  const total = cartSubtotal + shippingCost;
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [addressesLoading, setAddressesLoading] = useState(true);
+
+  // Address form state
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null); // null = add new
+  const [addressForm, setAddressForm] = useState(emptyAddressForm);
+  const [addressFormError, setAddressFormError] = useState("");
+  const [addressFormLoading, setAddressFormLoading] = useState(false);
 
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
   const [phoneState, setPhoneState] = useState({ error: "", status: "" });
+  const [addrPhoneState, setAddrPhoneState] = useState({ error: "", status: "" });
   const [slipFile, setSlipFile] = useState(null);
   const [toast, setToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [bankDetails, setBankDetails] = useState([]);
-  const [useDifferentAddress, setUseDifferentAddress] = useState(false);
-  const [savedAddress, setSavedAddress] = useState(null);
 
-  const phoneRef = useRef(null);
   const slipInputRef = useRef(null);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || null;
+  const shippingCost = getShippingCost(selectedAddress?.district || "");
+  const totalItemCount = selectedItems.reduce((sum, item) => sum + (item.qty || 1), 0);
+  const total = cartSubtotal + shippingCost;
 
-  // Fetch bank details
-  useEffect(() => {
-    const fetchBankDetails = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/api/bank-details');
-        const data = await response.json();
-        if (data.success && data.data.length > 0) {
-          const detail = data.data[0]; 
-          setBankDetails([
-            { label: "Bank Name", value: detail.bankName },
-            { label: "Account Name", value: detail.accountName },
-            { label: "Account Number", value: detail.accountNumber },
-            { label: "Branch", value: detail.branch },
-          ]);
-        }
-      } catch (error) {
-        console.error('Error fetching bank details:', error);
-      }
-    };
-
-    fetchBankDetails();
-  }, []);
-
-  // Get user from sessionStorage
   const getUserFromSession = () => {
     try {
-      const userData = sessionStorage.getItem('user');
-      if (userData) {
-        return JSON.parse(userData);
-      }
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-    }
+      const userData = sessionStorage.getItem("user");
+      if (userData) return JSON.parse(userData);
+    } catch (e) { console.error(e); }
     return null;
   };
 
-  // Fetch previous user address
+  // ── Fetch bank details
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = getUserFromSession();
-      if (!user) return;
-
-      // Pre-fill from session storage first
-      setForm(prev => ({
-        ...prev,
-        email: prev.email || user.email || "",
-        firstName: prev.firstName || user.firstName || "",
-        lastName: prev.lastName || user.lastName || ""
-      }));
-
-      try {
-        const response = await fetch(`http://localhost:3000/api/customer-orders/user/${user.id}`);
-        const data = await response.json();
-        
-        if (data.success && data.data && data.data.length > 0) {
-         
-          const customer = data.data[0].customer;
-          if (customer) {
-            setSavedAddress(customer);
-            setForm(prev => ({
-              ...prev,
-              address: prev.address || customer.address || "",
-              city: prev.city || customer.city || "",
-              district: prev.district || customer.district || "",
-              province: prev.province || customer.province || "",
-              phone: prev.phone || customer.phone || "",
-              // Override names if present in customer
-              firstName: prev.firstName || customer.firstName || user.firstName || "",
-              lastName: prev.lastName || customer.lastName || user.lastName || ""
-            }));
-            
-            // Re-validate phone to show success checkmark if exactly 10 digits
-            if (customer.phone && customer.phone.length === 10) {
-              setPhoneState({ error: "", status: "success" });
-            }
-          }
+    fetch("http://localhost:3000/api/bank-details")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.data.length > 0) {
+          const d = data.data[0];
+          setBankDetails([
+            { label: "Bank Name", value: d.bankName },
+            { label: "Account Name", value: d.accountName },
+            { label: "Account Number", value: d.accountNumber },
+            { label: "Branch", value: d.branch },
+          ]);
         }
-      } catch (error) {
-        console.error('Error fetching user previous details:', error);
-      }
-    };
-
-    fetchUserData();
+      })
+      .catch(console.error);
   }, []);
 
-  // Handle switching to a different address
-  const handleDifferentAddressChange = (e) => {
-    const checked = e.target.checked;
-    setUseDifferentAddress(checked);
-    if (checked) {
-      setForm(prev => ({
-        ...prev,
-        address: "",
-        city: "",
-        district: "",
-        province: ""
-      }));
-    } else if (savedAddress) {
-      setForm(prev => ({
-        ...prev,
-        address: savedAddress.address || "",
-        city: savedAddress.city || "",
-        district: savedAddress.district || "",
-        province: savedAddress.province || ""
-      }));
+  // ── Pre-fill email from session
+  useEffect(() => {
+    const user = getUserFromSession();
+    if (user) {
+      setForm((f) => ({ ...f, email: f.email || user.email || "" }));
+    }
+  }, []);
+
+  // ── Fetch saved addresses
+  useEffect(() => {
+    const user = getUserFromSession();
+    if (!user) { setAddressesLoading(false); return; }
+
+    fetch(`http://localhost:3000/api/user-addresses/user/${user.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.data.length > 0) {
+          setAddresses(data.data);
+          const def = data.data.find((a) => a.isDefault) || data.data[0];
+          setSelectedAddressId(def.id);
+        } else {
+          // No saved addresses — show the form immediately
+          setShowAddressForm(true);
+          const u = getUserFromSession();
+          setAddressForm((f) => ({
+            ...f,
+            firstName: u?.firstName || u?.first_name || "",
+            lastName: u?.lastName || u?.last_name || "",
+          }));
+        }
+      })
+      .catch(console.error)
+      .finally(() => setAddressesLoading(false));
+  }, []);
+
+  // ── Address form helpers
+  const setAF = (k, v) => setAddressForm((f) => ({ ...f, [k]: v }));
+
+  const openAddForm = () => {
+    setEditingAddress(null);
+    setAddressForm(emptyAddressForm);
+    setAddressFormError("");
+    setAddrPhoneState({ error: "", status: "" });
+    setShowAddressForm(true);
+  };
+
+  const openEditForm = (addr) => {
+    setEditingAddress(addr);
+    setAddressForm({
+      label: addr.label || "Home",
+      firstName: addr.firstName || "",
+      lastName: addr.lastName || "",
+      address: addr.address || "",
+      city: addr.city || "",
+      district: addr.district || "",
+      province: addr.province || "",
+      phone: addr.phone || "",
+    });
+    setAddressFormError("");
+    if (addr.phone && addr.phone.length === 10) {
+      setAddrPhoneState({ error: "", status: "success" });
+    } else {
+      setAddrPhoneState({ error: "", status: "" });
+    }
+    setShowAddressForm(true);
+  };
+
+  const cancelAddressForm = () => {
+    setShowAddressForm(false);
+    setEditingAddress(null);
+    setAddressFormError("");
+  };
+
+  const saveAddress = async () => {
+    setAddressFormError("");
+    const { label, firstName, lastName, address, city, district, province, phone } = addressForm;
+    if (!firstName || !lastName || !address || !city || !district || !province || !phone) {
+      setAddressFormError("Please fill in all address fields.");
+      return;
+    }
+    if (phone.length !== 10) {
+      setAddressFormError("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    const user = getUserFromSession();
+    if (!user) { setAddressFormError("Please log in first."); return; }
+
+    setAddressFormLoading(true);
+    try {
+      if (editingAddress) {
+        // UPDATE
+        const res = await fetch(`http://localhost:3000/api/user-addresses/${editingAddress.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ label, firstName, lastName, address, city, district, province, phone }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        setAddresses((prev) => prev.map((a) => (a.id === editingAddress.id ? data.data : a)));
+        showToast("Address updated successfully!");
+      } else {
+        // CREATE
+        const res = await fetch("http://localhost:3000/api/user-addresses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.id, label, firstName, lastName, address, city, district, province, phone }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message);
+        setAddresses((prev) => [...prev, data.data]);
+        setSelectedAddressId(data.data.id);
+        showToast("New address added!");
+      }
+      setShowAddressForm(false);
+      setEditingAddress(null);
+    } catch (err) {
+      setAddressFormError(err.message || "Failed to save address.");
+    } finally {
+      setAddressFormLoading(false);
     }
   };
 
-  // ── Phone number validation 
+  const deleteAddress = async (id) => {
+    if (!window.confirm("Delete this address?")) return;
+    const user = getUserFromSession();
+    try {
+      const res = await fetch(`http://localhost:3000/api/user-addresses/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      const updated = addresses.filter((a) => a.id !== id);
+      setAddresses(updated);
+      if (selectedAddressId === id) {
+        setSelectedAddressId(updated.length > 0 ? updated[0].id : null);
+      }
+      if (updated.length === 0) {
+        setShowAddressForm(true);
+        setAddressForm((f) => ({
+          ...f,
+          firstName: user?.firstName || user?.first_name || "",
+          lastName: user?.lastName || user?.last_name || "",
+        }));
+      }
+      showToast("Address deleted.");
+    } catch (err) {
+      showToast("Failed to delete address.");
+    }
+  };
+
+  const setDefaultAddress = async (id) => {
+    const user = getUserFromSession();
+    try {
+      await fetch(`http://localhost:3000/api/user-addresses/${id}/default`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      setAddresses((prev) => prev.map((a) => ({ ...a, isDefault: a.id === id })));
+      showToast("Default address updated.");
+    } catch (err) {
+      showToast("Failed to update default.");
+    }
+  };
+
+  // ── Toast helper
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setToast(true);
+    setTimeout(() => setToast(false), 3000);
+  };
+
+  // ── Phone validation (order form phone - not used separately now, but kept for slip validation context)
   const phoneError = (msg) => setPhoneState({ error: msg, status: "error" });
   const phoneClear = () => setPhoneState({ error: "", status: "" });
   const phoneSuccess = () => setPhoneState({ error: "", status: "success" });
 
-  const handlePhoneKeyDown = (e) => {
+  // ── Address form phone validation
+  const addrPhoneError = (msg) => setAddrPhoneState({ error: msg, status: "error" });
+  const addrPhoneClear = () => setAddrPhoneState({ error: "", status: "" });
+  const addrPhoneSuccess = () => setAddrPhoneState({ error: "", status: "success" });
+
+  const handleAddrPhoneKeyDown = (e) => {
     const allowed = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Tab", "Home", "End", "Enter"];
     if (allowed.includes(e.key)) return;
     if (!/^[0-9]$/.test(e.key)) {
       e.preventDefault();
-      phoneError("Phone number must contain numbers only. Letters and special characters are not allowed.");
+      addrPhoneError("Phone number must contain numbers only.");
     }
   };
 
-  const handlePhonePaste = (e) => {
-    e.preventDefault();
-    const pasted = (e.clipboardData || window.clipboardData).getData("text");
-    const digits = pasted.replace(/[^0-9]/g, "").slice(0, 10);
-    const cur = form.phone, s = e.target.selectionStart, en = e.target.selectionEnd;
-    const newVal = (cur.slice(0, s) + digits + cur.slice(en)).slice(0, 10);
-    set("phone", newVal);
-    if (newVal.length === 10) phoneSuccess();
-    else phoneClear();
-  };
-
-  const handlePhoneInput = (e) => {
+  const handleAddrPhoneInput = (e) => {
     const clean = e.target.value.replace(/[^0-9]/g, "").slice(0, 10);
-    set("phone", clean);
-    if (clean.length === 10) phoneSuccess();
-    else phoneClear();
+    setAF("phone", clean);
+    if (clean.length === 10) addrPhoneSuccess();
+    else addrPhoneClear();
   };
 
-  const handlePhoneBlur = () => {
-    const len = form.phone.length;
-    if (len === 0) phoneClear();
-    else if (len < 10) phoneError(`Phone number must be exactly 10 digits. Please enter ${10 - len} more digit${10 - len > 1 ? "s" : ""}.`);
-    else phoneSuccess();
+  const handleAddrPhoneBlur = () => {
+    const len = addressForm.phone.length;
+    if (len === 0) addrPhoneClear();
+    else if (len < 10) addrPhoneError(`Need ${10 - len} more digit${10 - len > 1 ? "s" : ""}.`);
+    else addrPhoneSuccess();
   };
 
-  const handlePhoneFocus = () => {
-    if (phoneState.status !== "error" && phoneState.status !== "success") phoneClear();
-  };
-
-  // Slip upload 
-  const handleSlipUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setSlipFile(file);
-  };
-
+  // ── Slip upload
+  const handleSlipUpload = (e) => { const f = e.target.files[0]; if (f) setSlipFile(f); };
   const removeSlip = (e) => {
     e.stopPropagation();
     setSlipFile(null);
     if (slipInputRef.current) slipInputRef.current.value = "";
   };
 
-  //order confirmation
+  // ── Confirm order
   const confirmOrder = async () => {
     setFormError("");
     setLoading(true);
 
-    
-    if (!form.email) {
-      setFormError("Email is required");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.firstName || !form.lastName) {
-      setFormError("First name and last name are required");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.address) {
-      setFormError("Address is required");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.city) {
-      setFormError("City is required");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.district) {
-      setFormError("Please select your district");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.province) {
-      setFormError("Please select your province");
-      setLoading(false);
-      return;
-    }
-
-    if (form.phone.length !== 10) {
-      setFormError("Phone number must be exactly 10 digits");
-      setLoading(false);
-      return;
-    }
-
-    if (!form.payment) {
-      setFormError("Please select payment method");
-      setLoading(false);
-      return;
-    }
-
+    if (!form.email) { setFormError("Email is required"); setLoading(false); return; }
+    if (!selectedAddress) { setFormError("Please select or add a delivery address."); setLoading(false); return; }
+    if (!form.payment) { setFormError("Please select a payment method"); setLoading(false); return; }
     if (form.payment === "bank" && !slipFile) {
-      setFormError("Please upload your bank deposit slip before confirming the order.");
+      setFormError("Please upload your bank deposit slip.");
       slipInputRef.current?.click();
       setLoading(false);
       return;
     }
 
-    // Get user from sessionStorage
     const user = getUserFromSession();
-    
     if (!user || !user.id) {
       setFormError("Please login to place order");
       setLoading(false);
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
- 
-    const formDataToSend = new FormData();
-    formDataToSend.append('userId', user.id);
-    
-  
-    formDataToSend.append('email', form.email);
-    formDataToSend.append('firstName', form.firstName);
-    formDataToSend.append('lastName', form.lastName);
-    formDataToSend.append('address', form.address);
-    formDataToSend.append('city', form.city);
-    formDataToSend.append('district', form.district);
-    formDataToSend.append('province', form.province);
-    formDataToSend.append('phone', form.phone);
-    formDataToSend.append('paymentMethod', form.payment);
-    formDataToSend.append('selectedItems', JSON.stringify(selectedItems));
-    formDataToSend.append('subtotal', cartSubtotal.toString());
-    formDataToSend.append('shippingCost', shippingCost.toString());
-    
-    if (slipFile) {
-      formDataToSend.append('bankSlip', slipFile);
-    }
+    const fd = new FormData();
+    fd.append("userId", user.id);
+    fd.append("email", form.email);
+    fd.append("firstName", selectedAddress.firstName);
+    fd.append("lastName", selectedAddress.lastName);
+    fd.append("address", selectedAddress.address);
+    fd.append("city", selectedAddress.city);
+    fd.append("district", selectedAddress.district);
+    fd.append("province", selectedAddress.province);
+    fd.append("phone", selectedAddress.phone);
+    fd.append("paymentMethod", form.payment);
+    fd.append("selectedItems", JSON.stringify(selectedItems));
+    fd.append("subtotal", cartSubtotal.toString());
+    fd.append("shippingCost", shippingCost.toString());
+    if (slipFile) fd.append("bankSlip", slipFile);
 
     try {
-      const response = await fetch('http://localhost:3000/api/orders/create', {
-        method: 'POST',
-        body: formDataToSend
-      });
-
-      const data = await response.json();
-
+      const res = await fetch("http://localhost:3000/api/orders/create", { method: "POST", body: fd });
+      const data = await res.json();
       if (data.success) {
-        const currentDate = new Date().toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-
+        const currentDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
         const orderDetails = {
           orderNumber: data.data.orderNumber,
           barcode: data.data.barcode,
@@ -379,29 +411,23 @@ export default function CheckoutPage() {
           confirmed: true,
           paidDate: currentDate,
           paidAmount: total,
-          customerName: `${form.firstName} ${form.lastName}`,
+          customerName: `${selectedAddress.firstName} ${selectedAddress.lastName}`,
           email: form.email,
-          phone: form.phone,
-          address: form.address,
-          city: form.city,
-          district: form.district,
-          province: form.province,
+          phone: selectedAddress.phone,
+          address: selectedAddress.address,
+          city: selectedAddress.city,
+          district: selectedAddress.district,
+          province: selectedAddress.province,
           subtotal: cartSubtotal,
           shipping: shippingCost,
         };
-
-        // Remove purchased items from cart
-        window.dispatchEvent(new CustomEvent('cartUpdated', {
-          detail: { purchasedItems: selectedItems }
-        }));
-
-        // Redirect to dedicated confirmation page
-        navigate('/order/confirmation', { state: { orderDetails } });
+        window.dispatchEvent(new CustomEvent("cartUpdated", { detail: { purchasedItems: selectedItems } }));
+        navigate("/order/confirmation", { state: { orderDetails } });
       } else {
         setFormError(data.message || "Error placing order. Please try again.");
       }
-    } catch (error) {
-      console.error('Error placing order:', error);
+    } catch (err) {
+      console.error(err);
       setFormError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(false);
@@ -409,50 +435,8 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key !== "Enter") return;
-      const active = document.activeElement;
-
-      if (active?.classList.contains("confirm-btn")) {
-        e.preventDefault();
-        confirmOrder();
-        return;
-      }
-      if (active?.tagName === "INPUT" && ["text", "email", "tel"].includes(active.type)) {
-        e.preventDefault();
-        confirmOrder();
-        return;
-      }
-      if (active?.tagName === "SELECT") {
-        e.preventDefault();
-        const focusable = Array.from(document.querySelectorAll("input[type=text],input[type=email],input[type=tel],select,button.confirm-btn"));
-        const idx = focusable.indexOf(active);
-        if (idx !== -1 && idx < focusable.length - 1) focusable[idx + 1].focus();
-        return;
-      }
-      if (active?.id === "uploadSlipBox" || active?.closest?.("#uploadSlipBox")) {
-        e.preventDefault();
-        slipInputRef.current?.click();
-        return;
-      }
-      if (active?.classList.contains("remove-file")) {
-        e.preventDefault();
-        setSlipFile(null);
-        return;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [form, phoneState]);
-
-  
-  useEffect(() => {
-    if (selectedItems.length === 0) {
-      navigate('/cart');
-    }
+    if (selectedItems.length === 0) navigate("/cart");
   }, [selectedItems, navigate]);
-
 
   const focusStyle = { borderColor: "#c9a882", background: "#fff", boxShadow: "0 0 0 3px rgba(201,168,130,0.12)" };
   const blurStyle = { borderColor: "transparent", background: "#f5f5f5", boxShadow: "none" };
@@ -466,7 +450,7 @@ export default function CheckoutPage() {
       {/* ── NAVBAR ── */}
       <nav className="navbar">
         <div className="logo">Click</div>
-        <button className="cart-btn" aria-label="Cart" onClick={() => navigate('/cart')}>
+        <button className="cart-btn" aria-label="Cart" onClick={() => navigate("/cart")}>
           <CartIcon />
           <span className="cart-badge">{totalItemCount}</span>
         </button>
@@ -477,190 +461,195 @@ export default function CheckoutPage() {
 
         {/* ── LEFT PANEL ── */}
         <div className="panel">
-          {formError && (
-            <div className="form-error">
-              {formError}
-            </div>
-          )}
+          {formError && <div className="form-error">{formError}</div>}
 
-          {/* Email - First field */}
+          {/* Email */}
           <div className="field-full">
-            <input 
-              type="email" 
-              placeholder="E-mail" 
-              value={form.email}
-              onChange={e => set("email", e.target.value)} 
-              {...inputEvents} 
-              disabled={loading} 
-              required 
-            />
+            <input type="email" placeholder="E-mail" value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              {...inputEvents} disabled={loading} required />
           </div>
-
           <div className="cb-row">
-            <input 
-              type="checkbox" 
-              id="offers" 
-              checked={form.offers}
-              onChange={e => set("offers", e.target.checked)} 
-              disabled={loading} 
-            />
+            <input type="checkbox" id="offers" checked={form.offers}
+              onChange={(e) => setForm((f) => ({ ...f, offers: e.target.checked }))} disabled={loading} />
             <label className="cb-label" htmlFor="offers">E-mail me with offers and discounts</label>
           </div>
 
           <div className="divider" />
 
-          {/* Delivery */}
-          <div className="section-title">Delivery</div>
-
-          <div className="ship-row">
-            <input 
-              type="checkbox" 
-              id="ship" 
-              checked={form.ship}
-              onChange={e => set("ship", e.target.checked)} 
-              disabled={loading} 
-            />
-            <label htmlFor="ship">Ship</label>
-          </div>
-
-          {/* Name fields */}
-          <div className="field-row">
-            <input 
-              type="text" 
-              placeholder="First Name" 
-              value={form.firstName}
-              onChange={e => set("firstName", e.target.value)} 
-              {...inputEvents} 
-              disabled={loading} 
-              required 
-            />
-            <input 
-              type="text" 
-              placeholder="Last Name" 
-              value={form.lastName}
-              onChange={e => set("lastName", e.target.value)} 
-              {...inputEvents} 
-              disabled={loading} 
-              required 
-            />
-          </div>
-
-          {/* Address */}
-          <div className="field-full">
-            <input 
-              type="text" 
-              placeholder="Address" 
-              value={form.address}
-              onChange={e => set("address", e.target.value)} 
-              {...inputEvents} 
-              disabled={loading} 
-              required 
-            />
-          </div>
-
-          {/* City */}
-          <div className="field-full">
-            <input 
-              type="text" 
-              placeholder="City" 
-              value={form.city}
-              onChange={e => set("city", e.target.value)} 
-              {...inputEvents} 
-              disabled={loading} 
-              required 
-            />
-          </div>
-
-          {/* District and Province */}
-          <div className="field-row">
-            <div className="select-wrap">
-              <select 
-                value={form.district} 
-                onChange={e => set("district", e.target.value)} 
-                disabled={loading}
-                required
-              >
-                <option value="">Select District</option>
-                {DISTRICTS.map(d => <option key={d}>{d}</option>)}
-              </select>
-            </div>
-            <div className="select-wrap">
-              <select 
-                value={form.province} 
-                onChange={e => set("province", e.target.value)} 
-                disabled={loading}
-                required
-              >
-                <option value="">Select Province</option>
-                {PROVINCES.map(p => <option key={p}>{p}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Another Shipping Address */}
-          <div className="cb-row" style={{ marginTop: '10px', marginBottom: '20px' }}>
-            <input 
-              type="checkbox" 
-              id="differentAddress" 
-              checked={useDifferentAddress}
-              onChange={handleDifferentAddressChange} 
-              disabled={loading} 
-            />
-            <label className="cb-label" htmlFor="differentAddress">Another shipping address</label>
-          </div>
-
-          {/* Phone */}
-          <div className="field-full phone-field-wrap">
-            <input
-              ref={phoneRef}
-              type="tel"
-              placeholder="Phone Number"
-              value={form.phone}
-              maxLength={10}
-              autoComplete="off"
-              disabled={loading}
-              required
-              className={phoneState.status === "error" ? "error" : phoneState.status === "success" ? "success" : ""}
-              onKeyDown={handlePhoneKeyDown}
-              onPaste={handlePhonePaste}
-              onInput={handlePhoneInput}
-              onBlur={handlePhoneBlur}
-              onFocus={handlePhoneFocus}
-            />
-            {phoneState.error && (
-              <div className="phone-error show">
-                <AlertIcon />
-                <span>{phoneState.error}</span>
-              </div>
+          {/* ── DELIVERY ADDRESS SECTION ── */}
+          <div className="addr-section-header">
+            <span className="section-title" style={{ marginBottom: 0 }}>Delivery Address</span>
+            {addresses.length > 0 && !showAddressForm && (
+              <button className="addr-add-btn" onClick={openAddForm} disabled={loading}>
+                <PlusIcon /> Add New Address
+              </button>
             )}
           </div>
+
+          {addressesLoading ? (
+            <div className="addr-loading">Loading addresses...</div>
+          ) : (
+            <>
+              {/* Saved Address Cards */}
+              {addresses.length > 0 && !showAddressForm && (
+                <div className="addr-cards-list">
+                  {addresses.map((addr) => (
+                    <div
+                      key={addr.id}
+                      className={`addr-card ${selectedAddressId === addr.id ? "selected" : ""}`}
+                      onClick={() => setSelectedAddressId(addr.id)}
+                    >
+                      {/* Radio indicator */}
+                      <div className="addr-card-radio">
+                        <div className="addr-radio-dot" />
+                      </div>
+
+                      <div className="addr-card-body">
+                        <div className="addr-card-top">
+                          <span className="addr-card-label">{addr.label || "Home"}</span>
+                          {addr.isDefault && <span className="addr-default-badge">Default</span>}
+                        </div>
+                        <div className="addr-card-name">{addr.firstName} {addr.lastName}</div>
+                        <div className="addr-card-detail">
+                          {addr.address}, {addr.city}
+                        </div>
+                        <div className="addr-card-detail">
+                          {addr.district}, {addr.province}
+                        </div>
+                        <div className="addr-card-phone">{addr.phone}</div>
+                      </div>
+
+                      <div className="addr-card-actions" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="addr-action-btn edit"
+                          title="Edit"
+                          onClick={() => openEditForm(addr)}
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          className="addr-action-btn delete"
+                          title="Delete"
+                          onClick={() => deleteAddress(addr.id)}
+                        >
+                          <TrashIcon />
+                        </button>
+                        {!addr.isDefault && (
+                          <button
+                            className="addr-action-btn set-default"
+                            title="Set as default"
+                            onClick={() => setDefaultAddress(addr.id)}
+                          >
+                            Set Default
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add / Edit Address Form */}
+              {showAddressForm && (
+                <div className="addr-form-card">
+                  <div className="addr-form-title">
+                    {editingAddress ? "Edit Address" : "Add New Address"}
+                  </div>
+
+                  {addressFormError && (
+                    <div className="form-error" style={{ marginBottom: 12 }}>{addressFormError}</div>
+                  )}
+
+                  {/* Label */}
+                  <div className="addr-label-chips">
+                    {["Home", "Work", "Other"].map((lbl) => (
+                      <button
+                        key={lbl}
+                        type="button"
+                        className={`addr-label-chip ${addressForm.label === lbl ? "active" : ""}`}
+                        onClick={() => setAF("label", lbl)}
+                      >
+                        {lbl}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="field-row">
+                    <input type="text" placeholder="First Name" value={addressForm.firstName}
+                      onChange={(e) => setAF("firstName", e.target.value)} {...inputEvents} />
+                    <input type="text" placeholder="Last Name" value={addressForm.lastName}
+                      onChange={(e) => setAF("lastName", e.target.value)} {...inputEvents} />
+                  </div>
+                  <div className="field-full">
+                    <input type="text" placeholder="Address" value={addressForm.address}
+                      onChange={(e) => setAF("address", e.target.value)} {...inputEvents} />
+                  </div>
+                  <div className="field-full">
+                    <input type="text" placeholder="City" value={addressForm.city}
+                      onChange={(e) => setAF("city", e.target.value)} {...inputEvents} />
+                  </div>
+                  <div className="field-row">
+                    <div className="select-wrap">
+                      <select value={addressForm.district} onChange={(e) => setAF("district", e.target.value)}>
+                        <option value="">Select District</option>
+                        {DISTRICTS.map((d) => <option key={d}>{d}</option>)}
+                      </select>
+                    </div>
+                    <div className="select-wrap">
+                      <select value={addressForm.province} onChange={(e) => setAF("province", e.target.value)}>
+                        <option value="">Select Province</option>
+                        {PROVINCES.map((p) => <option key={p}>{p}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="field-full phone-field-wrap" style={{ marginBottom: 0 }}>
+                    <input
+                      type="tel" placeholder="Phone Number" value={addressForm.phone}
+                      maxLength={10} autoComplete="off"
+                      className={addrPhoneState.status === "error" ? "error" : addrPhoneState.status === "success" ? "success" : ""}
+                      onKeyDown={handleAddrPhoneKeyDown}
+                      onInput={handleAddrPhoneInput}
+                      onBlur={handleAddrPhoneBlur}
+                      {...inputEvents}
+                    />
+                    {addrPhoneState.error && (
+                      <div className="phone-error show">
+                        <AlertIcon /><span>{addrPhoneState.error}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="addr-form-actions">
+                    {addresses.length > 0 && (
+                      <button className="addr-cancel-btn" onClick={cancelAddressForm} disabled={addressFormLoading}>
+                        Cancel
+                      </button>
+                    )}
+                    <button className="addr-save-btn" onClick={saveAddress} disabled={addressFormLoading}>
+                      {addressFormLoading ? "Saving..." : (editingAddress ? "Update Address" : "Save Address")}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="divider" />
 
           {/* Payment Method */}
           <div className="section-title">Payment Method</div>
-
           <div className="payment-opts">
             <label className="radio-row">
-              <input 
-                type="radio" 
-                name="payment" 
-                value="cod"
-                checked={form.payment === "cod"} 
-                onChange={() => set("payment", "cod")} 
-                disabled={loading} 
-              />
+              <input type="radio" name="payment" value="cod"
+                checked={form.payment === "cod"} onChange={() => setForm((f) => ({ ...f, payment: "cod" }))} disabled={loading} />
               <span className="radio-label">Cash on Delivery</span>
             </label>
             <label className="radio-row">
-              <input 
-                type="radio" 
-                name="payment" 
-                value="bank"
-                checked={form.payment === "bank"} 
-                onChange={() => set("payment", "bank")} 
-                disabled={loading} 
-              />
+              <input type="radio" name="payment" value="bank"
+                checked={form.payment === "bank"} onChange={() => setForm((f) => ({ ...f, payment: "bank" }))} disabled={loading} />
               <span className="radio-label">Bank Deposit</span>
             </label>
           </div>
@@ -682,7 +671,6 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              {/* Upload Slip */}
               <div
                 id="uploadSlipBox"
                 className="upload-slip-box"
@@ -690,34 +678,19 @@ export default function CheckoutPage() {
                 role="button"
                 aria-label="Upload payment slip"
                 onClick={() => !loading && slipInputRef.current?.click()}
-                onKeyDown={e => e.key === "Enter" && slipInputRef.current?.click()}
+                onKeyDown={(e) => e.key === "Enter" && slipInputRef.current?.click()}
               >
-                <input
-                  ref={slipInputRef}
-                  type="file"
-                  accept="image/*,.pdf"
-                  style={{ display: "none" }}
-                  onChange={handleSlipUpload}
-                  disabled={loading}
-                />
+                <input ref={slipInputRef} type="file" accept="image/*,.pdf"
+                  style={{ display: "none" }} onChange={handleSlipUpload} disabled={loading} />
                 {slipFile ? (
                   <div className="upload-slip-preview">
                     <CheckIcon />
                     <span>{slipFile.name.length > 28 ? slipFile.name.slice(0, 25) + "..." : slipFile.name}</span>
-                    <button
-                      className="remove-file"
-                      tabIndex={0}
-                      onClick={removeSlip}
-                      onKeyDown={e => e.key === "Enter" && removeSlip(e)}
-                      disabled={loading}
-                    >
-                      ✕
-                    </button>
+                    <button className="remove-file" tabIndex={0} onClick={removeSlip} disabled={loading}>✕</button>
                   </div>
                 ) : (
                   <div className="upload-slip-content">
-                    <UploadIcon />
-                    <span>Upload slip here</span>
+                    <UploadIcon /><span>Upload slip here</span>
                   </div>
                 )}
               </div>
@@ -740,11 +713,7 @@ export default function CheckoutPage() {
                 <div className="summary-item" key={item.id}>
                   <div className="summary-img-wrap">
                     {item.imageUrl ? (
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.name} 
-                        className="summary-item-img" 
-                      />
+                      <img src={item.imageUrl} alt={item.name} className="summary-item-img" />
                     ) : (
                       <div className="summary-img-placeholder" style={{ background: item.color }} />
                     )}
@@ -784,10 +753,8 @@ export default function CheckoutPage() {
       </div>
 
       {/* ── TOAST ── */}
-      <div className={`toast ${toast ? "show" : ""}`}>
-        {toastMessage}
-      </div>
-      
+      <div className={`toast ${toast ? "show" : ""}`}>{toastMessage}</div>
+
       <Footer />
     </>
   );
