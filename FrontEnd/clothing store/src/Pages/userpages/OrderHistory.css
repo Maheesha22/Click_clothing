@@ -153,6 +153,11 @@
   color: #856404;
 }
 
+.order-status.confirmed {
+  background-color: #e2f0d9;
+  color: #385723;
+}
+
 .order-status.processing {
   background-color: #d1ecf1;
   color: #0c5460;
