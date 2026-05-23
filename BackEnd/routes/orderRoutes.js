@@ -28,5 +28,34 @@ router.get('/track/:barcode', orderController.getOrderByBarcode);
 router.get('/', orderController.getAllOrders);
 router.put('/:id/status', orderController.updateOrderStatus);
 router.put('/:id/payment', orderController.updatePaymentStatus);
+router.get('/test-email', async (req, res) => {
+  try {
+    const { sendOrderConfirmationEmail } = require('../services/emailService');
+    const result = await sendOrderConfirmationEmail({
+      email: req.query.email || 'clickclothing.reset@gmail.com',
+      customerName: 'Test Customer',
+      orderNumber: 'ORD-TEST-1234',
+      items: [
+        { name: 'Classic T-Shirt', size: 'M', quantity: 2, price: 1500 }
+      ],
+      subtotal: 3000,
+      shipping: 400,
+      total: 3400,
+      paymentMethod: 'Cash on Delivery',
+      address: '123 Main Street',
+      city: 'Colombo',
+      district: 'Colombo',
+      province: 'Western Province',
+      paidDate: new Date().toLocaleDateString()
+    });
+    if (result) {
+      res.json({ success: true, message: 'Test confirmation email sent successfully' });
+    } else {
+      res.status(500).json({ success: false, message: 'Nodemailer returned false. Check email_errors.log' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message, stack: err.stack });
+  }
+});
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail, Product, ProductVariant } = require('../models');
 const { generateBarcode } = require('../utils/barcodeGenerator');
+const { sendOrderConfirmationEmail } = require('../services/emailService');
 
 // Generate unique order number
 const generateOrderNumber = () => {
@@ -178,6 +179,51 @@ const createOrder = async (req, res) => {
     });
     
     console.log('Cleanup completed (Cart and SelectedItems cleared)');
+
+    // Enrich items with actual product names from the database for the email template
+    const enrichedItems = [];
+    try {
+      for (const item of itemsToProcess) {
+        const prod = await Product.findByPk(item.productId);
+        enrichedItems.push({
+          ...item,
+          name: prod ? prod.name : 'Product'
+        });
+      }
+    } catch (enrichErr) {
+      console.error('Error enriching items for email:', enrichErr);
+    }
+
+    // Send order confirmation email (fire-and-forget — does not block response)
+    const emailData = {
+      email,
+      customerName: `${firstName} ${lastName}`,
+      orderNumber: order.order_number,
+      items: enrichedItems.length > 0 ? enrichedItems : itemsToProcess,
+      subtotal: parseFloat(subtotal),
+      shipping: parseFloat(shippingCost || 400),
+      total: totalBill,
+      paymentMethod: req.body.paymentMethod === 'bank' ? 'Bank Deposit' : 'Cash on Delivery',
+      address,
+      city,
+      district,
+      province,
+      paidDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    };
+
+    const fs = require('fs');
+    const path = require('path');
+    sendOrderConfirmationEmail(emailData).catch(err => {
+      console.error('Email send failed (non-critical):', err);
+      try {
+        fs.appendFileSync(
+          path.join(__dirname, '../email_errors.log'),
+          `[${new Date().toISOString()}] Catch Error: ${err.message}\n${err.stack}\n\n`
+        );
+      } catch (fsErr) {
+        console.error('Failed to log email send catch error:', fsErr);
+      }
+    });
 
     res.status(201).json({
       success: true,
