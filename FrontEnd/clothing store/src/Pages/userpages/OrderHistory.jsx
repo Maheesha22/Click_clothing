@@ -74,7 +74,54 @@ const OrderHistory = () => {
     });
   };
 
+  const getMappedStatuses = (order) => {
+    const stage = (order.status || 'pending').toLowerCase();
+    const method = (order.payment_method || '').toLowerCase();
+    const isCod = method.includes('cod') || method.includes('cash');
+
+    let orderStatus = stage;
+    let paymentStatus = 'pending';
+
+    if (isCod) {
+      // COD order status: pending -> pending, confirmed -> confirmed, shipped -> shipped, delivered -> delivered
+      orderStatus = stage;
+
+      // COD payment status: pending -> pending, confirmed -> pending, shipped -> pending, delivered -> confirmed
+      if (stage === 'delivered') {
+        paymentStatus = 'confirmed';
+      } else {
+        paymentStatus = 'pending';
+      }
+    } else {
+      // Bank deposit order status: pending -> pending, confirmed -> confirmed, shipped -> shipped, delivered -> delivered
+      orderStatus = stage;
+
+      // Bank deposit payment status: pending -> pending, confirmed -> confirmed, shipped -> confirmed, delivered -> confirmed
+      if (stage === 'pending') {
+        paymentStatus = 'pending';
+      } else {
+        paymentStatus = 'confirmed';
+      }
+    }
+
+    return { orderStatus, paymentStatus };
+  };
+
+  const getDownloadButtonText = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'shipped') return 'DOWNLOAD SHIPPING NOTE';
+    if (s === 'delivered') return 'DOWNLOAD INVOICE';
+    return 'DOWNLOAD RECEIPT';
+  };
+
   const handleDownloadReceipt = (order) => {
+    const { orderStatus, paymentStatus } = getMappedStatuses(order);
+    const stage = (order.status || '').toLowerCase();
+    
+    let docTitle = 'Receipt';
+    if (stage === 'shipped') docTitle = 'Shipping Note';
+    else if (stage === 'delivered') docTitle = 'Invoice';
+
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0px';
@@ -91,7 +138,7 @@ const OrderHistory = () => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Receipt - ${order.order_number || order.id}</title>
+        <title>${docTitle} - ${order.order_number || order.id}</title>
         <style>
           body {
             font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
@@ -239,7 +286,7 @@ const OrderHistory = () => {
               <div class="logo-subtitle">CLOTHING</div>
             </div>
             <div>
-              <div class="receipt-title">RECEIPT</div>
+              <div class="receipt-title">${docTitle.toUpperCase()}</div>
               <div style="font-size:13px; color:#555; margin-top:5px; text-align:right;">Order: #${order.order_number || order.id}</div>
             </div>
           </div>
@@ -265,8 +312,9 @@ const OrderHistory = () => {
               <div class="details-title">Order Info</div>
               <div class="details-text">
                 Date: ${new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}<br>
-                Payment: ${order.payment_method || 'N/A'}<br>
-                Status: ${order.status?.toUpperCase() || 'PENDING'}
+                Payment Method: ${order.payment_method || 'N/A'}<br>
+                Order Status: ${orderStatus.toUpperCase()}<br>
+                Payment Status: ${paymentStatus.toUpperCase()}
               </div>
             </div>
           </div>
@@ -315,7 +363,7 @@ const OrderHistory = () => {
 
           <div class="footer">
             <p>Thank you for shopping with Click Clothing!</p>
-            <p>This is a computer-generated receipt and does not require a signature.</p>
+            <p>This is a computer-generated ${docTitle.toLowerCase()} and does not require a signature.</p>
             <p style="font-size:10px; margin-top:10px; color:#ccc;">© ${new Date().getFullYear()} Click Clothing. All rights reserved.</p>
           </div>
         </div>
@@ -445,8 +493,8 @@ const OrderHistory = () => {
                   <div className="order-header-left">
                     <div className="order-top-row">
                       <h3 className="order-number">#{order.order_number || order.id}</h3>
-                      <span className={`order-status ${order.status?.toLowerCase() || 'pending'}`}>
-                        {order.status?.toUpperCase() || 'PENDING'}
+                      <span className={`order-status ${getMappedStatuses(order).orderStatus.toLowerCase()}`}>
+                        {getMappedStatuses(order).orderStatus.toUpperCase()}
                       </span>
                     </div>
                     <div className="order-info-row">
@@ -558,7 +606,7 @@ const OrderHistory = () => {
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
-                      DOWNLOAD RECEIPT
+                      {getDownloadButtonText(order.status)}
                     </button>
                     {order.status?.toLowerCase() === 'delivered' && (
                       <button className="review-order-btn" onClick={() => handleReviewOrder(order)}>
