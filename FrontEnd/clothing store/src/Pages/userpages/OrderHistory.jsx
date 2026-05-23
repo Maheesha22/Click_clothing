@@ -74,6 +74,267 @@ const OrderHistory = () => {
     });
   };
 
+  const handleDownloadReceipt = (order) => {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    const subtotal = order.items?.reduce((sum, item) => sum + (parseFloat(item.price || 0) * (item.quantity || 1)), 0) || 0;
+    const shipping = parseFloat(order.delivery_charges || 400);
+    const total = parseFloat(order.total_bill || (subtotal + shipping));
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt - ${order.order_number || order.id}</title>
+        <style>
+          body {
+            font-family: 'Jost', 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+          }
+          .receipt-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            border: 1px solid #ede9e4;
+            border-radius: 4px;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #111;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #111;
+          }
+          .logo-subtitle {
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            text-transform: uppercase;
+          }
+          .receipt-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #c8a97e;
+            text-align: right;
+            letter-spacing: 1px;
+          }
+          .details-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 20px;
+          }
+          .details-col {
+            flex: 1;
+          }
+          .details-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 4px;
+          }
+          .details-text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+          }
+          .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+          }
+          .table th {
+            background: #fafafa;
+            text-align: left;
+            padding: 12px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #eee;
+          }
+          .table td {
+            padding: 14px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #333;
+          }
+          .table th.num, .table td.num {
+            text-align: right;
+          }
+          .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 40px;
+          }
+          .totals-table {
+            width: 300px;
+            border-collapse: collapse;
+          }
+          .totals-table td {
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #666;
+          }
+          .totals-table tr.total-row td {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            border-top: 2px solid #111;
+            padding-top: 12px;
+          }
+          .totals-table td.num {
+            text-align: right;
+            color: #111;
+            font-weight: 600;
+          }
+          .footer {
+            text-align: center;
+            color: #999;
+            font-size: 11px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+            margin-top: 40px;
+            line-height: 1.5;
+          }
+          @media print {
+            body {
+              padding: 0;
+              background: #fff;
+            }
+            .receipt-container {
+              border: none;
+              padding: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          <div class="header">
+            <div>
+              <div class="logo">CLICK</div>
+              <div class="logo-subtitle">CLOTHING</div>
+            </div>
+            <div>
+              <div class="receipt-title">RECEIPT</div>
+              <div style="font-size:13px; color:#555; margin-top:5px; text-align:right;">Order: #${order.order_number || order.id}</div>
+            </div>
+          </div>
+
+          <div class="details-grid">
+            <div class="details-col">
+              <div class="details-title">Customer Details</div>
+              <div class="details-text">
+                <strong>${order.customer?.firstName || ''} ${order.customer?.lastName || ''}</strong><br>
+                Phone: ${order.customer?.phone || 'N/A'}<br>
+                Email: ${order.customer?.email || 'N/A'}
+              </div>
+            </div>
+            <div class="details-col">
+              <div class="details-title">Shipping Address</div>
+              <div class="details-text">
+                ${order.customer?.address || 'N/A'},<br>
+                ${order.customer?.city || ''}, ${order.customer?.district || ''},<br>
+                ${order.customer?.province || ''}
+              </div>
+            </div>
+            <div class="details-col">
+              <div class="details-title">Order Info</div>
+              <div class="details-text">
+                Date: ${new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}<br>
+                Payment: ${order.payment_method || 'N/A'}<br>
+                Status: ${order.status?.toUpperCase() || 'PENDING'}
+              </div>
+            </div>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item Description</th>
+                <th>Size</th>
+                <th>Color</th>
+                <th class="num">Qty</th>
+                <th class="num">Unit Price</th>
+                <th class="num">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(order.items || []).map(item => `
+                <tr>
+                  <td>${item.Product?.name || 'Product'}</td>
+                  <td>${item.size || '-'}</td>
+                  <td>${item.color || '-'}</td>
+                  <td class="num">${item.quantity || 1}</td>
+                  <td class="num">Rs.${parseFloat(item.price || 0).toFixed(2)}</td>
+                  <td class="num">Rs.${(parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="totals-section">
+            <table class="totals-table">
+              <tr>
+                <td>Subtotal</td>
+                <td class="num">Rs.${parseFloat(subtotal).toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td>Shipping Cost</td>
+                <td class="num">Rs.${parseFloat(shipping).toFixed(2)}</td>
+              </tr>
+              <tr class="total-row">
+                <td>Grand Total</td>
+                <td class="num">Rs.${parseFloat(total).toFixed(2)}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="footer">
+            <p>Thank you for shopping with Click Clothing!</p>
+            <p>This is a computer-generated receipt and does not require a signature.</p>
+            <p style="font-size:10px; margin-top:10px; color:#ccc;">© ${new Date().getFullYear()} Click Clothing. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    doc.open();
+    doc.write(htmlContent);
+    doc.close();
+
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  };
+
   if (!isLoggedIn) {
     return (
       <div className="orders-section">
@@ -291,6 +552,14 @@ const OrderHistory = () => {
                     {order.status?.toLowerCase() === 'delivered' ? 'Tracking available' : 'Tracking pending'}
                   </div>
                   <div className="footer-actions">
+                    <button className="download-receipt-btn" onClick={() => handleDownloadReceipt(order)}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      DOWNLOAD RECEIPT
+                    </button>
                     {order.status?.toLowerCase() === 'delivered' && (
                       <button className="review-order-btn" onClick={() => handleReviewOrder(order)}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
