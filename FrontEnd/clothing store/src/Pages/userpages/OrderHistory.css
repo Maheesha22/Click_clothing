@@ -1,3 +1,4 @@
+
 /* ============================================
    ORDER HISTORY PAGE STYLES
    ============================================ */
@@ -649,6 +650,33 @@
   height: 14px;
 }
 
+.download-receipt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Jost', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+  background: #c8a97e;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.download-receipt-btn:hover {
+  background: #a07850;
+}
+
+.download-receipt-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .orders-section {
@@ -695,7 +723,9 @@
     align-items: flex-start;
   }
 
-  .track-order-btn {
+  .track-order-btn,
+  .review-order-btn,
+  .download-receipt-btn {
     width: 100%;
     justify-content: center;
   }
