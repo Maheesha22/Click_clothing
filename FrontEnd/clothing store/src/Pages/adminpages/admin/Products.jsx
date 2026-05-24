@@ -20,18 +20,20 @@ export default function Products({ toast, initialData, clearInitialData }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [delId, setDelId] = useState(null);
+  const [restockInfo, setRestockInfo] = useState(null); // { productId, variantId }
 
   // New Effect for Restock from Dashboard
   useEffect(() => {
     if (initialData) {
-      // Find the product to get its categoryId if possible
+      setRestockInfo({ productId: initialData.productId, variantId: initialData.variantId });
+      
       const existingProduct = products.find(p => p.id === initialData.productId);
       
       setFormData({
-        product_name: initialData.productName || '',
+        product_name: initialData.productName || (existingProduct ? existingProduct.product_name : ''),
         categoryId: initialData.categoryId || (existingProduct ? existingProduct.categoryId : ''),
-        price: existingProduct ? existingProduct.price : '',
-        description: existingProduct ? (existingProduct.description || existingProduct.product_description) : '',
+        price: initialData.price || (existingProduct ? existingProduct.price : ''),
+        description: initialData.description || (existingProduct ? (existingProduct.description || existingProduct.product_description) : ''),
       });
 
       setColors([
@@ -44,7 +46,7 @@ export default function Products({ toast, initialData, clearInitialData }) {
       ]);
       
       setModal(true);
-      clearInitialData(); // Clear so it doesn't re-open on every render
+      clearInitialData();
     }
   }, [initialData, products, clearInitialData]);
 
@@ -179,6 +181,7 @@ export default function Products({ toast, initialData, clearInitialData }) {
     setModal(false);
     setFormData({ product_name: '', categoryId: '', price: '', description: '' });
     setColors([]);
+    setRestockInfo(null);
   };
 
   // ----- Save product: builds variants array and sends to backend -----
@@ -188,48 +191,77 @@ export default function Products({ toast, initialData, clearInitialData }) {
       return;
     }
 
-    const variants = [];
-    for (const color of colors) {
-      if (!color.name.trim()) continue;
-      for (const sizeObj of color.sizes) {
-        if (!sizeObj.size || sizeObj.quantity <= 0) continue;
-        variants.push({
-          color: color.name,
-          size: sizeObj.size,
-          quantity: parseInt(sizeObj.quantity, 10),
-          image_url: color.image_url || null,
-        });
-      }
-    }
-
-    if (variants.length === 0) {
-      toast('⚠️', 'Add at least one color with a valid size & quantity');
+    const restockQty = colors[0]?.sizes[0]?.quantity || 0;
+    if (restockInfo && restockQty <= 0) {
+      toast('⚠️', 'Please enter a valid restock quantity');
       return;
     }
 
     setSaving(true);
     try {
-      const payload = {
-        product_name: formData.product_name,
-        description: formData.description,
-        categoryId: parseInt(formData.categoryId),
-        price: parseFloat(formData.price),
-        variants,
-      };
-
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) {
-        await fetchProducts();
-        setVariantsCache({});
-        toast('✅', 'Product added!');
-        closeModal();
+      if (restockInfo) {
+        // --- RESTOCK MODE ---
+        const res = await fetch(`${API}/${restockInfo.productId}/quantity`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            variantId: restockInfo.variantId,
+            quantity: restockQty,
+            price: parseFloat(formData.price)
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          await fetchProducts();
+          toast('✅', 'Restock successful!');
+          closeModal();
+        } else {
+          toast('❌', data.message || 'Restock failed');
+        }
       } else {
-        toast('❌', data.message || 'Save failed');
+        // --- CREATE MODE ---
+        const variants = [];
+        for (const color of colors) {
+          if (!color.name.trim()) continue;
+          for (const sizeObj of color.sizes) {
+            if (!sizeObj.size || sizeObj.quantity <= 0) continue;
+            variants.push({
+              color: color.name,
+              size: sizeObj.size,
+              quantity: parseInt(sizeObj.quantity, 10),
+              image_url: color.image_url || null,
+            });
+          }
+        }
+
+        if (variants.length === 0) {
+          toast('⚠️', 'Add at least one color with a valid size & quantity');
+          setSaving(false);
+          return;
+        }
+
+        const payload = {
+          product_name: formData.product_name,
+          description: formData.description,
+          categoryId: parseInt(formData.categoryId),
+          price: parseFloat(formData.price),
+          variants,
+        };
+
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (data.success) {
+          await fetchProducts();
+          setVariantsCache({});
+          toast('✅', 'Product added!');
+          closeModal();
+        } else {
+          toast('❌', data.message || 'Save failed');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -273,7 +305,7 @@ export default function Products({ toast, initialData, clearInitialData }) {
     low: products.filter(p => p.quantity > 0 && p.quantity <= 10).length,
     out: products.filter(p => p.quantity === 0).length,
   };
-  const formatPrice = price => `RS ${parseFloat(price || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
+  const formatPrice = price => `Rs. ${parseFloat(price || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="view">
@@ -358,7 +390,7 @@ export default function Products({ toast, initialData, clearInitialData }) {
 
       <div className="ph">
         <div><h1 className="ph-title">Products</h1><p className="ph-sub">Manage your catalogue</p></div>
-        <button className="btn-primary" onClick={openAddModal}><IcoPlus /> Add New Product</button>
+        <button className="btn-primary" onClick={openAddModal}><IcoPlus /> Add Product</button>
       </div>
 
       <MiniStats items={[
@@ -482,56 +514,60 @@ export default function Products({ toast, initialData, clearInitialData }) {
       </div>
 
       {/* Add Product Modal */}
-      <Modal open={modal} onClose={closeModal} title="Add New Product"
+      <Modal open={modal} onClose={closeModal} title="Add Product"
         footer={
           <>
             <button className="btn-secondary" onClick={closeModal} disabled={saving || uploading}>Cancel</button>
-            <button className="btn-primary" onClick={saveProduct} disabled={saving || uploading}>{saving ? 'Saving...' : 'Save Product'}</button>
+            <button className="btn-primary" onClick={saveProduct} disabled={saving || uploading}>
+              {saving ? 'Saving...' : restockInfo ? 'Update Restock' : 'Save Product'}
+            </button>
           </>
         }>
         <div className="m-body">
           <div className="f-grid">
-            <div className="f-full"><label className="f-lbl">Product Name *</label><input className="f-inp" value={formData.product_name} onChange={e => setFormData({...formData, product_name: e.target.value})} /></div>
-            <div><label className="f-lbl">Category *</label><select className="f-sel" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})}><option value="">Select</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-            <div><label className="f-lbl">Price (RS) *</label><input className="f-inp" type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} /></div>
+            <div className="f-full">
+              <label className="f-lbl">Product Name {restockInfo && '(Read-only)'} *</label>
+              <input className="f-inp" value={formData.product_name} onChange={e => setFormData({...formData, product_name: e.target.value})} disabled={!!restockInfo} />
+            </div>
+            <div>
+              <label className="f-lbl">Category {restockInfo && '(Read-only)'} *</label>
+              <select className="f-sel" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} disabled={!!restockInfo}>
+                <option value="">Select</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div><label className="f-lbl">Price (Rs.) *</label><input className="f-inp" type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} /></div>
             <div className="f-full"><label className="f-lbl">Description</label><textarea className="f-ta" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} /></div>
           </div>
 
           <div className="f-full" style={{ marginTop: '20px' }}>
-            <label className="f-lbl">Colors, Images & Sizes</label>
+            <label className="f-lbl">{restockInfo ? 'Restock Quantity' : 'Colors, Images & Sizes'}</label>
             {colors.map(color => (
               <div key={color.id} className="color-block">
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                  <input className="f-inp" placeholder="Color name (e.g., Red)" value={color.name} onChange={e => updateColor(color.id, 'name', e.target.value)} style={{ flex: 2 }} />
-                  <div className="img-upload-box-small" onClick={() => !uploading && document.getElementById(`colorImg-${color.id}`)?.click()}>
+                  <input className="f-inp" placeholder="Color name" value={color.name} onChange={e => updateColor(color.id, 'name', e.target.value)} style={{ flex: 2 }} disabled={!!restockInfo} />
+                  <div className="img-upload-box-small" style={{ cursor: restockInfo ? 'default' : 'pointer' }} onClick={() => !restockInfo && !uploading && document.getElementById(`colorImg-${color.id}`)?.click()}>
                     <input id={`colorImg-${color.id}`} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => uploadColorImage(color.id, e.target.files[0])} />
                     {color.image_url ? <img src={color.image_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : <span>📷</span>}
                   </div>
-                  <button type="button" className="btn-icon" onClick={() => removeColor(color.id)}>Remove</button>
+                  {!restockInfo && <button type="button" className="btn-icon" onClick={() => removeColor(color.id)}>Remove</button>}
                 </div>
-                <label>Sizes & Quantities:</label>
-                {color.sizes.map((sizeObj, idx) => {
-                  const selectedCategory = categories.find(c => c.id === parseInt(formData.categoryId));
-                  const catName = (selectedCategory?.name || '').toLowerCase();
-                  const isTop = ['armcuts', 'hoodie', 'long sleeves', 'shirts', 't shirts'].includes(catName);
-                  const sizesToShow = isTop ? ['S', 'M', 'L', 'XL', 'XXL'] : ALL_SIZES;
-
-                  return (
-                    <div key={idx} className="size-row">
-                      <select className="size-select" value={sizeObj.size} onChange={e => updateSize(color.id, idx, 'size', e.target.value)}>
-                        <option value="">Select size</option>
-                        {sizesToShow.map(s => <option key={s}>{s}</option>)}
-                      </select>
-                      <input className="size-qty" type="number" min="0" placeholder="Qty" value={sizeObj.quantity || ''} onChange={e => updateSize(color.id, idx, 'quantity', parseInt(e.target.value) || 0)} />
-                      <button type="button" className="btn-icon" onClick={() => removeSize(color.id, idx)}>✕</button>
-                    </div>
-                  );
-                })}
-                <button type="button" className="btn-add-size" onClick={() => addSize(color.id)}>+ Add Size</button>
+                <label>{restockInfo ? 'Quantity to Add:' : 'Sizes & Quantities:'}</label>
+                {color.sizes.map((sizeObj, idx) => (
+                  <div key={idx} className="size-row">
+                    <select className="size-select" value={sizeObj.size} onChange={e => updateSize(color.id, idx, 'size', e.target.value)} disabled={!!restockInfo}>
+                      <option value="">Select size</option>
+                      {ALL_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <input className="size-qty" type="number" min="0" placeholder={restockInfo ? "Add Qty" : "Qty"} value={sizeObj.quantity || ''} onChange={e => updateSize(color.id, idx, 'quantity', parseInt(e.target.value) || 0)} />
+                    {!restockInfo && <button type="button" className="btn-icon" onClick={() => removeSize(color.id, idx)}>✕</button>}
+                  </div>
+                ))}
+                {!restockInfo && <button type="button" className="btn-add-size" onClick={() => addSize(color.id)}>+ Add Size</button>}
               </div>
             ))}
-            <button type="button" className="btn-secondary" style={{ marginTop: '8px' }} onClick={addColor}>+ Add Another Color</button>
-            {colors.length === 0 && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>Add one or more colors, each with an optional image and at least one size+quantity.</div>}
+            {!restockInfo && <button type="button" className="btn-secondary" style={{ marginTop: '8px' }} onClick={addColor}>+ Add Another Color</button>}
+            {!restockInfo && colors.length === 0 && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '8px' }}>Add one or more colors…</div>}
           </div>
         </div>
       </Modal>
