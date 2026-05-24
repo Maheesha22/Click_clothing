@@ -131,6 +131,9 @@ const createOrder = async (req, res) => {
     const orderNumber = generateOrderNumber();
     const barcode = await generateUniqueBarcode();
 
+    // Slip is always optional — customer can upload later for bank deposits
+    const slipUrl = req.file ? req.file.path : null;
+
     // 3. Create order
     const order = await Order.create({
       order_number: orderNumber,
@@ -138,7 +141,7 @@ const createOrder = async (req, res) => {
       status: 'pending',
       payment_method: paymentMethod,
       payment_status: 'PENDING',
-      payment_slip: req.file ? req.file.path : null, // Cloudinary URL
+      payment_slip: slipUrl, // null if deferred
       delivery_charges: parseFloat(shippingCost || 400),
       total_bill: totalBill
     }, { transaction: t });
@@ -237,15 +240,18 @@ const createOrder = async (req, res) => {
     }
 
     // Send order confirmation email (fire-and-forget — does not block response)
+    const isBankDeposit = (paymentMethod || '').toLowerCase() === 'bank';
     const emailData = {
       email,
       customerName: `${firstName} ${lastName}`,
       orderNumber: order.order_number,
+      orderId: order.id,
       items: enrichedItems.length > 0 ? enrichedItems : itemsToProcess,
       subtotal: parseFloat(subtotal),
       shipping: parseFloat(shippingCost || 400),
       total: totalBill,
-      paymentMethod: req.body.paymentMethod === 'bank' ? 'Bank Deposit' : 'Cash on Delivery',
+      paymentMethod: isBankDeposit ? 'Bank Deposit' : 'Cash on Delivery',
+      isBankDeposit,
       address,
       city,
       district,
@@ -500,6 +506,99 @@ const updatePaymentStatus = async (req, res) => {
   }
 };
 
+// Get order securely by number and customer email
+const getOrderByNumberAndEmail = async (req, res) => {
+  try {
+    const { orderNumber, email } = req.query;
+    if (!orderNumber || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order number and email are required'
+      });
+    }
+
+    const order = await Order.findOne({
+      where: { order_number: orderNumber },
+      include: [
+        {
+          model: OrderItem,
+          as: 'items',
+          include: [{ model: Product }]
+        },
+        {
+          model: Customer,
+          as: 'customer'
+        }
+      ]
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Verify email matches the customer's email
+    const customerEmail = order.customer?.email || '';
+    if (customerEmail.toLowerCase().trim() !== email.toLowerCase().trim()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid order number or email combination'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: order
+    });
+  } catch (error) {
+    console.error('Error fetching order by number & email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching order details'
+    });
+  }
+};
+
+// Upload deferred payment slip
+const uploadPaymentSlip = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findByPk(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded. Please upload a bank slip.'
+      });
+    }
+
+    await order.update({
+      payment_slip: req.file.path,
+      payment_status: order.payment_status === 'Cancelled' ? 'PENDING' : order.payment_status
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Bank slip uploaded successfully',
+      data: order
+    });
+  } catch (error) {
+    console.error('Error uploading payment slip:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading payment slip: ' + error.message
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
@@ -507,5 +606,7 @@ module.exports = {
   getOrderByBarcode,
   updateOrderStatus,
   updatePaymentStatus,
-  getAllOrders
+  getAllOrders,
+  getOrderByNumberAndEmail,
+  uploadPaymentSlip
 };

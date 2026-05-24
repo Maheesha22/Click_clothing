@@ -22,7 +22,9 @@ const upload = multer({
 
 // Order routes
 router.post('/create', upload.single('bankSlip'), orderController.createOrder);
+router.get('/search/verify', orderController.getOrderByNumberAndEmail);
 router.get('/user/:userId', orderController.getUserOrders);
+router.post('/:id/upload-slip', upload.single('bankSlip'), orderController.uploadPaymentSlip);
 router.get('/:id', orderController.getOrderDetails);
 router.get('/track/:barcode', orderController.getOrderByBarcode);
 router.get('/', orderController.getAllOrders);
