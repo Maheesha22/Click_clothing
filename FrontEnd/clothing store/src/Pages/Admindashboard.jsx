@@ -39,12 +39,22 @@ const NAV = [
 export default function AdminDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [active, setActive] = useState('dash');
+  const [restockItem, setRestockItem] = useState(null);
   const { toast, show } = useToast();
+
+  const handleRestock = (item) => {
+    setRestockItem(item);
+    setActive('products');
+  };
 
   const renderView = () => {
     switch (active) {
-      case 'dash': return <Dashboard goOrders={() => setActive('orders')} />;
-      case 'products': return <Products toast={show} />;
+      case 'dash': return <Dashboard goOrders={() => setActive('orders')} onRestock={handleRestock} />;
+      case 'products': return <Products 
+        toast={show} 
+        initialData={restockItem} 
+        clearInitialData={() => setRestockItem(null)} 
+      />;
       case 'categories': return <Categories toast={show} />;
       case 'orders': return <Orders />;
       case 'returns': return <Returns />;
