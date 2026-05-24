@@ -15,7 +15,6 @@ import Categories from './adminpages/admin/Categories';
 import Orders from './adminpages/admin/Orders';
 import Returns from './adminpages/admin/Returns';
 import Customers from './adminpages/admin/Customers';
-import Inventory from './adminpages/admin/Inventory';
 import Payments from './adminpages/admin/Payments';
 import Reports from './adminpages/admin/Reports';
 import Settings from './adminpages/admin/Settings';
@@ -29,7 +28,6 @@ const NAV = [
   { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
-  { id: 'inventory', label: 'Inventory', Icon: IcoArchive, group: 'Commerce' },
   { id: 'payments', label: 'Payments', Icon: IcoCard, group: 'Finance' },
   { id: 'reports', label: 'Reports', Icon: IcoChartBar, group: 'Finance' },
   { id: 'settings', label: 'Settings', Icon: IcoGear, group: null },
@@ -59,7 +57,6 @@ export default function AdminDashboard() {
       case 'orders': return <Orders />;
       case 'returns': return <Returns />;
       case 'customers': return <Customers />;
-      case 'inventory': return <Inventory toast={show} />;
       case 'payments': return <Payments />;
       case 'reports': return <Reports toast={show} />;
       case 'settings': return <Settings toast={show} />;
@@ -73,7 +70,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ── */}
       <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
-          <div className="s-mark">👕</div>
+          <div className="s-mark"><img src="" alt="" /></div>
           <div className="s-text">
             <span className="s-name">Click Clothing</span>
             <span className="s-sub">Store Admin</span>
