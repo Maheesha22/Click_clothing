@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   PER_PAGE,
   IcoPlus, IcoSearch,
-  Badge, StockBar, MiniStats, Modal,
 } from './shared';
 
 const API = 'http://localhost:3000/api/products';
@@ -53,7 +52,9 @@ export default function Products({ toast }) {
   const [formData, setFormData] = useState({
     product_name: '',
     categoryId: '',
-    price: '',
+    buyingPrice: '',
+    sellingPrice: '',
+    discount: 5,
     description: '',
   });
 
@@ -143,22 +144,28 @@ export default function Products({ toast }) {
 
   // ----- Modal control -----
   const openAddModal = () => {
-    setFormData({ product_name: '', categoryId: '', price: '', description: '' });
+    setFormData({ product_name: '', categoryId: '', buyingPrice: '', sellingPrice: '', discount: 5, description: '' });
     setColors([]);
     setModal(true);
   };
 
   const closeModal = () => {
     setModal(false);
-    setFormData({ product_name: '', categoryId: '', price: '', description: '' });
+    setFormData({ product_name: '', categoryId: '', buyingPrice: '', sellingPrice: '', discount: 5, description: '' });
     setColors([]);
   };
 
   // ----- Save product: builds variants array and sends to backend -----
   const saveProduct = async () => {
-    if (!formData.product_name || !formData.categoryId || !formData.price) {
-      toast('⚠️', 'Fill product name, category, and price');
-      return;
+    const spVal = parseFloat(formData.sellingPrice);
+    if (!formData.product_name?.trim()) {
+      toast('⚠️', 'Product name is required'); return;
+    }
+    if (!formData.categoryId) {
+      toast('⚠️', 'Please select a category'); return;
+    }
+    if (!formData.sellingPrice || isNaN(spVal) || spVal <= 0) {
+      toast('⚠️', 'Enter a valid selling price (must be greater than 0)'); return;
     }
 
     const variants = [];
@@ -186,16 +193,33 @@ export default function Products({ toast }) {
         product_name: formData.product_name,
         description: formData.description,
         categoryId: parseInt(formData.categoryId),
-        price: parseFloat(formData.price),
+        buyingPrice: parseFloat(formData.buyingPrice || 0),
+        sellingPrice: parseFloat(formData.sellingPrice),
+        discount: parseFloat(formData.discount || 5),
         variants,
       };
 
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
+      let res;
+      try {
+        res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch (fetchErr) {
+        console.error('Fetch failed (server unreachable):', fetchErr);
+        toast('❌', '❌ Cannot reach server. Is the backend running on port 3000?');
+        setSaving(false);
+        return;
+      }
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        toast('❌', `Server error (status ${res.status})`);
+        setSaving(false);
+        return;
+      }
       if (data.success) {
         await fetchProducts();
         setVariantsCache({});
@@ -205,8 +229,8 @@ export default function Products({ toast }) {
         toast('❌', data.message || 'Save failed');
       }
     } catch (err) {
-      console.error(err);
-      toast('❌', 'Network error');
+      console.error('Unexpected error:', err);
+      toast('❌', err.message || 'Unexpected error');
     } finally {
       setSaving(false);
     }
@@ -353,14 +377,14 @@ export default function Products({ toast }) {
           <table className="tbl">
             <thead>
               <tr>
-                <th>ID</th><th>Image</th><th>Product Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Colors</th><th>Status</th><th>Actions</th>
+                <th>ID</th><th>Image</th><th>Product Name</th><th>Category</th><th>Buying Price</th><th>Selling Price</th><th>Discount</th><th>Stock</th><th>Colors</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan="9">Loading…</td></tr>
               ) : currentProducts.length === 0 ? (
-                <tr><td colSpan="9">No products found</td></tr>
+                <tr><td colSpan="11">No products found</td></tr>
               ) : (
                 currentProducts.flatMap(p => {
                   const isExpanded = expandedRow === p.id;
@@ -375,7 +399,9 @@ export default function Products({ toast }) {
                         <br/><small>{p.product_description?.slice(0,50)}</small>
                       </td>
                       <td><span className="cat-pill">{p.category?.name || 'Uncategorized'}</span></td>
-                      <td className="cell-price">{formatPrice(p.price)}</td>
+                      <td className="cell-price">{formatPrice(p.buyingPrice)}</td>
+                      <td className="cell-price">{formatPrice(p.sellingPrice)}</td>
+                      <td>{p.discount}%</td>
                       <td><StockBar stock={p.quantity || 0} /></td>
                       <td>{p.color || '—'}</td>
                       <td><Badge label={p.available ? 'Active' : 'Inactive'} cls={p.available ? 'b-active' : 'b-inactive'} /></td>
@@ -383,7 +409,7 @@ export default function Products({ toast }) {
                     </tr>,
                     isExpanded && (
                       <tr key={`${p.id}-variants`} className="variant-expand-row">
-                        <td colSpan="9">
+                        <td colSpan="11">
                           <div className="variant-expand-inner">
                             <div className="variant-title">📋 Product Variants — {p.product_name}</div>
                             {variantsLoading && !variantsCache[p.id] ? (
@@ -466,7 +492,9 @@ export default function Products({ toast }) {
           <div className="f-grid">
             <div className="f-full"><label className="f-lbl">Product Name *</label><input className="f-inp" value={formData.product_name} onChange={e => setFormData({...formData, product_name: e.target.value})} /></div>
             <div><label className="f-lbl">Category *</label><select className="f-sel" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})}><option value="">Select</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-            <div><label className="f-lbl">Price (RS) *</label><input className="f-inp" type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} /></div>
+            <div><label className="f-lbl">Buying Price (RS)</label><input className="f-inp" type="number" step="0.01" value={formData.buyingPrice} onChange={e => setFormData({...formData, buyingPrice: e.target.value})} /></div>
+            <div><label className="f-lbl">Selling Price (RS) *</label><input className="f-inp" type="number" step="0.01" value={formData.sellingPrice} onChange={e => setFormData({...formData, sellingPrice: e.target.value})} /></div>
+            <div><label className="f-lbl">Discount (%)</label><input className="f-inp" type="number" step="0.1" value={formData.discount} onChange={e => setFormData({...formData, discount: e.target.value})} /></div>
             <div className="f-full"><label className="f-lbl">Description</label><textarea className="f-ta" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} /></div>
           </div>
 
