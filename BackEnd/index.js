@@ -38,7 +38,6 @@ const searchHistoryRoutes = require("./routes/searchHistoryRoutes");
 const youMayAlsoLikeRoutes = require("./routes/youMayAlsoLikeRoutes");
 
 
-
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
