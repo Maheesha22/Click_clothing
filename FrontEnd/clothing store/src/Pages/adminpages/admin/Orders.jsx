@@ -7,6 +7,7 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [paymentFilter, setPaymentFilter] = useState('all');
   const [search, setSearch] = useState('');
   
   
@@ -72,13 +73,16 @@ export default function Orders() {
     const statusMatch = filter === 'all' || currentStatus.toLowerCase() === filter.toLowerCase();
     const customerName = o.customer ? `${o.customer.firstName} ${o.customer.lastName}` : 'Unknown';
     const searchLower = search.toLowerCase();
-    
+    const pm = (o.payment_method || '').toLowerCase();
+    const paymentMatch =
+      paymentFilter === 'all' ||
+      (paymentFilter === 'cod' && (pm.includes('cod') || pm.includes('cash'))) ||
+      (paymentFilter === 'bank' && pm.includes('bank'));
     const searchMatch = !search || 
       (o.order_number && o.order_number.toLowerCase().includes(searchLower)) ||
       customerName.toLowerCase().includes(searchLower) ||
       (o.detail && o.detail.barcode && o.detail.barcode.toLowerCase().includes(searchLower));
-
-    return statusMatch && searchMatch;
+    return statusMatch && paymentMatch && searchMatch;
   });
 
   return (
@@ -98,6 +102,42 @@ export default function Orders() {
             onClick={() => setFilter(p)}
           >
             {p === 'all' ? 'All Orders' : p}
+          </button>
+        ))}
+      </div>
+
+      {/* Payment method filter */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {[
+          { key: 'all', label: '💳 All Methods' },
+          { key: 'cod', label: '🚚 Cash on Delivery' },
+          { key: 'bank', label: '🏦 Bank Deposit' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setPaymentFilter(key)}
+            style={{
+              padding: '6px 16px',
+              borderRadius: 20,
+              border: paymentFilter === key ? '1.5px solid var(--black)' : '1.5px solid var(--g3)',
+              background: paymentFilter === key ? 'var(--black)' : 'transparent',
+              color: paymentFilter === key ? '#fff' : 'var(--g6)',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            {label}
+            <span style={{ marginLeft: 6, opacity: 0.6, fontSize: 11 }}>
+              ({orders.filter(o => {
+                const pm = (o.payment_method || '').toLowerCase();
+                if (key === 'all') return true;
+                if (key === 'cod') return pm.includes('cod') || pm.includes('cash');
+                if (key === 'bank') return pm.includes('bank');
+                return false;
+              }).length})
+            </span>
           </button>
         ))}
       </div>
