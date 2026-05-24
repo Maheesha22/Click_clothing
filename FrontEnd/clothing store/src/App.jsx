@@ -20,6 +20,7 @@ import FAQPage from "./Pages/FAQ";
 import AboutUs from "./Pages/AboutUs";
 import ProductPage from './Pages/ProductPage';
 import OrderConfirmationPage from './Pages/OrderConfirmation';
+import UploadSlipPage from './Pages/UploadSlip';
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
@@ -63,6 +64,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order/confirmation" element={<OrderConfirmationPage />} />
+        <Route path="/upload-slip" element={<UploadSlipPage />} />
         <Route path="/Contactus" element={<ContactUs />} />
         <Route path="/feedback" element={<FeedbackForm />} />
         <Route path="/faq" element={<FAQPage />} />
