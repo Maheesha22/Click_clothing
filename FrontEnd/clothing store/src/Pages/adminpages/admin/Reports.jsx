@@ -1,52 +1,154 @@
-import { useState, useEffect } from 'react';
-import API from '../../../services/api';
+/**
+ * Reports.jsx
+ * ─────────────────────────────────────────────────────────────
+ * Reports & Analytics page for the Click Clothing admin dashboard.
+ *
+ * Date-filter bar: Today | This Week | This Month | All Time | Custom Range
+ * On each filter click → fetches /api/reports/analytics?period=…
+ * and re-renders all widgets:
+ *   • KPI cards (Revenue, Orders, New Customers, Return Rate)
+ *   • Sales Over Time chart
+ *   • Top Selling Products chart
+ *   • Customer Growth chart
+ *   • Payments Summary donut
+ * ─────────────────────────────────────────────────────────────
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { MiniStats } from './shared';
 
-/* ── Sales Over Time — area line chart ── */
-function ChartSalesLine() {
-  const pts = [[55, 115], [120, 94], [190, 105], [260, 68], [330, 76], [400, 42], [470, 48], [535, 15]];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
-  const polyPts = pts.map(p => p.join(',')).join(' ');
-  const areaPts = [...pts, [535, 135], [55, 135]].map(p => p.join(',')).join(' ');
+const API_BASE = 'http://localhost:3000/api';
+
+/* ─── helpers ─── */
+const fmt = (n) =>
+  n >= 1_000_000
+    ? `Rs ${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1_000
+    ? `Rs ${(n / 1_000).toFixed(1)}k`
+    : `Rs ${n.toLocaleString()}`;
+
+/* ══════════════════════════════════════════════════════════
+   CHART COMPONENTS — all driven by live data props
+══════════════════════════════════════════════════════════ */
+
+/* ── Sales Over Time — area + line chart ── */
+function ChartSalesLine({ data = [] }) {
+  if (!data.length) return <EmptyChart label="No sales data for this period" />;
+
+  const W = 560, H = 140, PAD_L = 50, PAD_R = 20, PAD_T = 10, PAD_B = 20;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+
+  const revenues = data.map((d) => Number(d.revenue));
+  const maxR     = Math.max(...revenues, 1);
+
+  const pts = data.map((d, i) => {
+    const x = PAD_L + (i / Math.max(data.length - 1, 1)) * chartW;
+    const y = PAD_T + chartH - (Number(d.revenue) / maxR) * chartH;
+    return [Math.round(x), Math.round(y)];
+  });
+
+  const polyPts = pts.map((p) => p.join(',')).join(' ');
+  const areaPts = [
+    ...pts,
+    [pts[pts.length - 1][0], PAD_T + chartH],
+    [pts[0][0], PAD_T + chartH],
+  ]
+    .map((p) => p.join(','))
+    .join(' ');
+
+  /* Y-axis ticks */
+  const ticks = [0, 0.33, 0.67, 1].map((f) => ({
+    y: Math.round(PAD_T + chartH - f * chartH),
+    label: fmt(maxR * f),
+  }));
+
+  /* X-axis labels — show at most 8 evenly */
+  const step  = Math.max(1, Math.ceil(data.length / 8));
+  const xLbls = data.filter((_, i) => i % step === 0 || i === data.length - 1);
+
   return (
     <div className="chart-wrap">
-      <svg viewBox="0 0 560 160" width="100%" preserveAspectRatio="none">
+      <svg viewBox={`0 0 ${W} ${H + 14}`} width="100%" preserveAspectRatio="none">
         <defs>
           <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#111" stopOpacity="0.12" />
+            <stop offset="0%"   stopColor="#111" stopOpacity="0.14" />
             <stop offset="100%" stopColor="#111" stopOpacity="0.01" />
           </linearGradient>
         </defs>
-        {[15, 55, 95, 130].map(y => <line key={y} x1="40" y1={y} x2="540" y2={y} stroke="#e4e4e4" strokeWidth="1" />)}
-        {[['Rs. 81k', 15], ['Rs. 60k', 55], ['Rs. 40k', 95], ['Rs. 20k', 130]].map(([l, y]) =>
-          <text key={l} x="32" y={y + 3} textAnchor="end" fontSize="9" fill="#9a9a9a">{l}</text>)}
+
+        {/* grid */}
+        {ticks.map((t) => (
+          <line key={t.y} x1={PAD_L} y1={t.y} x2={W - PAD_R} y2={t.y}
+            stroke="#e4e4e4" strokeWidth="1" />
+        ))}
+
+        {/* y-axis labels */}
+        {ticks.map((t) => (
+          <text key={t.y} x={PAD_L - 4} y={t.y + 3} textAnchor="end"
+            fontSize="9" fill="#9a9a9a">{t.label}</text>
+        ))}
+
+        {/* area fill */}
         <polygon points={areaPts} fill="url(#grad1)" />
-        <polyline points={polyPts} fill="none" stroke="#111" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-        {pts.map(([cx, cy]) => <circle key={cx} cx={cx} cy={cy} r="4" fill="#111" />)}
-        {months.map((m, i) => <text key={m} x={pts[i][0]} y="152" textAnchor="middle" fontSize="9" fill="#9a9a9a">{m}</text>)}
+
+        {/* line */}
+        <polyline points={polyPts} fill="none" stroke="#111"
+          strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+        {/* dots */}
+        {pts.map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r="4" fill="#111" />
+        ))}
+
+        {/* x-axis labels */}
+        {xLbls.map((d, i) => {
+          const origIdx = data.indexOf(d);
+          const x = PAD_L + (origIdx / Math.max(data.length - 1, 1)) * chartW;
+          return (
+            <text key={i} x={Math.round(x)} y={H + 12}
+              textAnchor="middle" fontSize="9" fill="#9a9a9a">
+              {d.dayName ? d.dayName.slice(0, 3) : d.month || d.day}
+            </text>
+          );
+        })}
       </svg>
     </div>
   );
 }
 
 /* ── Top Selling Products — horizontal bar chart ── */
-function ChartTopProducts({ data }) {
-  if (!data || data.length === 0) return <div style={{ padding: '40px', textAlign: 'center', color: '#999', fontSize: '13px' }}>No sales data in this period</div>;
+function ChartTopProducts({ data = [] }) {
+  if (!data.length) return <EmptyChart label="No product sales for this period" />;
 
-  const colors = ['#111', '#333', '#555', '#777', '#999'];
-  const maxQty = Math.max(...data.map(d => Number(d.quantity)));
+  const maxUnits = Math.max(...data.map((r) => Number(r.units)), 1);
+  const BAR_MAX  = 280;
+
+  const rows = data.map((r) => ({
+    label: r.name,
+    units: Number(r.units),
+    w:     Math.round((Number(r.units) / maxUnits) * BAR_MAX),
+  }));
+
+  const shades = ['#111', '#333', '#555', '#777', '#999'];
 
   return (
     <div className="chart-wrap">
-      <svg viewBox="0 0 520 185" width="100%">
-        {data.map((r, i) => {
-          const y = 16 + i * 35;
-          const width = maxQty > 0 ? (Number(r.quantity) / maxQty) * 300 : 0;
+      <svg viewBox={`0 0 520 ${Math.max(rows.length * 35 + 10, 60)}`} width="100%">
+        {rows.map((r, i) => {
+          const y = 8 + i * 35;
           return (
-            <g key={r.name}>
-              <text x="122" y={y + 14} textAnchor="end" fontSize="9.5" fill="#444" fontWeight="600">{r.name}</text>
-              <rect x="132" y={y} height="20" width={width} rx="4" fill={colors[i] || '#bbb'} />
-              <text x={136 + width} y={y + 14} fontSize="9" fill="#111" fontWeight="700">{r.quantity}</text>
+            <g key={r.label}>
+              <text x="122" y={y + 14} textAnchor="end"
+                fontSize="9.5" fill="#444" fontWeight="600"
+                style={{ overflow: 'hidden' }}>
+                {r.label.length > 18 ? r.label.slice(0, 17) + '…' : r.label}
+              </text>
+              <rect x="132" y={y} height="20" width={r.w} rx="4"
+                fill={shades[i] ?? '#aaa'} />
+              <text x={136 + r.w} y={y + 14} fontSize="9"
+                fill="#111" fontWeight="700">{r.units}</text>
             </g>
           );
         })}
@@ -56,49 +158,125 @@ function ChartTopProducts({ data }) {
 }
 
 /* ── Customer Growth — vertical bar chart ── */
-function ChartCustomerGrowth() {
-  const data = [[48, 82, 53], [118, 70, 65], [188, 76, 59], [258, 54, 81], [328, 62, 73], [398, 40, 95], [468, 44, 91]];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+function ChartCustomerGrowth({ data = [] }) {
+  if (!data.length) return <EmptyChart label="No customer data for this period" />;
+
+  const W = 560, H = 140, PAD_L = 45, PAD_R = 20, PAD_T = 10, PAD_B = 20;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+
+  const vals   = data.map((d) => Number(d.newCustomers));
+  const maxVal = Math.max(...vals, 1);
+  const barW   = Math.max(10, Math.floor((chartW / data.length) * 0.65));
+  const step   = chartW / data.length;
+
+  const ticks = [0, 0.33, 0.67, 1].map((f) => ({
+    y:     Math.round(PAD_T + chartH - f * chartH),
+    label: Math.round(maxVal * f),
+  }));
+
   return (
     <div className="chart-wrap">
-      <svg viewBox="0 0 560 160" width="100%" preserveAspectRatio="none">
-        {[15, 55, 95, 130].map(y => <line key={y} x1="40" y1={y} x2="540" y2={y} stroke="#e4e4e4" strokeWidth="1" />)}
-        {[['600', 15], ['450', 55], ['300', 95], ['150', 130]].map(([l, y]) =>
-          <text key={l} x="32" y={y + 3} textAnchor="end" fontSize="9" fill="#9a9a9a">{l}</text>)}
-        {data.map(([x, y, h], i) => (
-          <g key={i}>
-            <rect x={x} y={y} width="42" height={h} rx="4" fill="#111" />
-            <text x={x + 21} y="152" textAnchor="middle" fontSize="9" fill="#9a9a9a">{months[i]}</text>
-          </g>
+      <svg viewBox={`0 0 ${W} ${H + 14}`} width="100%" preserveAspectRatio="none">
+        {ticks.map((t) => (
+          <line key={t.y} x1={PAD_L} y1={t.y} x2={W - PAD_R} y2={t.y}
+            stroke="#e4e4e4" strokeWidth="1" />
         ))}
+        {ticks.map((t) => (
+          <text key={t.y} x={PAD_L - 4} y={t.y + 3} textAnchor="end"
+            fontSize="9" fill="#9a9a9a">{t.label}</text>
+        ))}
+        {data.map((d, i) => {
+          const barH = Math.max(2, (Number(d.newCustomers) / maxVal) * chartH);
+          const x    = PAD_L + i * step + (step - barW) / 2;
+          const y    = PAD_T + chartH - barH;
+          return (
+            <g key={i}>
+              <rect x={Math.round(x)} y={Math.round(y)}
+                width={barW} height={Math.round(barH)} rx="4" fill="#111" />
+              <text x={Math.round(x + barW / 2)} y={H + 12}
+                textAnchor="middle" fontSize="9" fill="#9a9a9a">
+                {d.month}
+              </text>
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
 }
 
 /* ── Payments Summary — donut chart ── */
-function ChartPaymentDonut() {
+function ChartPaymentDonut({ data = {} }) {
+  const { paid = 0, pending = 0, failed = 0, total = 0 } = data;
+
+  const CIRC  = 439.8; // 2π × 70
+  const paidPct    = total > 0 ? paid    / total : 0;
+  const pendingPct = total > 0 ? pending / total : 0;
+  const failedPct  = total > 0 ? failed  / total : 0;
+
+  /* dasharray for each arc segment */
+  const paidArc    = paidPct    * CIRC;
+  const pendingArc = pendingPct * CIRC;
+  const failedArc  = failedPct  * CIRC;
+
+  /* stroke offsets — start from top (−90 deg = offset 115 from circle's 0) */
+  const paidOffset    = 115;
+  const pendingOffset = -(paidArc    - 115);
+  const failedOffset  = -(paidArc + pendingArc - 115);
+
   return (
     <div className="donut-row">
       <svg viewBox="0 0 180 180" width="150" height="150" style={{ flexShrink: 0 }}>
-        <circle cx="90" cy="90" r="70" fill="none" stroke="#e4e4e4" strokeWidth="28" />
-        {/* Paid 95.3% */}
-        <circle cx="90" cy="90" r="70" fill="none" stroke="#111" strokeWidth="28"
-          strokeDasharray="440 462" strokeDashoffset="115" strokeLinecap="butt" />
-        {/* Pending 3.3% */}
-        <circle cx="90" cy="90" r="70" fill="none" stroke="#f59e0b" strokeWidth="28"
-          strokeDasharray="15 462" strokeDashoffset="-325" strokeLinecap="butt" />
-        {/* Failed 1.4% */}
-        <circle cx="90" cy="90" r="70" fill="none" stroke="#ef4444" strokeWidth="28"
-          strokeDasharray="7 462" strokeDashoffset="-340" strokeLinecap="butt" />
-        <text x="90" y="85" textAnchor="middle" fontSize="13" fontWeight="800" fill="#111">Rs. 284k</text>
-        <text x="90" y="101" textAnchor="middle" fontSize="9" fill="#9a9a9a">Total</text>
+        {/* track */}
+        <circle cx="90" cy="90" r="70" fill="none"
+          stroke="#e4e4e4" strokeWidth="28" />
+
+        {total === 0 ? (
+          /* empty state ring */
+          <circle cx="90" cy="90" r="70" fill="none"
+            stroke="#ddd" strokeWidth="28" />
+        ) : (
+          <>
+            {/* paid */}
+            <circle cx="90" cy="90" r="70" fill="none"
+              stroke="#111" strokeWidth="28"
+              strokeDasharray={`${paidArc} ${CIRC}`}
+              strokeDashoffset={paidOffset}
+              strokeLinecap="butt" />
+            {/* pending */}
+            <circle cx="90" cy="90" r="70" fill="none"
+              stroke="#f59e0b" strokeWidth="28"
+              strokeDasharray={`${pendingArc} ${CIRC}`}
+              strokeDashoffset={pendingOffset}
+              strokeLinecap="butt" />
+            {/* failed */}
+            <circle cx="90" cy="90" r="70" fill="none"
+              stroke="#ef4444" strokeWidth="28"
+              strokeDasharray={`${failedArc} ${CIRC}`}
+              strokeDashoffset={failedOffset}
+              strokeLinecap="butt" />
+          </>
+        )}
+
+        <text x="90" y="85" textAnchor="middle"
+          fontSize="13" fontWeight="800" fill="#111">{fmt(total)}</text>
+        <text x="90" y="101" textAnchor="middle"
+          fontSize="9" fill="#9a9a9a">Total</text>
       </svg>
+
       <div className="donut-legend">
-        {[['#111', 'Paid', 'Rs. 271,440'], ['#f59e0b', 'Pending', 'Rs. 9,480'], ['#ef4444', 'Failed', 'Rs. 4,000']].map(([c, l, v]) => (
-          <div key={l} className="donut-item">
+        {[
+          ['#111',    'Paid',    paid],
+          ['#f59e0b', 'Pending', pending],
+          ['#ef4444', 'Failed',  failed],
+        ].map(([c, lbl, val]) => (
+          <div key={lbl} className="donut-item">
             <span className="donut-dot" style={{ background: c }} />
-            <div><div className="donut-lbl">{l}</div><div className="donut-val">{v}</div></div>
+            <div>
+              <div className="donut-lbl">{lbl}</div>
+              <div className="donut-val">{fmt(val)}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -106,194 +284,365 @@ function ChartPaymentDonut() {
   );
 }
 
-export default function Reports({ toast }) {
-  const [df, setDf] = useState('This Month');
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [customRange, setCustomRange] = useState({ start: '', end: '' });
+/* ── Empty / loading states ── */
+function EmptyChart({ label }) {
+  return (
+    <div style={{
+      height: 120, display: 'flex', alignItems: 'center',
+      justifyContent: 'center', color: '#bbb', fontSize: 13,
+    }}>
+      {label}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    const dates = getRangeDates(df);
-    fetchReports(dates.start, dates.end);
-  }, [df]);
+function SkeletonChart() {
+  return (
+    <div style={{
+      height: 120, background: 'linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%)',
+      backgroundSize: '400% 100%', animation: 'shimmer 1.4s infinite',
+      borderRadius: 8,
+    }} />
+  );
+}
 
-  const getRangeDates = (type) => {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
+/* ══════════════════════════════════════════════════════════
+   CUSTOM DATE PICKER MODAL
+══════════════════════════════════════════════════════════ */
+function CustomRangeModal({ onApply, onClose }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [start, setStart] = useState('');
+  const [end,   setEnd]   = useState(today);
 
-    if (type === 'Today') return { start: today, end: today };
-
-    if (type === 'This Week') {
-      const first = now.getDate() - now.getDay();
-      const start = new Date(now.setDate(first)).toISOString().split('T')[0];
-      return { start, end: today };
-    }
-
-    if (type === 'This Month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      return { start, end: today };
-    }
-
-    if (type === 'All Time') return { start: '2000-01-01', end: today };
-
-    if (type === 'Custom Range') return { start: customRange.start, end: customRange.end };
-
-    return { start: today, end: today };
+  const handleApply = () => {
+    if (!start || !end) return;
+    if (start > end)    return;
+    onApply(start, end);
   };
 
-  const fetchReports = async (start, end) => {
-    if (df === 'Custom Range' && (!start || !end)) return;
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 1000,
+    }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{
+        background: '#fff', borderRadius: 12, padding: '28px 32px',
+        width: 320, boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+      }}>
+        <h3 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 700, color: '#111' }}>
+          Custom Date Range
+        </h3>
 
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>
+            Start Date
+            <input type="date" value={start} max={end || today}
+              onChange={(e) => setStart(e.target.value)}
+              style={inputStyle} />
+          </label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#555' }}>
+            End Date
+            <input type="date" value={end} min={start} max={today}
+              onChange={(e) => setEnd(e.target.value)}
+              style={inputStyle} />
+          </label>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+          <button onClick={onClose} style={btnSecStyle}>Cancel</button>
+          <button
+            onClick={handleApply}
+            disabled={!start || !end || start > end}
+            style={{
+              ...btnPrimStyle,
+              opacity: (!start || !end || start > end) ? 0.45 : 1,
+            }}
+          >
+            Apply Range
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const inputStyle = {
+  display: 'block', width: '100%', marginTop: 6, padding: '8px 10px',
+  border: '1px solid #ddd', borderRadius: 8, fontSize: 13,
+  outline: 'none', boxSizing: 'border-box',
+};
+const btnSecStyle = {
+  flex: 1, padding: '9px 0', border: '1px solid #ddd', borderRadius: 8,
+  background: '#f5f5f5', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+};
+const btnPrimStyle = {
+  flex: 2, padding: '9px 0', border: 'none', borderRadius: 8,
+  background: '#111', color: '#fff', cursor: 'pointer',
+  fontSize: 13, fontWeight: 700,
+};
+
+/* ══════════════════════════════════════════════════════════
+   FILTER DEFINITIONS
+══════════════════════════════════════════════════════════ */
+const FILTERS = [
+  { label: 'Today',        period: 'today'   },
+  { label: 'This Week',    period: 'week'    },
+  { label: 'This Month',   period: 'month'   },
+  { label: 'All Time',     period: 'alltime' },
+  { label: 'Custom Range', period: 'custom'  },
+];
+
+/* ══════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════ */
+export default function Reports({ toast }) {
+  /* active filter */
+  const [activeFilter, setActiveFilter] = useState('alltime');
+  const [customRange,  setCustomRange]  = useState({ start: '', end: '' });
+  const [showModal,    setShowModal]    = useState(false);
+
+  /* analytics data */
+  const [analytics,   setAnalytics]    = useState(null);
+  const [loading,     setLoading]      = useState(false);
+  const [error,       setError]        = useState(null);
+
+  /* ── fetch from backend ── */
+  const fetchAnalytics = useCallback(async (period, start, end) => {
     setLoading(true);
+    setError(null);
     try {
-      const url = start && end
-        ? `/reports/stats?startDate=${start}&endDate=${end}`
-        : '/reports/stats';
+      const params = { period };
+      if (period === 'custom') { params.start = start; params.end = end; }
 
-      const res = await API.get(url);
+      const res = await axios.get(`${API_BASE}/reports/analytics`, { params });
+
       if (res.data.success) {
-        setStats(res.data.data);
+        setAnalytics(res.data.data);
+      } else {
+        throw new Error(res.data.message || 'Unknown error');
       }
     } catch (err) {
-      console.error('Reports fetch error:', err);
+      const msg = err?.response?.data?.message || err.message || 'Failed to load data';
+      setError(msg);
+      toast?.('❌', `Report error: ${msg}`);
     } finally {
       setLoading(false);
     }
+  }, [toast]);
+
+  /* initial load */
+  useEffect(() => {
+    fetchAnalytics('alltime');
+  }, [fetchAnalytics]);
+
+  /* ── handle filter button click ── */
+  const handleFilter = (period) => {
+    if (period === 'custom') {
+      setShowModal(true);          // open modal first
+      return;
+    }
+    setActiveFilter(period);
+    toast?.('📊', `Updating report data…`);
+    fetchAnalytics(period);
   };
 
-  const handleCustomApply = () => {
-    fetchReports(customRange.start, customRange.end);
-    toast('📊', 'Updating custom report…');
+  /* ── handle custom range apply ── */
+  const handleCustomApply = (start, end) => {
+    setShowModal(false);
+    setCustomRange({ start, end });
+    setActiveFilter('custom');
+    toast?.('📊', `Loading ${start} – ${end}…`);
+    fetchAnalytics('custom', start, end);
   };
 
-  const fmtRs = n => `Rs. ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const fmt = n => Number(n).toLocaleString();
+  /* ── KPI cards from analytics ── */
+  const kpiItems = analytics
+    ? [
+        ['💰', fmt(analytics.revenue),        "Revenue"],
+        ['🛒', analytics.orders.toLocaleString(), "Orders"],
+        ['👥', `+${analytics.newCustomers}`,   "New Customers"],
+        ['🔄', `${analytics.returnRate}%`,     "Return Rate"],
+      ]
+    : [
+        ['💰', '—', "Revenue"],
+        ['🛒', '—', "Orders"],
+        ['👥', '—', "New Customers"],
+        ['🔄', '—', "Return Rate"],
+      ];
 
-  const getLabel = (base) => {
-    if (df === 'Today') return `${base} Today`;
-    if (df === 'This Week') return `${base} This Week`;
-    if (df === 'This Month') return `${base} This Month`;
-    if (df === 'All Time') return `Total ${base} (All Time)`;
-    return `${base} in Range`;
-  };
-
-  const reportStats = stats ? [
-    ['💰', fmtRs(stats.totalRevenue), getLabel('Revenue')],
-    ['🛒', fmt(stats.orderCount), getLabel('Orders')],
-    ['👥', `+${stats.customerCount}`, getLabel('New Customers')],
-    ['🔄', `${stats.returnRate}%`, 'Return Rate']
-  ] : [
-    ['💰', 'Rs. 0.00', getLabel('Revenue')],
-    ['🛒', '0', getLabel('Orders')],
-    ['👥', '+0', getLabel('New Customers')],
-    ['🔄', '0%', 'Return Rate']
-  ];
+  /* ── active label for display ── */
+  const activeLbl =
+    activeFilter === 'custom' && customRange.start
+      ? `${customRange.start} – ${customRange.end}`
+      : FILTERS.find((f) => f.period === activeFilter)?.label ?? 'All Time';
 
   return (
     <div className="view">
+      {/* ── Page header ── */}
       <div className="ph">
-        <div><h1 className="ph-title">Reports &amp; Analytics</h1><p className="ph-sub">Business performance at a glance.</p></div>
+        <div>
+          <h1 className="ph-title">Reports &amp; Analytics</h1>
+          <p className="ph-sub">Business performance at a glance.</p>
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-secondary" onClick={() => toast('📄', 'Exporting CSV…')}>⬇️ Export CSV</button>
-          <button className="btn-primary" onClick={() => toast('📋', 'Exporting PDF…')}>⬇️ Export PDF</button>
+          <button className="btn-secondary"
+            onClick={() => toast?.('📄', 'Exporting CSV…')}>
+            ⬇️ Export CSV
+          </button>
+          <button className="btn-primary"
+            onClick={() => toast?.('📋', 'Exporting PDF…')}>
+            ⬇️ Export PDF
+          </button>
         </div>
       </div>
 
-      <div className="date-filters-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
-        <div className="date-filters">
-          {['Today', 'This Week', 'This Month', 'All Time', 'Custom Range'].map(d => (
-            <button key={d} className={`df-btn${df === d ? ' active' : ''}`} onClick={() => { setDf(d); if (d !== 'Custom Range') toast('📊', 'Updating report data…'); }}>{d}</button>
-          ))}
-        </div>
+      {/* ── Date filter bar ── */}
+      <div className="date-filters">
+        {FILTERS.map(({ label, period }) => (
+          <button
+            key={period}
+            className={`df-btn${activeFilter === period ? ' active' : ''}`}
+            onClick={() => handleFilter(period)}
+            disabled={loading}
+          >
+            {label}
+            {period === 'custom' && customRange.start && activeFilter === 'custom' && (
+              <span style={{ fontSize: 10, marginLeft: 4, opacity: 0.7 }}>
+                ({customRange.start.slice(5)} → {customRange.end.slice(5)})
+              </span>
+            )}
+          </button>
+        ))}
 
-        {df === 'Custom Range' && (
-          <div className="custom-date-inputs" style={{ display: 'flex', gap: 8, alignItems: 'center', background: '#fff', padding: '6px 12px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-            <input type="date" value={customRange.start} onChange={e => setCustomRange(prev => ({ ...prev, start: e.target.value }))} style={{ border: 'none', fontSize: 13, outline: 'none' }} />
-            <span style={{ color: '#cbd5e1' }}>→</span>
-            <input type="date" value={customRange.end} onChange={e => setCustomRange(prev => ({ ...prev, end: e.target.value }))} style={{ border: 'none', fontSize: 13, outline: 'none' }} />
-            <button className="btn-primary" onClick={handleCustomApply} style={{ padding: '4px 12px', fontSize: 12 }}>Apply</button>
-          </div>
+        {/* period badge */}
+        {!loading && analytics && (
+          <span style={{
+            marginLeft: 'auto', fontSize: 12, color: '#888',
+            alignSelf: 'center', whiteSpace: 'nowrap',
+          }}>
+            Showing: <strong style={{ color: '#111' }}>{activeLbl}</strong>
+          </span>
+        )}
+
+        {/* loading spinner */}
+        {loading && (
+          <span style={{
+            marginLeft: 'auto', fontSize: 12, color: '#888',
+            alignSelf: 'center',
+          }}>
+            ⟳ Loading…
+          </span>
         )}
       </div>
 
-      {loading && !stats ? (
-        <div style={{ padding: '80px 0', textAlign: 'center', color: '#666', fontSize: '14px' }}>
-          <div style={{ display: 'inline-block', width: '20px', height: '20px', border: '2px solid #eee', borderTopColor: '#111', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginBottom: '12px' }} />
-          <div>Loading analytics data...</div>
+      {/* ── Error banner ── */}
+      {error && (
+        <div style={{
+          background: '#fef2f2', border: '1px solid #fca5a5',
+          borderRadius: 8, padding: '10px 16px', marginBottom: 16,
+          fontSize: 13, color: '#b91c1c', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <span>⚠️ {error}</span>
+          <button
+            onClick={() => fetchAnalytics(
+              activeFilter,
+              customRange.start,
+              customRange.end,
+            )}
+            style={{
+              background: 'none', border: '1px solid #fca5a5',
+              borderRadius: 6, padding: '4px 10px', cursor: 'pointer',
+              fontSize: 12, color: '#b91c1c',
+            }}
+          >
+            Retry
+          </button>
         </div>
-      ) : (
-        <>
-          <MiniStats items={reportStats} />
-          <div className="charts-grid">
-            <div className="admin-card chart-panel">
-              <div className="c-hdr"><div><div className="c-title">Sales Over Time</div><div className="c-sub">Daily revenue trend</div></div></div>
-              <ChartSalesLine />
-            </div>
-            <div className="admin-card chart-panel">
-              <div className="c-hdr"><div><div className="c-title">Top Selling Products</div><div className="c-sub">Units sold in this period</div></div></div>
-              <ChartTopProducts data={stats?.topProducts} />
-            </div>
-            <div className="admin-card chart-panel">
-              <div className="c-hdr"><div><div className="c-title">Customer Growth</div><div className="c-sub">New customers per month</div></div></div>
-              <ChartCustomerGrowth />
-            </div>
-            <div className="admin-card chart-panel">
-              <div className="c-hdr"><div><div className="c-title">Payments Summary</div><div className="c-sub">Paid vs Pending vs Failed</div></div></div>
-              <ChartPaymentDonut />
-            </div>
-          </div>
-
-          <div className="admin-card" style={{ marginTop: '24px' }}>
-            <div className="c-hdr">
-              <div>
-                <div className="c-title">Recent Orders in Period</div>
-                <div className="c-sub">Detailed log of transactions for the selected range</div>
-              </div>
-            </div>
-            <div className="tbl-wrap">
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th>Order #</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!stats?.recentOrders || stats.recentOrders.length === 0 ? (
-                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px', color: '#999' }}>No orders found in this period</td></tr>
-                  ) : (
-                    stats.recentOrders.map(o => (
-                      <tr key={o.id}>
-                        <td className="cell-id">#{o.order_number}</td>
-                        <td>{o.first_name ? `${o.first_name} ${o.last_name}` : 'Guest'}</td>
-                        <td>
-                          <span style={{
-                            padding: '4px 10px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            textTransform: 'uppercase',
-                            backgroundColor: o.status === 'confirmed' ? '#e0f7fa' : '#eee',
-                            color: o.status === 'confirmed' ? '#006064' : '#666'
-                          }}>
-                            {o.status}
-                          </span>
-                        </td>
-                        <td style={{ fontWeight: 'bold' }}>Rs. {Number(o.total_bill).toLocaleString()}</td>
-                        <td style={{ color: '#666', fontSize: '13px' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </>
       )}
+
+      {/* ── KPI mini stats ── */}
+      <MiniStats items={kpiItems} />
+
+      {/* ── Charts grid ── */}
+      <div className="charts-grid">
+
+        {/* Sales Over Time */}
+        <div className="admin-card chart-panel">
+          <div className="c-hdr">
+            <div>
+              <div className="c-title">Sales Over Time</div>
+              <div className="c-sub">Revenue trend · {activeLbl}</div>
+            </div>
+          </div>
+          {loading
+            ? <SkeletonChart />
+            : <ChartSalesLine data={analytics?.salesChart ?? []} />
+          }
+        </div>
+
+        {/* Top Selling Products */}
+        <div className="admin-card chart-panel">
+          <div className="c-hdr">
+            <div>
+              <div className="c-title">Top Selling Products</div>
+              <div className="c-sub">Units sold · {activeLbl}</div>
+            </div>
+          </div>
+          {loading
+            ? <SkeletonChart />
+            : <ChartTopProducts data={analytics?.topProducts ?? []} />
+          }
+        </div>
+
+        {/* Customer Growth */}
+        <div className="admin-card chart-panel">
+          <div className="c-hdr">
+            <div>
+              <div className="c-title">Customer Growth</div>
+              <div className="c-sub">New customers per month (last 7)</div>
+            </div>
+          </div>
+          {loading
+            ? <SkeletonChart />
+            : <ChartCustomerGrowth data={analytics?.customerGrowth ?? []} />
+          }
+        </div>
+
+        {/* Payments Summary */}
+        <div className="admin-card chart-panel">
+          <div className="c-hdr">
+            <div>
+              <div className="c-title">Payments Summary</div>
+              <div className="c-sub">Paid vs Pending vs Failed · {activeLbl}</div>
+            </div>
+          </div>
+          {loading
+            ? <SkeletonChart />
+            : <ChartPaymentDonut data={analytics?.paymentSummary ?? {}} />
+          }
+        </div>
+
+      </div>
+
+      {/* ── Custom date range modal ── */}
+      {showModal && (
+        <CustomRangeModal
+          onApply={handleCustomApply}
+          onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {/* shimmer keyframe */}
+      <style>{`
+        @keyframes shimmer {
+          0%   { background-position: 100% 0; }
+          100% { background-position: -100% 0; }
+        }
+      `}</style>
     </div>
   );
-
 }
