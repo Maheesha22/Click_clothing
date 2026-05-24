@@ -360,7 +360,13 @@ input, select, textarea { font-family: inherit; }
   background: var(--g1); 
   border: 1px solid var(--g3); 
   display: flex; align-items: center; justify-content: center; 
-  flex-shrink: 0; font-size: 20px; 
+  flex-shrink: 0; font-size: 24px; 
+}
+.stat-ico .ni {
+  width: 22px;
+  height: 22px;
+  opacity: 1;
+  color: var(--black);
 }
 
 /* ── MID GRID (dashboard) ───────────────────────────── */
