@@ -17,7 +17,7 @@ const db = require("./models");
 db.sequelize.authenticate()
   .then(() => {
     console.log("✅ Database connected successfully!");
-    return db.sequelize.sync({ alter: true });
+    return db.sequelize.sync();
   })
   .then(() => {
     console.log("✅ Tables created successfully!");
@@ -57,6 +57,7 @@ const customerOrderRoutes = require("./routes/customerOrderRoutes");
 const returnRoutes = require("./routes/returnRoutes");
 const adminCustomerRoutes = require("./routes/adminCustomerRoutes");
 const selectedItemsRoutes = require("./routes/SelectedItemsRoutes");
+const userAddressRoutes = require("./routes/userAddressRoutes");
 
 
 app.use("/api/wishlist", wishlistRoutes);
@@ -65,6 +66,7 @@ app.use("/api/customer-orders", customerOrderRoutes);
 app.use("/api/returns", returnRoutes);
 app.use("/api/admin-customers", adminCustomerRoutes);
 app.use("/api/selected-items", selectedItemsRoutes);
+app.use("/api/user-addresses", userAddressRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)

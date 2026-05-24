@@ -647,3 +647,319 @@ input[type="radio"]:checked::after {
   .navbar { padding: 0 20px; }
   .field-row { flex-direction: column; }
 }
+
+/* ════════════════════════════════════════
+   ADDRESS MANAGEMENT SYSTEM
+════════════════════════════════════════ */
+
+/* Section header with Add button */
+.addr-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.addr-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid var(--black);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--black);
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.addr-add-btn:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.addr-add-btn svg { transition: stroke 0.18s; }
+.addr-add-btn:hover svg { stroke: var(--white); }
+
+/* Loading skeleton */
+.addr-loading {
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 16px 0;
+  text-align: center;
+}
+
+/* ── Address Cards List ── */
+.addr-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.addr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  border: 2px solid #e8e4df;
+  border-radius: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.22s, box-shadow 0.22s, background 0.18s;
+  background: var(--white);
+  position: relative;
+}
+
+.addr-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 12px rgba(201,168,130,0.12);
+}
+
+.addr-card.selected {
+  border-color: var(--black);
+  background: #fdfaf7;
+  box-shadow: 0 3px 16px rgba(0,0,0,0.08);
+}
+
+/* Radio indicator */
+.addr-card-radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #c5c0b8;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.addr-card.selected .addr-card-radio {
+  border-color: var(--black);
+  border-width: 2px;
+}
+
+.addr-radio-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--black);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  transform: scale(0.4);
+}
+
+.addr-card.selected .addr-radio-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Card body */
+.addr-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.addr-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.addr-card-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: 0.02em;
+}
+
+.addr-default-badge {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Jost', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.addr-card-name {
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--black);
+  margin-bottom: 3px;
+}
+
+.addr-card-detail {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.addr-card-phone {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+}
+
+/* Card action buttons */
+.addr-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.addr-action-btn {
+  background: none;
+  border: 1px solid #e8e4df;
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Jost', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.addr-action-btn.edit:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #fdf9f5;
+}
+
+.addr-action-btn.delete:hover {
+  border-color: #e05c5c;
+  color: #e05c5c;
+  background: #fff8f8;
+}
+
+.addr-action-btn.set-default:hover {
+  border-color: var(--black);
+  color: var(--black);
+  background: #f5f5f5;
+}
+
+/* ── Add / Edit Address Form Card ── */
+.addr-form-card {
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  padding: 22px 20px;
+  margin-bottom: 4px;
+  background: #fdfaf7;
+  animation: slideDown 0.25s ease;
+}
+
+.addr-form-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+
+/* Label chips (Home / Work / Other) */
+.addr-label-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.addr-label-chip {
+  border: 1.5px solid #e0dbd3;
+  border-radius: 20px;
+  padding: 5px 16px;
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: var(--white);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.addr-label-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.addr-label-chip.active {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+  font-weight: 500;
+}
+
+/* Form action buttons */
+.addr-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  justify-content: flex-end;
+}
+
+.addr-cancel-btn {
+  border: 1.5px solid #e0dbd3;
+  background: var(--white);
+  border-radius: 7px;
+  padding: 10px 20px;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.addr-cancel-btn:hover {
+  border-color: var(--black);
+  color: var(--black);
+}
+
+.addr-save-btn {
+  border: none;
+  background: var(--black);
+  border-radius: 7px;
+  padding: 10px 24px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: background 0.18s, transform 0.15s;
+}
+
+.addr-save-btn:hover {
+  background: #2a2a2a;
+  transform: translateY(-1px);
+}
+
+.addr-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
