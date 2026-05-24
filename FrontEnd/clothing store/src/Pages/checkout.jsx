@@ -364,12 +364,6 @@ export default function CheckoutPage() {
     if (!form.email) { setFormError("Email is required"); setLoading(false); return; }
     if (!selectedAddress) { setFormError("Please select or add a delivery address."); setLoading(false); return; }
     if (!form.payment) { setFormError("Please select a payment method"); setLoading(false); return; }
-    if (form.payment === "bank" && !slipFile) {
-      setFormError("Please upload your bank deposit slip.");
-      slipInputRef.current?.click();
-      setLoading(false);
-      return;
-    }
 
     const user = getUserFromSession();
     if (!user || !user.id) {
@@ -671,12 +665,31 @@ export default function CheckoutPage() {
                 )}
               </div>
 
+              {/* 48-hour instruction card */}
+              <div style={{
+                background: "linear-gradient(135deg, #fff8e6, #fff3d0)",
+                border: "1.5px solid #f0b429",
+                borderRadius: "12px",
+                padding: "16px 18px",
+                marginBottom: "14px",
+                fontSize: "13px",
+                color: "#5a3e00",
+                lineHeight: "1.75"
+              }}>
+                <div style={{ fontWeight: 700, marginBottom: "6px", color: "#7d5a00", fontSize: "14px" }}>⚠️ Important Payment Instructions</div>
+                <ul style={{ margin: 0, paddingLeft: "18px" }}>
+                  <li>Please complete your bank deposit within <strong>48 hours</strong> of placing the order.</li>
+                  <li>Use your unique <strong>Order Number</strong> as the bank transfer remark/reference.</li>
+                  <li>Uploading the payment slip is <strong>optional now</strong> — you can upload it later from your email link or Order History.</li>
+                </ul>
+              </div>
+
               <div
                 id="uploadSlipBox"
                 className="upload-slip-box"
                 tabIndex={0}
                 role="button"
-                aria-label="Upload payment slip"
+                aria-label="Upload payment slip (optional)"
                 onClick={() => !loading && slipInputRef.current?.click()}
                 onKeyDown={(e) => e.key === "Enter" && slipInputRef.current?.click()}
               >
@@ -690,7 +703,7 @@ export default function CheckoutPage() {
                   </div>
                 ) : (
                   <div className="upload-slip-content">
-                    <UploadIcon /><span>Upload slip here</span>
+                    <UploadIcon /><span>Upload slip here <span style={{ color: "#c9a882", fontSize: "11px" }}>(optional — you can upload later)</span></span>
                   </div>
                 )}
               </div>
