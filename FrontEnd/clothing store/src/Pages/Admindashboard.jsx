@@ -19,6 +19,7 @@ import Payments from './adminpages/admin/Payments';
 import Reports from './adminpages/admin/Reports';
 import Settings from './adminpages/admin/Settings';
 import Logout from './adminpages/admin/Logout';
+import BankSlips from './adminpages/admin/BankSlips';
 
 
 const NAV = [
@@ -26,6 +27,7 @@ const NAV = [
   { id: 'products', label: 'Products', Icon: IcoBox, group: 'Main' },
   { id: 'categories', label: 'Categories', Icon: IcoTag, group: 'Main' },
   { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
+  { id: 'bank-slips', label: 'Bank Slips', Icon: IcoCard, group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
   { id: 'payments', label: 'Payments', Icon: IcoCard, group: 'Finance' },
@@ -55,6 +57,7 @@ export default function AdminDashboard() {
       />;
       case 'categories': return <Categories toast={show} />;
       case 'orders': return <Orders />;
+      case 'bank-slips': return <BankSlips />;
       case 'returns': return <Returns />;
       case 'customers': return <Customers />;
       case 'payments': return <Payments />;
