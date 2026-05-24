@@ -83,10 +83,10 @@ export default function Payments() {
     });
 
     return [
-      ['💰', `Rs ${totalRevenue.toLocaleString()}`, 'Total Revenue'],
-      ['✅', `Rs ${paidAmount.toLocaleString()}`, 'Paid'],
-      ['⏳', `Rs ${pendingAmount.toLocaleString()}`, 'Pending'],
-      ['❌', `Rs ${failedAmount.toLocaleString()}`, 'Failed']
+      ['💰', `Rs. ${totalRevenue.toLocaleString()}`, 'Total Revenue'],
+      ['✅', `Rs. ${paidAmount.toLocaleString()}`, 'Paid'],
+      ['⏳', `Rs. ${pendingAmount.toLocaleString()}`, 'Pending'],
+      ['❌', `Rs. ${failedAmount.toLocaleString()}`, 'Failed']
     ];
   };
 
@@ -159,7 +159,7 @@ export default function Payments() {
                         </div>
                       </td>
                       <td className="cell-dim">{o.order_number}</td>
-                      <td className="cell-price">Rs {parseFloat(o.total_bill).toLocaleString()}</td>
+                      <td className="cell-price">Rs. {parseFloat(o.total_bill).toLocaleString()}</td>
                       <td className="cell-dim">{o.payment_method}</td>
                       <td>
                         {o.payment_slip ? (
@@ -224,7 +224,7 @@ export default function Payments() {
                   <td className="cell-nm">{c.name}</td>
                   <td className="cell-price">{c.handled}</td>
                   <td className="cell-dim">{c.period}</td>
-                  <td className="cell-price">Rs {c.amount}</td>
+                  <td className="cell-price">Rs. {c.amount}</td>
                   <td>
                     <Badge label={c.status} cls={cBadge[c.status]} />
                   </td>
@@ -304,7 +304,7 @@ export default function Payments() {
                 <div style={{ background: 'var(--g1)', padding: '12px', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', color: 'var(--g5)', fontWeight: 700 }}>PAYMENT DETAILS</div>
                   <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--black)', marginTop: '2px' }}>
-                    Rs {parseFloat(selectedPayment.total_bill).toLocaleString()}
+                    Rs. {parseFloat(selectedPayment.total_bill).toLocaleString()}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--g6)' }}>
                     Method: {selectedPayment.payment_method}
