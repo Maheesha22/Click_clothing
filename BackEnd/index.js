@@ -38,6 +38,7 @@ const searchHistoryRoutes = require("./routes/searchHistoryRoutes");
 const youMayAlsoLikeRoutes = require("./routes/youMayAlsoLikeRoutes");
 
 
+
 app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
@@ -57,7 +58,6 @@ const returnRoutes = require("./routes/returnRoutes");
 const adminCustomerRoutes = require("./routes/adminCustomerRoutes");
 const selectedItemsRoutes = require("./routes/SelectedItemsRoutes");
 const userAddressRoutes = require("./routes/userAddressRoutes");
-const dashboardRoutes = require("./routes/dashboardRoutes");
 
 
 app.use("/api/wishlist", wishlistRoutes);
@@ -67,7 +67,6 @@ app.use("/api/returns", returnRoutes);
 app.use("/api/admin-customers", adminCustomerRoutes);
 app.use("/api/selected-items", selectedItemsRoutes);
 app.use("/api/user-addresses", userAddressRoutes);
-app.use("/api/dashboard", dashboardRoutes);
 
 app.listen(3000, () => {
   console.log(`Server running on port ${3000}`)
