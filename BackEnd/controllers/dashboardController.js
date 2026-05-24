@@ -53,6 +53,27 @@ const getDashboardStats = async (req, res) => {
     );
     const newCustomersToday = Number(newCustResult[0].cnt);
 
+    const ordersTodayResult = await sequelize.query(
+      `SELECT COUNT(*) AS cnt FROM orders
+       WHERE DATE(createdAt) = CURDATE()`,
+      { type: QueryTypes.SELECT }
+    );
+    const ordersToday = Number(ordersTodayResult[0].cnt);
+
+    const revenueTodayResult = await sequelize.query(
+      `SELECT CAST(COALESCE(SUM(total_bill), 0) AS DECIMAL(12,2)) AS revenueToday FROM orders
+       WHERE DATE(createdAt) = CURDATE()`,
+      { type: QueryTypes.SELECT }
+    );
+    const revenueToday = Number(revenueTodayResult[0].revenueToday);
+
+    const totalReturnsResult = await sequelize.query(
+      `SELECT COUNT(*) AS cnt FROM returns`,
+      { type: QueryTypes.SELECT }
+    );
+    const totalReturns = Number(totalReturnsResult[0].cnt);
+    const returnRate = totalOrders > 0 ? ((totalReturns / totalOrders) * 100).toFixed(1) : 0;
+
     /* ── 3. Low-stock items (variants qty <= 10) ── */
     const lowStockItems = await sequelize.query(
       `SELECT
@@ -119,6 +140,9 @@ const getDashboardStats = async (req, res) => {
         newProductsThisMonth,
         ordersThisWeek,
         newCustomersToday,
+        ordersToday,
+        revenueToday,
+        returnRate,
         lowStockItems,
         recentOrders,
         weeklyRevenue
