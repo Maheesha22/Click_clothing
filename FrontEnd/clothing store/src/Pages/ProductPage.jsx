@@ -218,13 +218,22 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
     };
   }, [onClose, showSizeChart]);
 
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, show: false }));
+    }, 3000);
+  };
+
   const handleAddToCart = async () => {
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
 
     const userData = sessionStorage.getItem("user");
     if (!userData) {
-      alert("Please login to add items to cart");
+      showToast("Please login to add items to cart", "warning");
       return;
     }
     const user   = JSON.parse(userData);
@@ -243,14 +252,14 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
       };
       const response = await cartService.addToCart(cartData);
       if (response.success) {
-        alert("Product added to cart successfully!");
+        showToast("Product added to cart successfully!", "success");
         window.dispatchEvent(new CustomEvent("cartUpdated"));
       } else {
-        alert("Failed to add product to cart: " + response.message);
+        showToast("Failed to add product to cart: " + response.message, "error");
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("An error occurred. Please try again.");
+      showToast("An error occurred. Please try again.", "error");
     }
   };
 
@@ -499,6 +508,48 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 
       {/* SizeChart panel */}
       <SizeChart open={showSizeChart} onClose={() => setShowSizeChart(false)} />
+
+      {/* Modern custom toast overlay */}
+      <div className={`custom-toast ${toast.show ? "show" : ""} custom-toast-${toast.type}`}>
+        <span className="custom-toast-icon">
+          {toast.type === "success" ? "✅" : toast.type === "error" ? "❌" : "⚠️"}
+        </span>
+        <span className="custom-toast-message">{toast.message}</span>
+      </div>
+
+      <style>{`
+        .custom-toast {
+          position: fixed;
+          top: -100px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(17, 17, 17, 0.95);
+          color: #ffffff;
+          padding: 12px 24px;
+          border-radius: 30px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+          z-index: 99999;
+          font-family: 'Inter', sans-serif;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          opacity: 0;
+          pointer-events: none;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          font-size: 0.9rem;
+        }
+        .custom-toast.show {
+          top: 40px;
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .custom-toast-success { border-left: 4px solid #28a745; }
+        .custom-toast-error { border-left: 4px solid #dc3545; }
+        .custom-toast-warning { border-left: 4px solid #f39c12; }
+      `}</style>
     </>
   );
 };

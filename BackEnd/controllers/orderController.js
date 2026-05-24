@@ -37,6 +37,9 @@ const generateUniqueBarcode = async () => {
 
 // Create order from checkout
 const createOrder = async (req, res) => {
+  const { sequelize } = require('../models');
+  const t = await sequelize.transaction();
+
   try {
     console.log('=== ORDER CREATION DEBUG ===');
     console.log('Request body:', req.body);
@@ -60,7 +63,7 @@ const createOrder = async (req, res) => {
     const uId = parseInt(userId);
 
     // 1. Customer management
-    let customer = await Customer.findOne({ where: { userId: uId } });
+    let customer = await Customer.findOne({ where: { userId: uId }, transaction: t });
     const customerData = {
       userId: uId,
       firstName,
@@ -74,10 +77,10 @@ const createOrder = async (req, res) => {
     };
 
     if (customer) {
-      await customer.update(customerData);
+      await customer.update(customerData, { transaction: t });
       console.log('Customer updated:', customer.id);
     } else {
-      customer = await Customer.create(customerData);
+      customer = await Customer.create(customerData, { transaction: t });
       console.log('New customer created:', customer.id);
     }
 
@@ -117,6 +120,7 @@ const createOrder = async (req, res) => {
     }
 
     if (itemsToProcess.length === 0) {
+      await t.rollback();
       return res.status(400).json({
         success: false,
         message: 'No items found in selection. Please try again.'
@@ -137,7 +141,7 @@ const createOrder = async (req, res) => {
       payment_slip: req.file ? req.file.path : null, // Cloudinary URL
       delivery_charges: parseFloat(shippingCost || 400),
       total_bill: totalBill
-    });
+    }, { transaction: t });
 
     console.log('Order created:', order.id);
 
@@ -151,16 +155,48 @@ const createOrder = async (req, res) => {
         color: item.color,
         quantity: item.quantity,
         price: item.price
-      });
+      }, { transaction: t });
     }
 
     console.log('Order items created');
+
+    // 4.5 Deduct inventory — reduce ProductVariant quantity for each ordered item
+    for (const item of itemsToProcess) {
+      try {
+        const variant = await ProductVariant.findOne({
+          where: {
+            productId: item.productId,
+            size: item.size,
+            color: item.color
+          },
+          transaction: t
+        });
+
+        if (variant) {
+          const orderedQty = parseInt(item.quantity) || 1;
+          const newQty = Math.max(0, variant.quantity - orderedQty);
+          await variant.update({ quantity: newQty }, { transaction: t });
+          console.log(
+            `Stock deducted — productId:${item.productId} color:${item.color} size:${item.size} | ${variant.quantity} → ${newQty}`
+          );
+        } else {
+          console.warn(
+            `Variant not found for deduction — productId:${item.productId} color:${item.color} size:${item.size}`
+          );
+        }
+      } catch (deductErr) {
+        console.error('Error deducting stock for item:', item, deductErr);
+        // Non-fatal: log and continue so the order still completes
+      }
+    }
+
+    console.log('Inventory deduction completed');
 
     // 5. Create OrderDetail (Barcode)
     await OrderDetail.create({
       orderId: order.id,
       barcode: barcode
-    });
+    }, { transaction: t });
 
     console.log('Order details created');
 
@@ -171,14 +207,20 @@ const createOrder = async (req, res) => {
       where: {
         userId: uId,
         productId: productIds
-      }
+      },
+      transaction: t
     });
     
     await SelectedItems.destroy({
-      where: { userId: uId }
+      where: { userId: uId },
+      transaction: t
     });
     
     console.log('Cleanup completed (Cart and SelectedItems cleared)');
+
+    // Commit the transaction — all DB changes are now permanent
+    await t.commit();
+    console.log('Transaction committed successfully');
 
     // Enrich items with actual product names from the database for the email template
     const enrichedItems = [];
@@ -237,6 +279,8 @@ const createOrder = async (req, res) => {
     });
 
   } catch (error) {
+    // Roll back all DB changes if anything went wrong
+    try { await t.rollback(); } catch (rbErr) { console.error('Rollback error:', rbErr); }
     console.error('Error creating order:', error);
     res.status(500).json({
       success: false,

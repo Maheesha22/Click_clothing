@@ -58,8 +58,8 @@ export default function Products({ toast, initialData, clearInitialData }) {
       setExpandedRow(null);
       return;
     }
+    // Always re-fetch variants to show up-to-date stock after any purchase
     setExpandedRow(productId);
-    if (variantsCache[productId]) return; // already fetched
     setVariantsLoading(true);
     try {
       const res = await fetch(`${API}/${productId}`);
