@@ -103,7 +103,7 @@ export default function Dashboard({ goOrders, onRestock }) {
 
   /* ── Format helpers ── */
   const fmt = n => Number(n).toLocaleString();
-  const fmtRs = n => `Rs ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtRs = n => `Rs. ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   /* ── Build stat cards from real data ── */
   const statCards = stats ? [
@@ -205,7 +205,7 @@ export default function Dashboard({ goOrders, onRestock }) {
                         <td>{row.day}</td>
                         <td>{row.dayName}</td>
                         <td style={{ fontWeight: 700 }}>{row.orderCount}</td>
-                        <td style={{ color: '#111', fontWeight: 800 }}>Rs {Number(row.revenue).toLocaleString()}</td>
+                        <td style={{ color: '#111', fontWeight: 800 }}>Rs. {Number(row.revenue).toLocaleString()}</td>
                       </tr>
                     ))
                   )}
