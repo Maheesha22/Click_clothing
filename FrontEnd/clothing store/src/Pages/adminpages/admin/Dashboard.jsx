@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { O_BADGE, Avatar, Badge } from './shared';
+import { O_BADGE, Avatar, Badge, IcoBox, IcoCart, IcoUsers, IcoChartBar } from './shared';
 
 /* ── Sales Analytics Chart ── */
 function ChartSalesBar({ weeklyRevenue = [] }) {
@@ -107,10 +107,10 @@ export default function Dashboard({ goOrders, onRestock }) {
 
   /* ── Build stat cards from real data ── */
   const statCards = stats ? [
-    { lbl: 'Total Products', val: fmt(stats.totalProducts), chg: `↗ +${stats.newProductsThisMonth} this month`, ico: '📦' },
-    { lbl: 'Total Orders', val: fmt(stats.totalOrders), chg: `↗ +${stats.ordersThisWeek} this week`, ico: '🛒' },
-    { lbl: 'Customers', val: fmt(stats.totalCustomers), chg: `↗ +${stats.newCustomersToday} new today`, ico: '👥' },
-    { lbl: 'Total Revenue', val: fmtRs(stats.totalRevenue), chg: 'All-time revenue', ico: '📈' },
+    { lbl: 'Total Products', val: fmt(stats.totalProducts), chg: `↗ +${stats.newProductsThisMonth} this month`, ico: <IcoBox /> },
+    { lbl: 'Total Orders', val: fmt(stats.totalOrders), chg: `↗ +${stats.ordersThisWeek} this week`, ico: <IcoCart /> },
+    { lbl: 'Customers', val: fmt(stats.totalCustomers), chg: `↗ +${stats.newCustomersToday} new today`, ico: <IcoUsers /> },
+    { lbl: 'Total Revenue', val: fmtRs(stats.totalRevenue), chg: 'All-time revenue', ico: <IcoChartBar /> },
   ] : [];
 
   /* ── Badge helper for order status ── */
