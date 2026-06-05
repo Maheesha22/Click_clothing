@@ -866,7 +866,14 @@ const ProductPage = () => {
         />
       )}
 
-      <WhatsAppButton context={{ page: category || "product" }} />
+      <WhatsAppButton
+  context={{
+    productName: selectedProduct?.name,
+    category: categoryName,
+    price: selectedProduct?.basePrice,
+    page: category || "product",
+  }}
+/>
     </div>
   );
 };

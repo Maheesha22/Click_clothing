@@ -80,7 +80,7 @@ function App() {
 
         {/* User — nested routes */}
         <Route path="/user" element={<UserPage />}>
-          <Route index element={<Navigate to="wishlist" replace />} />
+          <Route index element={<Navigate to="/" replace />} />
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="orders" element={<OrderHistory />} />
           <Route path="settings" element={<Settings />} />
