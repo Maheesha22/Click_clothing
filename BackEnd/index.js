@@ -8,6 +8,12 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`📍 [REQUEST] ${req.method} ${req.path}`);
+  next();
+});
+
 app.get('/', (req, res) => {
   res.send('Hello World!')
 });
@@ -52,6 +58,8 @@ app.use("/api/search-history", searchHistoryRoutes);
 app.use("/api/you-may-also-like", youMayAlsoLikeRoutes); 
 
 const wishlistRoutes = require("./routes/WishlistRoutes");
+const recentlyViewedRoutes = require("./routes/recentlyViewedRoutes");
+console.log('✅ Recently Viewed Routes loaded:', typeof recentlyViewedRoutes);
 const bankDetailRoutes = require("./routes/bankDetailRoutes");
 const customerOrderRoutes = require("./routes/customerOrderRoutes");
 const returnRoutes = require("./routes/returnRoutes");
@@ -63,6 +71,9 @@ const reportRoutes = require("./routes/reportRoutes");
 
 
 app.use("/api/wishlist", wishlistRoutes);
+console.log('✅ Wishlist routes registered');
+app.use("/api/recently-viewed", recentlyViewedRoutes);
+console.log('✅ Recently Viewed routes registered');
 app.use("/api/bank-details", bankDetailRoutes);
 app.use("/api/customer-orders", customerOrderRoutes);
 app.use("/api/returns", returnRoutes);

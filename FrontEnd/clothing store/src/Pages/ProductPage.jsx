@@ -14,6 +14,10 @@ import {
   addToGuestWishlist,
   removeFromGuestWishlist,
 } from "../services/wishlistService";
+import {
+  addToRecentlyViewedDB,
+  addToGuestRecentlyViewed,
+} from "../services/recentlyViewedService";
 import "./ProductPage.css";
 
 // ---------- Helper: Convert any color name to a consistent hex code ----------
@@ -733,6 +737,47 @@ const ProductPage = () => {
     }
   };
 
+  // Track product view - called when product modal is opened
+  const trackProductView = async (product) => {
+    setSelectedProduct(product);
+
+    console.log('📌 TRACK VIEW - Product:', product.name, 'ID:', product.id);
+    console.log('📌 TRACK VIEW - User:', storedUser);
+    console.log('📌 TRACK VIEW - Is Logged In:', isLoggedIn);
+
+    if (isLoggedIn && storedUser?.id) {
+      try {
+        const trackingData = {
+          userId: storedUser.id,
+          productId: String(product.id),
+        };
+        console.log('📌 TRACK VIEW - Sending to API:', trackingData);
+        
+        const response = await addToRecentlyViewedDB(trackingData);
+        console.log('✅ TRACK VIEW - Response:', response);
+      } catch (err) {
+        console.error('❌ TRACK VIEW - API Error:', err.response?.data || err.message);
+      }
+    } else {
+      // Guest: use sessionStorage
+      try {
+        const guestData = {
+          productId: String(product.id),
+          productName: product.name,
+          price: product.price,
+          imageUrl: product.img,
+          description: product.description,
+        };
+        console.log('📌 TRACK VIEW - Guest Tracking:', guestData);
+        
+        addToGuestRecentlyViewed(guestData);
+        console.log('✅ TRACK VIEW - Guest tracked successfully');
+      } catch (err) {
+        console.error('❌ TRACK VIEW - Guest tracking error:', err);
+      }
+    }
+  };
+
   // Filtering & Sorting
   let filtered = [...products];
   if (searchTerm) {
@@ -836,7 +881,7 @@ const ProductPage = () => {
                     product={product}
                     isWished={wishlist.includes(product.id)}
                     onToggleWishlist={toggleWishlist}
-                    onOpenModal={setSelectedProduct}
+                    onOpenModal={trackProductView}
                   />
                 ))}
               </div>
