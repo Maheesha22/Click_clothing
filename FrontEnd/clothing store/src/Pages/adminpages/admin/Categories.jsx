@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniStats, Badge } from './shared';
 
 const API_BASE = 'http://localhost:3000/api';
@@ -8,22 +7,24 @@ const PROD_API = `${API_BASE}/products`;
 const fmt = v => `RS ${parseFloat(v || 0).toLocaleString('en-LK', { minimumFractionDigits: 2 })}`;
 
 const Spinner = () => (
-  <div style={{ display:'flex', justifyContent:'center', padding:'36px 0' }}>
-    <div style={{ width:30,height:30,borderRadius:'50%',border:'3px solid #e2e8f0',borderTopColor:'#6366f1',animation:'cat-spin 0.7s linear infinite' }} />
+  <div style={{ display: 'flex', justifyContent: 'center', padding: '36px 0' }}>
+    <div style={{ width: 30, height: 30, borderRadius: '50%', border: '3px solid #e2e8f0', borderTopColor: '#6366f1', animation: 'cat-spin 0.7s linear infinite' }} />
   </div>
 );
 
 const qtyBadge = qty => {
-  if (qty === 0) return { bg:'#fee2e2', color:'#991b1b', label:'Out of Stock' };
-  if (qty <= 5)  return { bg:'#fef9c3', color:'#854d0e', label:`Low (${qty})` };
-  return              { bg:'#dcfce7', color:'#166534', label:`${qty}` };
+  if (qty === 0) return { bg: '#fee2e2', color: '#991b1b', label: 'Out of Stock' };
+  if (qty <= 5) return { bg: '#fef9c3', color: '#854d0e', label: `Low (${qty})` };
+  return { bg: '#dcfce7', color: '#166534', label: `${qty}` };
 };
+
+const ACCENT_COLORS = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#14b8a6', '#eab308', '#ec4899', '#06b6d4'];
 
 function Modal({ open, onClose, title, footer, style, children }) {
   if (!open) return null;
   return (
     <div className="overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{ maxWidth:440, width:'94vw', ...style }}>
+      <div className="modal" style={{ maxWidth: 440, width: '94vw', ...style }}>
         {title && <div className="m-hdr"><span className="m-title">{title}</span></div>}
         <div className="m-body">{children}</div>
         {footer && <div className="m-ftr">{footer}</div>}
@@ -32,38 +33,77 @@ function Modal({ open, onClose, title, footer, style, children }) {
   );
 }
 
-const PALETTES = [
-  { bg:'#eff6ff', border:'#bfdbfe', dot:'#3b82f6' },
-  { bg:'#f0fdf4', border:'#bbf7d0', dot:'#22c55e' },
-  { bg:'#fdf4ff', border:'#e9d5ff', dot:'#a855f7' },
-  { bg:'#fff7ed', border:'#fed7aa', dot:'#f97316' },
-  { bg:'#fef2f2', border:'#fecaca', dot:'#ef4444' },
-  { bg:'#f0fdfa', border:'#99f6e4', dot:'#14b8a6' },
-];
+function KebabMenu({ onEdit, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px',
+          borderRadius: 8, color: '#94a3b8', fontSize: 18, lineHeight: 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+        title="More options"
+      >⋮</button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '110%', right: 0, background: '#fff',
+          border: '1px solid #e2e8f0', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          minWidth: 140, zIndex: 100, overflow: 'hidden', animation: 'cat-fade 0.15s ease',
+        }}>
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(false); onEdit(e); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151', textAlign: 'left' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+          >✏️ Rename</button>
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(false); onDelete(e); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#ef4444', textAlign: 'left' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}
+          >🗑️ Delete</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Categories({ toast }) {
   const [categories, setCategories] = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [formModal,  setFormModal]  = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [formModal, setFormModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
-  const [formName,   setFormName]   = useState('');
+  const [formName, setFormName] = useState('');
   const [formSaving, setFormSaving] = useState(false);
-  const [delTarget,  setDelTarget]  = useState(null);
-  const [deleting,   setDeleting]   = useState(false);
-  const [viewCat,    setViewCat]    = useState(null);
-  const [products,   setProducts]   = useState([]);
-  const [loadProds,  setLoadProds]  = useState(false);
+  const [delTarget, setDelTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [viewCat, setViewCat] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loadProds, setLoadProds] = useState(false);
   const [expandProd, setExpandProd] = useState(null);
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(CAT_API);
-      const d   = await res.json();
+      const d = await res.json();
       if (d.success) setCategories(d.data);
       else toast('⚠️', d.message || 'Could not load categories');
     } catch { toast('⚠️', 'Backend not reachable on port 3000'); }
-    finally   { setLoading(false); }
+    finally { setLoading(false); }
   }, [toast]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
@@ -77,10 +117,10 @@ export default function Categories({ toast }) {
     if (!name) return toast('⚠️', 'Category name cannot be empty');
     setFormSaving(true);
     try {
-      const res  = await fetch(editTarget ? `${CAT_API}/${editTarget.id}` : CAT_API, {
-        method:  editTarget ? 'PUT' : 'POST',
+      const res = await fetch(editTarget ? `${CAT_API}/${editTarget.id}` : CAT_API, {
+        method: editTarget ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ name }),
+        body: JSON.stringify({ name }),
       });
       const d = await res.json();
       if (d.success) {
@@ -95,8 +135,8 @@ export default function Categories({ toast }) {
   const confirmDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`${CAT_API}/${delTarget.id}`, { method:'DELETE' });
-      const d   = await res.json();
+      const res = await fetch(`${CAT_API}/${delTarget.id}`, { method: 'DELETE' });
+      const d = await res.json();
       if (d.success) {
         toast('🗑️', 'Category deleted');
         if (viewCat?.id === delTarget.id) { setViewCat(null); setProducts([]); }
@@ -111,263 +151,261 @@ export default function Categories({ toast }) {
     if (viewCat?.id === cat.id) { setViewCat(null); setProducts([]); setExpandProd(null); return; }
     setViewCat(cat); setProducts([]); setExpandProd(null); setLoadProds(true);
     try {
-      // Use the required endpoint: GET /api/products?categoryId=ID
       const res = await fetch(`${PROD_API}?categoryId=${cat.id}`);
-      const d   = await res.json();
-      if (d.success) {
-        // Requirements say display product name, price, description
-        setProducts(d.data);
-      } else toast('⚠️', d.message || 'Could not load products');
+      const d = await res.json();
+      if (d.success) setProducts(d.data);
+      else toast('⚠️', d.message || 'Could not load products');
     } catch { toast('⚠️', 'Network error'); }
     finally { setLoadProds(false); }
   };
 
   const toggleProductVariants = async (prodId) => {
-    if (expandProd === prodId) {
-      setExpandProd(null);
-      return;
-    }
-
-    // Check if we already have variants for this product
+    if (expandProd === prodId) { setExpandProd(null); return; }
     const product = products.find(p => p.id === prodId);
-    if (product && product.variantsLoaded) {
-      setExpandProd(prodId);
-      return;
-    }
-
-    // Fetch variants: GET /api/products/:id/variants
+    if (product && product.variantsLoaded) { setExpandProd(prodId); return; }
     try {
       const res = await fetch(`${PROD_API}/${prodId}/variants`);
-      const d   = await res.json();
+      const d = await res.json();
       if (d.success) {
-        setProducts(prev => prev.map(p => 
-          p.id === prodId ? { ...p, variants: d.data, variantsLoaded: true } : p
-        ));
+        setProducts(prev => prev.map(p => p.id === prodId ? { ...p, variants: d.data, variantsLoaded: true } : p));
         setExpandProd(prodId);
-      } else {
-        toast('⚠️', d.message || 'Could not load variants');
-      }
-    } catch {
-      toast('⚠️', 'Network error fetching variants');
-    }
+      } else toast('⚠️', d.message || 'Could not load variants');
+    } catch { toast('⚠️', 'Network error fetching variants'); }
   };
 
   return (
     <div className="view">
       <style>{`
         @keyframes cat-spin { to { transform:rotate(360deg); } }
-        @keyframes cat-fade { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
-        @keyframes cat-scale { from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)} }
+        @keyframes cat-fade { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes cat-scale { from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)} }
 
-        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:24px; margin-bottom:40px; }
-        
+        /* ── Grid ── */
+        .cat-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 20px;
+          margin-bottom: 40px;
+        }
+
+        /* ── Category Card (matches dashboard screenshot) ── */
         .cat-card {
-          border-radius:24px; border:1px solid rgba(0,0,0,0.06); padding:24px; cursor:pointer;
-          transition:all .4s cubic-bezier(0.4, 0, 0.2, 1);
-          animation:cat-fade .3s ease both;
-          position:relative; overflow:hidden;
-          display:flex; flex-direction:column;
-          min-height:180px; justify-content:space-between;
-          background:#fff;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+          background: #fff;
+          border: 1px solid #e8edf2;
+          border-radius: 16px;
+          padding: 20px;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          transition: box-shadow 0.2s, transform 0.2s;
+          animation: cat-fade 0.25s ease both;
+          position: relative;
         }
-        .cat-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,0.08); border-color:rgba(0,0,0,0.1); }
-        .cat-card.active { box-shadow:0 0 0 2px #000; border-color:transparent; }
+        .cat-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .cat-card.active { border-color: #1e293b; box-shadow: 0 0 0 2px #1e293b; }
 
-        .cat-card-top { display:flex; justify-content:space-between; align-items:flex-start; z-index:1; }
-        
-        .cat-card-btns { display:flex;gap:8px;opacity:0;transition:all .2s; transform: translateY(4px); }
-        .cat-card:hover .cat-card-btns { opacity:1; transform: translateY(0); }
-        
-        .cat-btn { 
-          width:36px;height:36px;border-radius:12px;border:none;
-          background:rgba(255,255,255,0.8);backdrop-filter:blur(8px);
-          display:flex;align-items:center;justify-content:center;
-          cursor:pointer;font-size:16px;box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-          transition: all 0.2s;
+        .cat-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+
+        /* circular image/icon thumb */
+        .cat-thumb-wrap {
+          width: 72px; height: 72px; border-radius: 50%;
+          background: #f1f5f9; overflow: hidden;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 28px; flex-shrink: 0;
+          border: 1px solid #e2e8f0;
         }
-        .cat-btn:hover { transform: scale(1.1); background:#fff; box-shadow:0 4px 15px rgba(0,0,0,0.1); }
-        .cat-btn-del:hover { background:#fee2e2; color:#ef4444; }
+        .cat-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
-        .cat-name { font-size:20px;font-weight:900;color:#000;letter-spacing:-.03em; line-height:1.2; z-index:1; }
-        .cat-count { font-size:12px; font-weight:700; color:rgba(0,0,0,0.4); text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; }
+        .cat-name  { font-size: 17px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin-bottom: 4px; }
+        .cat-count { font-size: 13px; color: #64748b; font-weight: 500; }
 
-        .cat-foot  { display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid rgba(0,0,0,0.05); z-index:1; }
-        .cat-hint  { font-size:11px;font-weight:800;color:#000; text-transform:uppercase; letter-spacing:0.04em; opacity:0.4; transition:opacity 0.2s; }
-        .cat-card:hover .cat-hint { opacity:1; }
+        /* colored accent line */
+        .cat-accent { height: 3px; border-radius: 99px; margin: 14px 0; width: 40px; }
 
+        /* footer row */
+        .cat-foot {
+          display: flex; align-items: center; justify-content: space-between;
+          padding-top: 12px; border-top: 1px solid #f1f5f9;
+          margin-top: auto;
+        }
+        .cat-hint {
+          font-size: 13px; font-weight: 600; color: #64748b;
+          display: flex; align-items: center; gap: 6px;
+          transition: color 0.2s;
+        }
+        .cat-card:hover .cat-hint { color: #0f172a; }
+        .cat-hint-arrow { font-size: 14px; transition: transform 0.2s; }
+        .cat-card:hover .cat-hint-arrow { transform: translateX(3px); }
+
+        /* Add Category card */
         .cat-add-card {
-          border-radius:24px;border:2px dashed rgba(0,0,0,0.1);padding:24px;cursor:pointer;
-          display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-          min-height:180px;transition:all .4s;color:rgba(0,0,0,0.3);background:rgba(0,0,0,0.01);
-          text-align:center;
+          background: #fff; border: 2px dashed #cbd5e1; border-radius: 16px;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 10px; cursor: pointer; min-height: 200px;
+          color: #94a3b8; transition: all 0.2s; text-align: center; padding: 20px;
         }
-        .cat-add-card:hover { border-color:#000;background:#000;color:#fff;transform:translateY(-6px);box-shadow:0 20px 40px rgba(0,0,0,0.1); }
-        .cat-add-card span:first-child { font-size:36px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .cat-add-card:hover span:first-child { transform: scale(1.2) rotate(90deg); }
+        .cat-add-card:hover { border-color: #1e293b; color: #1e293b; box-shadow: 0 8px 28px rgba(0,0,0,0.06); transform: translateY(-2px); }
+        .cat-add-icon {
+          width: 48px; height: 48px; border-radius: 50%; border: 2px dashed currentColor;
+          display: flex; align-items: center; justify-content: center; font-size: 22px;
+          transition: transform 0.3s;
+        }
+        .cat-add-card:hover .cat-add-icon { transform: rotate(90deg); }
+        .cat-add-label { font-size: 14px; font-weight: 700; }
+        .cat-add-sub { font-size: 12px; font-weight: 500; opacity: 0.7; }
 
-        /* ── Product panel ── */
-        .cat-panel { background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:24px;overflow:hidden;margin-bottom:32px;box-shadow:0 12px 40px rgba(0,0,0,0.06);animation:cat-scale .3s cubic-bezier(.175,.885,.32,1.1); }
-        .cat-panel-hdr { padding:20px 24px;background:#fcfcfc;border-bottom:1px solid rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:space-between; }
-        .cat-panel-title { font-size:18px;font-weight:900;color:#000;display:flex;align-items:center;gap:12px; letter-spacing:-.03em; }
-        .cat-panel-badge { font-size:12px;background:#000;color:#fff;border-radius:20px;padding:4px 12px;font-weight:800; text-transform:uppercase; letter-spacing:0.04em; }
-        .cat-panel-close { background:#f1f5f9;border:none;cursor:pointer;color:#000;font-size:14px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center; transition:all 0.2s; }
-        .cat-panel-close:hover { background:#000;color:#fff; transform:rotate(90deg); }
+        /* ── Product Panel ── */
+        .cat-panel { background:#fff; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; margin-bottom:32px; box-shadow:0 8px 30px rgba(0,0,0,0.06); animation:cat-scale .25s ease; }
+        .cat-panel-hdr { padding:18px 24px; background:#0f172a; display:flex; align-items:center; justify-content:space-between; }
+        .cat-panel-title { font-size:16px; font-weight:700; color:#fff; display:flex; align-items:center; gap:10px; letter-spacing:-0.01em; }
+        .cat-panel-badge { font-size:11px; background:rgba(255,255,255,0.15); color:#fff; border-radius:20px; padding:3px 10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+        .cat-panel-close { background:rgba(255,255,255,0.1); border:none; cursor:pointer; color:#fff; font-size:14px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+        .cat-panel-close:hover { background:rgba(255,255,255,0.25); }
 
-        /* product row - Refined for Professional Look */
-        .cat-prow { 
-          display:flex; align-items:center; gap:20px; padding:20px 24px; 
-          border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; 
-          transition:all .3s cubic-bezier(0.4, 0, 0.2, 1); 
-          position:relative; background: #fff;
-        }
-        .cat-prow:hover { background:#f9fafb; }
-        .cat-prow.open { background:#fff; }
-        .cat-prow.open::before { 
-          content:''; position:absolute; left:0; top:0; bottom:0; width:4px; 
-          background:#000; transition: all 0.3s;
-        }
+        /* product row */
+        .cat-prow { display:flex; align-items:center; gap:16px; padding:16px 24px; border-bottom:1px solid #f1f5f9; cursor:pointer; transition:background .2s; position:relative; }
+        .cat-prow:hover { background:#f8fafc; }
+        .cat-prow.open { background:#f8fafc; }
+        .cat-prow.open::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:#0f172a; }
         .cat-prow:last-of-type { border-bottom:none; }
 
-        .cat-pthumb { 
-          width:64px; height:64px; border-radius:12px; background:#f3f4f6; 
-          display:flex; align-items:center; justify-content:center; 
-          font-size:24px; overflow:hidden; flex-shrink:0; 
-          border:1px solid rgba(0,0,0,0.05);
-          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        .cat-pthumb img { width:100%; height:100%; object-fit:cover; transition: transform 0.5s ease; }
-        .cat-prow:hover .cat-pthumb img { transform: scale(1.1); }
-        
-        .cat-pinfo { flex:1; min-width:0; display: flex; flex-direction: column; gap: 2px; }
-        .cat-pname { font-size:16px; font-weight:700; color:#111827; letter-spacing:-0.01em; }
-        .cat-pprice { font-size:15px; color:#111827; font-weight:800; letter-spacing: -0.02em; }
-        .cat-pmeta { font-size:12px; color:#6b7280; font-weight:500; margin-top:6px; display: flex; align-items: center; gap: 8px; }
-        
-        .cat-pstock { 
-          padding:6px 14px; border-radius:10px; font-size:11px; font-weight:800; 
-          flex-shrink:0; text-transform:uppercase; letter-spacing:0.06em;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-          border: 1px solid rgba(0,0,0,0.03);
-        }
-        .cat-parrow { 
-          color:#d1d5db; font-size:14px; transition:all .3s ease; 
-          background: #f9fafb; width: 32px; height: 32px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .cat-prow:hover .cat-parrow { color:#000; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateX(4px); }
-        .cat-prow.open .cat-parrow { transform:rotate(90deg); color:#fff; background: #000; }
+        .cat-pthumb { width:52px; height:52px; border-radius:10px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0; border:1px solid #e2e8f0; }
+        .cat-pthumb img { width:100%; height:100%; object-fit:cover; }
+
+        .cat-pinfo { flex:1; min-width:0; }
+        .cat-pname { font-size:15px; font-weight:700; color:#0f172a; letter-spacing:-0.01em; }
+        .cat-pprice { font-size:14px; color:#0f172a; font-weight:700; margin-top:2px; }
+        .cat-pmeta { font-size:12px; color:#64748b; font-weight:500; margin-top:4px; display:flex; align-items:center; gap:6px; }
+
+        .cat-pstock { padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; flex-shrink:0; text-transform:uppercase; letter-spacing:0.05em; }
+        .cat-parrow { color:#cbd5e1; font-size:13px; transition:all .25s; width:28px; height:28px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; }
+        .cat-prow:hover .cat-parrow { color:#0f172a; background:#e2e8f0; }
+        .cat-prow.open .cat-parrow { transform:rotate(90deg); background:#0f172a; color:#fff; }
 
         /* variants */
-        .cat-var-wrap { background:#fcfcfc;border-bottom:1px solid rgba(0,0,0,0.1);padding:20px 24px 24px 98px;animation:cat-fade .3s ease; }
-        .cat-var-title { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(0,0,0,0.3);margin-bottom:16px; }
-        .cat-cgroup { margin-bottom:18px; }
-        .cat-clabel { display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:#000;margin-bottom:10px; }
-        .cat-cdot   { width:16px;height:16px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);flex-shrink:0; }
-        .cat-sizes  { display:flex;flex-wrap:wrap;gap:8px; }
-        .cat-schip  { display:flex;flex-direction:column;align-items:center;background:#fff;border:1px solid rgba(0,0,0,0.06);border-radius:12px;padding:8px 12px;min-width:64px;text-align:center; transition:all 0.2s; }
-        .cat-schip:hover { border-color:#000; transform:scale(1.05); }
-        .cat-sname  { font-size:13px;font-weight:900;color:#000; }
-        .cat-sqty   { font-size:10px;font-weight:800;border-radius:6px;padding:2px 6px;margin-top:4px; text-transform:uppercase; }
+        .cat-var-wrap { background:#f8fafc; border-bottom:1px solid #e2e8f0; padding:16px 24px 20px 88px; animation:cat-fade .2s ease; }
+        .cat-var-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:#94a3b8; margin-bottom:12px; }
+        .cat-cgroup { margin-bottom:14px; }
+        .cat-clabel { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#0f172a; margin-bottom:8px; }
+        .cat-cdot { width:14px; height:14px; border-radius:5px; border:1px solid rgba(0,0,0,0.1); flex-shrink:0; }
+        .cat-sizes { display:flex; flex-wrap:wrap; gap:6px; }
+        .cat-schip { display:flex; flex-direction:column; align-items:center; background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:6px 10px; min-width:56px; text-align:center; transition:border-color 0.2s; }
+        .cat-schip:hover { border-color:#0f172a; }
+        .cat-sname { font-size:13px; font-weight:800; color:#0f172a; }
+        .cat-sqty { font-size:10px; font-weight:700; border-radius:5px; padding:2px 5px; margin-top:3px; text-transform:uppercase; }
 
         /* form */
-        .cff label { display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:rgba(0,0,0,0.5);margin-bottom:8px; }
-        .cff input { width:100%;padding:14px 16px;border:1.5px solid rgba(0,0,0,0.08);border-radius:14px;font-size:15px;font-weight:600;outline:none;box-sizing:border-box; transition:all 0.2s; }
-        .cff input:focus { border-color:#000; box-shadow:0 0 0 4px rgba(0,0,0,0.04); }
-        .cff-warn  { background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px;font-size:13px;font-weight:600;color:#92400e;margin-top:16px; line-height:1.4; }
+        .cff label { display:block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:rgba(0,0,0,0.5); margin-bottom:8px; }
+        .cff input { width:100%; padding:12px 14px; border:1.5px solid #e2e8f0; border-radius:12px; font-size:15px; font-weight:600; outline:none; box-sizing:border-box; transition:border-color 0.2s, box-shadow 0.2s; }
+        .cff input:focus { border-color:#0f172a; box-shadow:0 0 0 3px rgba(15,23,42,0.06); }
+        .cff-warn { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px; font-size:13px; font-weight:600; color:#92400e; margin-top:14px; line-height:1.4; }
 
-        .del-body { text-align:center;padding:12px 0 8px; }
-        .del-icon  { font-size:48px;margin-bottom:12px; }
-        .del-title { font-size:20px;font-weight:900;color:#000;margin-bottom:8px; letter-spacing:-.03em; }
-        .del-sub   { font-size:14px;color:rgba(0,0,0,0.5);line-height:1.6; font-weight:500; }
+        .del-body { text-align:center; padding:12px 0 8px; }
+        .del-icon { font-size:44px; margin-bottom:12px; }
+        .del-title { font-size:19px; font-weight:800; color:#0f172a; margin-bottom:8px; letter-spacing:-0.02em; }
+        .del-sub { font-size:14px; color:#64748b; line-height:1.6; font-weight:500; }
 
-        .cat-empty { text-align:center;padding:60px 20px;color:#94a3b8; }
+        .cat-empty { text-align:center; padding:48px 20px; color:#94a3b8; }
       `}</style>
 
       {/* ── Header ── */}
       <div className="ph">
         <div>
-          <h1 className="ph-title" style={{ fontSize:32, letterSpacing:'-0.04em' }}>Catalog</h1>
-          <p className="ph-sub" style={{ fontWeight:600 }}>Manage your collections and inventory variants with precision.</p>
+          <h1 className="ph-title">Categories</h1>
+          <p className="ph-sub">Manage and organize your product categories</p>
         </div>
-        <div style={{ display:'flex', gap:12 }}>
-          <button className="btn-secondary" onClick={fetchCategories} style={{ borderRadius:14, padding:'10px 20px', fontWeight:700 }}>🔄 Refresh</button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn-secondary" onClick={fetchCategories}>🔄 Refresh</button>
+          <button className="btn-primary" onClick={openAdd}>＋ Add Category</button>
         </div>
       </div>
 
       {/* ── Stats ── */}
-      <div style={{ marginBottom:32 }}>
-        <MiniStats items={[
-          ['📦', categories.length, 'Total Collections'],
-        ]} />
+      <div style={{ marginBottom: 28 }}>
+        <MiniStats items={[['📦', categories.length, 'Total Categories']]} />
       </div>
 
       {/* ── Cards ── */}
       {loading ? <Spinner /> : (
         <div className="cat-grid">
           {categories.map((cat, i) => {
-            const pal = PALETTES[i % PALETTES.length];
+            const accent = ACCENT_COLORS[i % ACCENT_COLORS.length];
             const active = viewCat?.id === cat.id;
+            // Pick a representative emoji based on name
+            const emoji = '👕';
             return (
               <div
                 key={cat.id}
                 className={`cat-card${active ? ' active' : ''}`}
-                style={{ 
-                  background: `linear-gradient(135deg, ${pal.bg} 0%, #fff 100%)`, 
-                  animationDelay:`${i*0.04}s`,
-                }}
+                style={{ animationDelay: `${i * 0.04}s` }}
                 onClick={() => openProducts(cat)}
               >
+                {/* top row: thumb + kebab */}
                 <div className="cat-card-top">
-                  <div>
-                    <div className="cat-name">{cat.name}</div>
-                    <div className="cat-count">{cat.productCount || 0} Products</div>
+                  <div className="cat-thumb-wrap">
+                    {cat.thumbnailImage ? (
+                      <img src={cat.thumbnailImage} alt={cat.name} style={{ objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ opacity: 0.35 }}>📦</span>
+                    )}
                   </div>
-                  <div className="cat-card-btns" style={{ opacity: 1, transform: 'none' }}>
-                    <button className="cat-btn" onClick={e => openEdit(cat, e)} title="Rename">✏️</button>
-                    <button className="cat-btn cat-btn-del" onClick={e => openDelete(cat, e)} title="Delete">🗑️</button>
-                  </div>
+                  <KebabMenu
+                    onEdit={e => openEdit(cat, e)}
+                    onDelete={e => openDelete(cat, e)}
+                  />
                 </div>
 
+                {/* name + count */}
+                <div className="cat-name">{cat.name}</div>
+                <div className="cat-count">{cat.productCount || 0} {cat.productCount === 1 ? 'Product' : 'Products'}</div>
+
+                {/* accent line */}
+                <div className="cat-accent" style={{ background: accent }} />
+
+                {/* footer */}
                 <div className="cat-foot">
-                  <span className="cat-hint">{active ? 'Close Details' : 'View Collection'}</span>
-                  <div style={{ width:8, height:8, borderRadius:'50%', background:pal.dot, opacity: active ? 1 : 0.3 }} />
+                  <span className="cat-hint">
+                    {active ? 'Close Details' : 'View Collection'}
+                    <span className="cat-hint-arrow">→</span>
+                  </span>
                 </div>
               </div>
             );
           })}
 
-          {/* Add Category Card */}
+          {/* Add card */}
           <div className="cat-add-card" onClick={openAdd}>
-            <span>＋</span>
-            <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Add Category</span>
+            <div className="cat-add-icon">＋</div>
+            <div className="cat-add-label">Add Category</div>
+            <div className="cat-add-sub">Create a new product category</div>
           </div>
         </div>
       )}
 
-      {/* ── Products Details Panel  ── */}
+      {/* ── Products Details Panel ── */}
       {viewCat && (
-        <div className="cat-panel" style={{ marginTop: 20 }}>
-          <div className="cat-panel-hdr" style={{ background: '#000', color: '#fff' }}>
-            <div className="cat-panel-title" style={{ color: '#fff' }}>
+        <div className="cat-panel" style={{ marginTop: 16 }}>
+          <div className="cat-panel-hdr">
+            <div className="cat-panel-title">
               {viewCat.name} Collection
-              <span className="cat-panel-badge" style={{ background: '#fff', color: '#000' }}>
-                {loadProds ? 'LOADING...' : `${products.length} STYLES`}
+              <span className="cat-panel-badge">
+                {loadProds ? 'Loading…' : `${products.length} Styles`}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button className="cat-btn" onClick={e => openEdit(viewCat, e)} title="Rename" style={{ background: '#fff', color: '#000' }}>✏️</button>
-              <button className="cat-btn cat-btn-del" onClick={e => openDelete(viewCat, e)} title="Delete" style={{ background: '#fff' }}>🗑️</button>
-              <button className="cat-panel-close" onClick={() => { setViewCat(null); setProducts([]); setExpandProd(null); }} style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>✕</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="cat-btn" onClick={e => openEdit(viewCat, e)} title="Rename" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', borderRadius: 8, padding: '6px 10px', color: '#fff', fontSize: 14 }}>✏️</button>
+              <button className="cat-btn cat-btn-del" onClick={e => openDelete(viewCat, e)} title="Delete" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', borderRadius: 8, padding: '6px 10px', color: '#fff', fontSize: 14 }}>🗑️</button>
+              <button className="cat-panel-close" onClick={() => { setViewCat(null); setProducts([]); setExpandProd(null); }}>✕</button>
             </div>
           </div>
 
-          <div style={{ maxHeight: 'none', overflowY: 'visible' }}>
+          <div>
             {loadProds ? <Spinner /> : products.length === 0 ? (
               <div className="cat-empty">
-                <div style={{ fontSize:40, marginBottom:16, opacity:0.2 }}>📭</div>
-                <div style={{ fontWeight:800, fontSize:16, color:'#000', letterSpacing:'-0.02em' }}>No styles found in "{viewCat.name}"</div>
-                <div style={{ fontSize:13, marginTop:6, color:'rgba(0,0,0,0.4)', fontWeight:500 }}>This collection is currently empty in the database.</div>
+                <div style={{ fontSize: 36, marginBottom: 12, opacity: 0.25 }}>📭</div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>No styles found in "{viewCat.name}"</div>
+                <div style={{ fontSize: 13, marginTop: 4, color: '#94a3b8' }}>This collection is currently empty.</div>
               </div>
             ) : products.map(prod => {
               const isOpen = expandProd === prod.id;
@@ -380,7 +418,7 @@ export default function Categories({ toast }) {
               }, {});
 
               return (
-                <div key={prod.id} style={{ borderBottom:'1px solid rgba(0,0,0,0.1)' }}>
+                <div key={prod.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <div
                     className={`cat-prow${isOpen ? ' open' : ''}`}
                     onClick={() => toggleProductVariants(prod.id)}
@@ -392,22 +430,14 @@ export default function Categories({ toast }) {
                       <div className="cat-pname">{prod.product_name}</div>
                       <div className="cat-pprice">{fmt(prod.price)}</div>
                       <div className="cat-pmeta">
-                        {prod.variant_count > 0 && (
-                          <span>📦 {prod.variant_count} {prod.variant_count === 1 ? 'variant' : 'variants'}</span>
-                        )}
-                        {prod.variant_count > 0 && prod.color && (
-                          <><span>·</span><span>🎨 {prod.color}</span></>
-                        )}
-                        {prod.variant_count === 0 && (
-                          <span style={{ color: '#ef4444', fontWeight: 600 }}>⚠️ No inventory variants defined</span>
-                        )}
+                        {prod.variant_count > 0 && <span>📦 {prod.variant_count} {prod.variant_count === 1 ? 'variant' : 'variants'}</span>}
+                        {prod.variant_count > 0 && prod.color && <><span>·</span><span>🎨 {prod.color}</span></>}
+                        {prod.variant_count === 0 && <span style={{ color: '#ef4444', fontWeight: 600 }}>⚠️ No inventory variants</span>}
                       </div>
                     </div>
-                    <span className="cat-pstock" style={{ background:sb.bg, color:sb.color }}>
-                      {sb.label}
-                    </span>
+                    <span className="cat-pstock" style={{ background: sb.bg, color: sb.color }}>{sb.label}</span>
                     <span className="cat-parrow">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </span>
                   </div>
 
@@ -415,7 +445,7 @@ export default function Categories({ toast }) {
                     <div className="cat-var-wrap">
                       <div className="cat-var-title">Inventory Breakdown</div>
                       {!prod.variants?.length ? (
-                        <div style={{ color:'rgba(0,0,0,0.3)', fontSize:13, fontWeight:600 }}>No units data available.</div>
+                        <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>No units data available.</div>
                       ) : Object.entries(byColor).map(([color, sizes]) => {
                         const el = document.createElement('div');
                         el.style.color = color.toLowerCase();
@@ -423,10 +453,10 @@ export default function Categories({ toast }) {
                         return (
                           <div key={color} className="cat-cgroup">
                             <div className="cat-clabel">
-                              <span className="cat-cdot" style={{ background:dotBg }} />
+                              <span className="cat-cdot" style={{ background: dotBg }} />
                               {color}
-                              <span style={{ fontSize:11, color:'rgba(0,0,0,0.3)', fontWeight:700 }}>
-                                ({sizes.reduce((s,v) => s+(v.quantity||0), 0)} units)
+                              <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600 }}>
+                                ({sizes.reduce((s, v) => s + (v.quantity || 0), 0)} units)
                               </span>
                             </div>
                             <div className="cat-sizes">
@@ -435,8 +465,8 @@ export default function Categories({ toast }) {
                                 return (
                                   <div key={v.id} className="cat-schip">
                                     <span className="cat-sname">{v.size}</span>
-                                    <span className="cat-sqty" style={{ background:b.bg, color:b.color }}>
-                                      {v.quantity === 0 ? 'EMPTY' : v.quantity <= 5 ? `LOW` : v.quantity}
+                                    <span className="cat-sqty" style={{ background: b.bg, color: b.color }}>
+                                      {v.quantity === 0 ? 'EMPTY' : v.quantity <= 5 ? 'LOW' : v.quantity}
                                     </span>
                                   </div>
                                 );
@@ -502,8 +532,8 @@ export default function Categories({ toast }) {
           <div className="del-title">Delete "{delTarget?.name}"?</div>
           <div className="del-sub">
             {delTarget?.productCount > 0
-              ? `⚠️ This category has ${delTarget.productCount} product(s). You must move or delete them first before deleting this category.`
-              : 'This action cannot be undone. The category will be permanently removed from the database.'}
+              ? `⚠️ This category has ${delTarget.productCount} product(s). Move or delete them first.`
+              : 'This action cannot be undone. The category will be permanently removed.'}
           </div>
         </div>
       </Modal>

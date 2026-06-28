@@ -12,9 +12,28 @@ exports.getAllCategories = async (req, res) => {
     // Manually count products..
     const result = await Promise.all(categories.map(async (cat) => {
       const productCount = await Product.count({ where: { categoryId: cat.id } });
+
+      const firstProduct = await Product.findOne({
+        where: { categoryId: cat.id },
+        order: [['id', 'ASC']]
+      });
+
+      let thumbnailImage = null;
+      if (firstProduct) {
+        const firstVariant = await ProductVariant.findOne({
+          where: { productId: firstProduct.id },
+          attributes: ['imageUrl'],
+          order: [['id', 'ASC']]
+        });
+        if (firstVariant && firstVariant.imageUrl) {
+          thumbnailImage = firstVariant.imageUrl;
+        }
+      }
+
       return {
         ...cat.toJSON(),
-        productCount
+        productCount,
+        thumbnailImage
       };
     }));
 
