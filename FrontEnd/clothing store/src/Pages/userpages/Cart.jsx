@@ -1,5 +1,5 @@
 import React from 'react'; 
-
+ 
 const Cart = ({ cartItems, updateQuantity, removeFromCart, calculateTotal }) => {
   const { subtotal, shipping, total } = calculateTotal();
 
