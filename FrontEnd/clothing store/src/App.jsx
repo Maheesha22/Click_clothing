@@ -26,6 +26,7 @@ import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
 import Settings from "./Pages/userpages/Settings";
 import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
+import RecentlyViewed from "./Pages/userpages/RecentlyViewed";  // ← ADD THIS
 
 // Component to handle redirection after login (e.g., for Buy It Now)
 const RedirectHandler = () => {
@@ -85,6 +86,7 @@ function App() {
           <Route path="orders" element={<OrderHistory />} />
           <Route path="settings" element={<Settings />} />
           <Route path="reviews" element={<Reviews />} />  {/* ← ADD THIS */}
+          <Route path="recently-viewed" element={<RecentlyViewed />} />  {/* ← ADD THIS */}
         </Route>
 
         {/*PRODUCT PAGES */}
