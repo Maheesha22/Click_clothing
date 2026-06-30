@@ -182,6 +182,10 @@ const sendOrderConfirmationEmail = async (orderData) => {
       </td>
     </tr>
   `).join('');
+  const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/+$/, '');
+  const uploadSlipUrl = frontendUrl
+    ? `${frontendUrl}/upload-slip?order=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(email)}&id=${orderId}`
+    : '';
 
   const mailOptions = {
     from: `"Click Clothing" <${process.env.EMAIL_USER}>`,
@@ -303,15 +307,15 @@ const sendOrderConfirmationEmail = async (orderData) => {
                       </div>
 
                       <table width="100%" cellpadding="0" cellspacing="0" style="background:white;border-radius:10px;padding:16px;margin-bottom:20px;">
-                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Bank Name:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;">${process.env.BANK_NAME || 'Bank of Ceylon'}</td></tr>
-                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Account Name:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;">${process.env.BANK_ACCOUNT_NAME || 'Click Clothing'}</td></tr>
-                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Account Number:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;font-weight:700;">${process.env.BANK_ACCOUNT_NUMBER || '7080123456'}</td></tr>
-                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Branch:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;">${process.env.BANK_BRANCH || 'Avissawella'}</td></tr>
+                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Bank Name:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;">${process.env.BANK_NAME || 'Contact store'}</td></tr>
+                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Account Name:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;">${process.env.BANK_ACCOUNT_NAME || 'Contact store'}</td></tr>
+                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Account Number:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;font-weight:700;">${process.env.BANK_ACCOUNT_NUMBER || 'Contact store'}</td></tr>
+                        <tr><td style="padding:6px 0;font-size:13px;color:#5a3e00;"><strong>Branch:</strong></td><td style="font-size:13px;color:#1a1a1a;text-align:right;">${process.env.BANK_BRANCH || 'Contact store'}</td></tr>
                         <tr><td colspan="2" style="padding-top:12px;border-top:1px solid #f0e8cc;"><strong style="color:#7d5a00;">Payment Reference:</strong> <span style="font-size:15px;font-weight:800;color:#b8860b;letter-spacing:1px;">${orderNumber}</span></td></tr>
                       </table>
 
                       <div style="text-align:center;">
-                        <a href="http://localhost:5173/upload-slip?order=${orderNumber}&email=${encodeURIComponent(email)}&id=${orderId}"
+                        <a href="${uploadSlipUrl}"
                            style="display:inline-block;background:linear-gradient(135deg,#c9a882,#b8912e);color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:0.5px;box-shadow:0 4px 14px rgba(201,168,130,0.4);">
                           📤 Upload Payment Slip
                         </a>

@@ -1,38 +1,61 @@
 const { User } = require("../models");
 const bcrypt = require("bcrypt");
-const crypto = require('crypto');
-const { Op } = require('sequelize');
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
 
-// REGISTER
+const publicUser = (user) => ({
+  id: user.id,
+  firstName: user.first_name,
+  lastName: user.last_name,
+  email: user.email,
+  isAdmin: Boolean(user.isAdmin),
+});
+
+const signToken = (user) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      isAdmin: Boolean(user.isAdmin),
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+  );
+};
+
 exports.register = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    // check if user exists
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // create user
     const user = await User.create({
       first_name: firstName,
       last_name: lastName,
       email,
       password: hashedPassword,
-      isAdmin: false
+      isAdmin: false,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully",
-      userId: user.id
+      userId: user.id,
     });
-
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -40,47 +63,44 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // find user by email
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     let isValid = false;
-    
-    if (user.password && user.password.startsWith('$2b$')) {
-      // Hashed password
+
+    if (user.password && user.password.startsWith("$2")) {
       isValid = await bcrypt.compare(password, user.password);
     } else {
-      // Plain text password 
-      isValid = (user.password === password);
+      isValid = user.password === password;
+      if (isValid) {
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+      }
     }
 
     if (!isValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // return user data
-    res.json({
+    return res.json({
       message: "Login successful",
-      user: {
-        id: user.id,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        email: user.email,
-        isAdmin: user.isAdmin
-      }
+      token: signToken(user),
+      user: publicUser(user),
     });
-
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
-// GOOGLE LOGIN
 exports.googleLogin = async (req, res) => {
   try {
     const { email, firstName, lastName, googleId } = req.body;
+
+    if (!email || !googleId) {
+      return res.status(400).json({ message: "Google account data is incomplete" });
+    }
 
     let user = await User.findOne({ where: { email } });
 
@@ -88,135 +108,116 @@ exports.googleLogin = async (req, res) => {
       user = await User.create({
         first_name: firstName || "",
         last_name: lastName || "",
-        email: email,
-        googleId: googleId,
+        email,
+        googleId,
         password: null,
-        isAdmin: false
+        isAdmin: false,
       });
     } else if (!user.googleId) {
       user.googleId = googleId;
       await user.save();
     }
 
-    res.json({
+    return res.json({
       message: "Google login successful",
-      user: {
-        id: user.id,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        email: user.email,
-        isAdmin: user.isAdmin
-      }
+      token: signToken(user),
+      user: publicUser(user),
     });
-
   } catch (error) {
     console.error("Google login error:", error);
-    res.status(500).json({ message: "Google login failed", error: error.message });
+    return res.status(500).json({ message: "Google login failed", error: error.message });
   }
 };
 
-// FORGOT PASSWORD
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({ 
-        message: "No account found with this email address" 
+      return res.status(404).json({
+        message: "No account found with this email address",
       });
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-
+    const resetToken = crypto.randomBytes(32).toString("hex");
     user.reset_token = resetToken;
     user.reset_expires = new Date(Date.now() + 3600000);
     await user.save();
 
-    console.log("Reset token for:", email, "→", resetToken);
-
-    res.json({ 
+    return res.json({
       message: "Password reset link sent to your email",
-      resetToken: resetToken
     });
-
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
-// RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
-    const user = await User.findOne({ 
-      where: { 
+    const user = await User.findOne({
+      where: {
         reset_token: token,
-        reset_expires: { [Op.gt]: new Date() }
-      } 
+        reset_expires: { [Op.gt]: new Date() },
+      },
     });
 
     if (!user) {
-      return res.status(400).json({ 
-        message: "Invalid or expired reset token" 
+      return res.status(400).json({
+        message: "Invalid or expired reset token",
       });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     user.reset_token = null;
     user.reset_expires = null;
     await user.save();
 
-    res.json({ 
-      message: "Password reset successful! You can now login with your new password." 
+    return res.json({
+      message: "Password reset successful! You can now login with your new password.",
     });
-
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
-exports.createPlainTextAdmin = async (req, res) => {
+exports.createAdmin = async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
-    
-    // Check if exists
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
     const existingUser = await User.findOne({ where: { email } });
-    
+
     if (existingUser) {
-      // Update existing user to admin with plain text password
-      existingUser.password = password;
+      existingUser.password = hashedPassword;
       existingUser.isAdmin = true;
       await existingUser.save();
-      
-      return res.json({ 
-        message: "User updated to admin with plain text password",
-        email: existingUser.email,
-        isAdmin: true
+
+      return res.json({
+        message: "User updated to admin",
+        user: publicUser(existingUser),
       });
     }
-    
-    // Create new admin with plain text password
+
     const admin = await User.create({
       first_name: firstName || "Admin",
       last_name: lastName || "User",
-      email: email,
-      password: password,  // Store as plain text
-      isAdmin: true
+      email,
+      password: hashedPassword,
+      isAdmin: true,
     });
-    
-    res.status(201).json({
-      message: "Admin created with plain text password",
-      email: admin.email,
-      password: password,
-      isAdmin: true
+
+    return res.status(201).json({
+      message: "Admin created",
+      user: publicUser(admin),
     });
-    
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };

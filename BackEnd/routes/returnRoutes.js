@@ -1,30 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const returnController = require('../controllers/returnController');
+const { authenticate, requireAdmin, requireSelfOrAdmin } = require('../middleware/auth');
 
 //used
-router.get('/eligible-orders', returnController.getEligibleOrdersForReturns);
+router.get('/eligible-orders', authenticate, returnController.getEligibleOrdersForReturns);
 
 // used
-router.post('/multi-product', returnController.createMultiProductReturn);
+router.post('/multi-product', authenticate, returnController.createMultiProductReturn);
 
 // used
-router.get('/stats', returnController.getReturnsStats);
+router.get('/stats', authenticate, requireAdmin, returnController.getReturnsStats);
 
-router.get('/date-range', returnController.getReturnsByDateRange);
+router.get('/date-range', authenticate, requireAdmin, returnController.getReturnsByDateRange);
 
-router.get('/user/:userId', returnController.getUserReturns);
+router.get('/user/:userId', authenticate, requireSelfOrAdmin('params', 'userId'), returnController.getUserReturns);
 
 // used
-router.get('/', returnController.getAllReturns);
+router.get('/', authenticate, requireAdmin, returnController.getAllReturns);
 
-router.get('/:id', returnController.getReturnById);
+router.get('/:id', authenticate, returnController.getReturnById);
 
-router.post('/create', returnController.createReturn);
+router.post('/create', authenticate, returnController.createReturn);
 
-router.put('/:id', returnController.updateReturn);
+router.put('/:id', authenticate, requireAdmin, returnController.updateReturn);
 
 // used 
-router.delete('/:id', returnController.deleteReturn);
+router.delete('/:id', authenticate, requireAdmin, returnController.deleteReturn);
 
 module.exports = router;

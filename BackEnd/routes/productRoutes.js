@@ -4,9 +4,12 @@ const router = express.Router();
 
 const upload = require('../config/multer');
 const productController = require('../controllers/productController');
+const { authenticate, requireAdmin } = require('../middleware/auth');
 
 router.post(
   '/upload-image',
+  authenticate,
+  requireAdmin,
   upload.single('image'),
   productController.uploadImage
 );
@@ -19,6 +22,8 @@ router.get(
 // Create product
 router.post(
   '/',
+  authenticate,
+  requireAdmin,
   productController.createProduct
 );
 
@@ -31,6 +36,8 @@ router.get(
 // Bulk create
 router.post(
   '/bulk',
+  authenticate,
+  requireAdmin,
   productController.bulkCreateProducts
 );
 
@@ -49,12 +56,16 @@ router.get(
 // Update product
 router.put(
   '/:id',
+  authenticate,
+  requireAdmin,
   productController.updateProduct
 );
 
 // Delete product
 router.delete(
   '/:id',
+  authenticate,
+  requireAdmin,
   productController.deleteProduct
 );
 
@@ -69,11 +80,15 @@ router.get(
 
 router.patch(
   '/:id/availability',
+  authenticate,
+  requireAdmin,
   productController.updateAvailability
 );
 
 router.patch(
   '/:id/quantity',
+  authenticate,
+  requireAdmin,
   productController.updateQuantity
 );
 

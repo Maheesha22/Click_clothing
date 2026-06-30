@@ -4,6 +4,7 @@ const orderController = require('../controllers/orderController');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
+const { authenticate, requireAdmin, requireSelfOrAdmin } = require('../middleware/auth');
 
 // Configure multer to upload bank slips directly to Cloudinary
 const slipStorage = new CloudinaryStorage({
@@ -21,16 +22,12 @@ const upload = multer({
 });
 
 // Order routes
-router.post('/create', upload.single('bankSlip'), orderController.createOrder);
+router.post('/create', authenticate, upload.single('bankSlip'), orderController.createOrder);
 router.get('/search/verify', orderController.getOrderByNumberAndEmail);
-router.get('/user/:userId', orderController.getUserOrders);
+router.get('/user/:userId', authenticate, requireSelfOrAdmin('params', 'userId'), orderController.getUserOrders);
 router.post('/:id/upload-slip', upload.single('bankSlip'), orderController.uploadPaymentSlip);
-router.get('/:id', orderController.getOrderDetails);
 router.get('/track/:barcode', orderController.getOrderByBarcode);
-router.get('/', orderController.getAllOrders);
-router.put('/:id/status', orderController.updateOrderStatus);
-router.put('/:id/payment', orderController.updatePaymentStatus);
-router.get('/test-email', async (req, res) => {
+router.get('/test-email', authenticate, requireAdmin, async (req, res) => {
   try {
     const { sendOrderConfirmationEmail } = require('../services/emailService');
     const result = await sendOrderConfirmationEmail({
@@ -59,5 +56,9 @@ router.get('/test-email', async (req, res) => {
     res.status(500).json({ success: false, message: err.message, stack: err.stack });
   }
 });
+router.get('/', authenticate, requireAdmin, orderController.getAllOrders);
+router.get('/:id', authenticate, requireAdmin, orderController.getOrderDetails);
+router.put('/:id/status', authenticate, requireAdmin, orderController.updateOrderStatus);
+router.put('/:id/payment', authenticate, requireAdmin, orderController.updatePaymentStatus);
 
 module.exports = router;

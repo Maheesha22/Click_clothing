@@ -1,15 +1,22 @@
 const { BankDetail } = require('./models');
+require('dotenv').config();
 
 async function seed() {
   try {
     await BankDetail.sync();
     const count = await BankDetail.count();
     if (count === 0) {
+      const required = ['BANK_NAME', 'BANK_ACCOUNT_NAME', 'BANK_ACCOUNT_NUMBER', 'BANK_BRANCH'];
+      const missing = required.filter((key) => !process.env[key]);
+      if (missing.length > 0) {
+        throw new Error(`Missing bank seed env values: ${missing.join(', ')}`);
+      }
+
       await BankDetail.create({
-        bankName: "Bank of Ceylon",
-        accountName: "Click Pvt Ltd",
-        accountNumber: "1234 5678 9012",
-        branch: "Colombo 03"
+        bankName: process.env.BANK_NAME,
+        accountName: process.env.BANK_ACCOUNT_NAME,
+        accountNumber: process.env.BANK_ACCOUNT_NUMBER,
+        branch: process.env.BANK_BRANCH
       });
       console.log("✅ Bank details seeded successfully!");
     } else {
