@@ -10,24 +10,53 @@ const toNumber = (value, fallback) => {
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
-// Load ca.pem for Aiven SSL if it exists — check both common locations
-const caPemPath = (() => {
+// Load ca.pem for Aiven SSL
+// Priority: DB_SSL_CA env var (for Vercel) → ca.pem file (for local)
+const getSslOptions = () => {
+  // If SSL is explicitly disabled
+  if (process.env.DB_SSL === 'false') return {};
+
+  // Use CA cert from environment variable (set this in Vercel dashboard)
+  if (process.env.DB_SSL_CA) {
+    return {
+      ssl: {
+        rejectUnauthorized: true,
+        ca: process.env.DB_SSL_CA,
+      },
+    };
+  }
+
+  // Fall back to ca.pem file for local development
   const candidates = [
     path.resolve(__dirname, '..', 'ca.pem'),
     path.resolve(process.cwd(), 'ca.pem'),
     path.resolve(process.cwd(), 'BackEnd', 'ca.pem'),
   ];
-  return candidates.find(p => fs.existsSync(p)) || null;
-})();
+  const caPemPath = candidates.find(p => fs.existsSync(p)) || null;
 
-const sslOptions = caPemPath
-  ? {
+  if (caPemPath) {
+    return {
       ssl: {
         rejectUnauthorized: true,
         ca: fs.readFileSync(caPemPath).toString(),
       },
-    }
-  : {};
+    };
+  }
+
+  // Aiven requires SSL — if no cert found, still enable SSL but skip verification
+  // Remove this once DB_SSL_CA is set in Vercel
+  if (process.env.DB_HOST && process.env.DB_HOST.includes('aivencloud.com')) {
+    return {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    };
+  }
+
+  return {};
+};
+
+const sslOptions = getSslOptions();
 
 const common = {
   dialect: process.env.DB_DIALECT || 'mysql',
