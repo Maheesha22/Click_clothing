@@ -28,19 +28,23 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const db = require('./models');
 
-const parseCorsOrigin = (origin) => {
-  if (!origin) return false;
-  if (origin === '*') return true;
-  return origin.split(',').map((item) => item.trim()).filter(Boolean);
+const parseCorsOrigin = (originEnv) => {
+  if (!originEnv) return '*'; // fallback to allow all if not configured
+  if (originEnv === '*') return true;
+  const origins = originEnv.split(',').map((o) => o.trim()).filter(Boolean);
+  return origins.length === 1 ? origins[0] : origins;
 };
 
 const port = Number(process.env.PORT) || 3000;
-const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+const corsOrigin = parseCorsOrigin(process.env.CORS_ORIGIN || process.env.FRONTEND_URL);
 
 app.use(cors({
   origin: corsOrigin,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.options('*', cors()); // handle preflight for all routes
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
