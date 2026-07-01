@@ -74,7 +74,8 @@ app.get('/', (req, res) => {
   res.send('Click Clothing API is running.');
 });
 
-const startServer = async () => {
+// Initialize database connection for both serverless and traditional deployment
+const initializeDatabase = async () => {
   try {
     await db.sequelize.authenticate();
     console.log('Database connected successfully.');
@@ -83,20 +84,29 @@ const startServer = async () => {
       await db.sequelize.sync();
       console.log('Database sync completed.');
     }
+  } catch (err) {
+    console.error('Unable to connect to database:', err);
+  }
+};
 
-    // Only listen on port if not in Vercel serverless environment
-    if (process.env.VERCEL) {
-      console.log('Running in Vercel serverless environment');
-      module.exports = app;
-    } else {
-      app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
-      });
-    }
+// Initialize database immediately
+initializeDatabase();
+
+const startServer = async () => {
+  try {
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
   } catch (err) {
     console.error('Unable to start server:', err);
     process.exit(1);
   }
 };
 
-startServer();
+// Only start server if not in Vercel environment
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+// Export app for Vercel serverless
+module.exports = app;
