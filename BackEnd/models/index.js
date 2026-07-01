@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 const fs = require('fs');
 const path = require('path');
@@ -9,11 +9,19 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
 
+// Explicitly require mysql2 so bundlers (Vercel) include it
+try { require('mysql2'); } catch (e) { /* ignore - will be caught at connection time */ }
+
 let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
 }
 
 fs
