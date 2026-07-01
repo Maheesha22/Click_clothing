@@ -3,7 +3,7 @@
 
 
 import { useState, useEffect } from "react";
-import "./SizeChart.css";
+import "./Sizechart.css";
 
 const SIZE_DATA = [
   { size: "S",  lengthIn: 25,    widthIn: 14.75 },
