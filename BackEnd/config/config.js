@@ -10,9 +10,17 @@ const toNumber = (value, fallback) => {
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
-// Load ca.pem for Aiven SSL if it exists next to this config
-const caPemPath = path.resolve(__dirname, '..', 'ca.pem');
-const sslOptions = fs.existsSync(caPemPath)
+// Load ca.pem for Aiven SSL if it exists — check both common locations
+const caPemPath = (() => {
+  const candidates = [
+    path.resolve(__dirname, '..', 'ca.pem'),
+    path.resolve(process.cwd(), 'ca.pem'),
+    path.resolve(process.cwd(), 'BackEnd', 'ca.pem'),
+  ];
+  return candidates.find(p => fs.existsSync(p)) || null;
+})();
+
+const sslOptions = caPemPath
   ? {
       ssl: {
         rejectUnauthorized: true,
