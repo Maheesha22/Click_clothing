@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd BackEnd && npm install",
+  "buildCommand": "npm install --prefix BackEnd",
   "outputDirectory": "BackEnd",
   "installCommand": "echo 'skip root install'",
   "rewrites": [
