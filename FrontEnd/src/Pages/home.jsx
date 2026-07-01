@@ -4,7 +4,7 @@ import Header from "../Components/header";
 import Footer from "../Components/footer";
 import WhatsAppButton from "../Components/whatsappbtn";
 import NavBar from "../Components/navsidebar";
-import "./Home.css";
+import "./home.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import cartService from "../services/cartservice";
 import { apiUrl } from "../services/api";

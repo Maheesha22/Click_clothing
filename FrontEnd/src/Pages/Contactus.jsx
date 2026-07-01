@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Header from '../Components/header';
 import Footer from '../Components/footer';
 import { apiUrl } from '../services/api';
-import './ContactUs.css';
+import './Contactus.css';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import './AdminDashboard.css';
+import './Admindashboard.css';
 
 import {
   useToast,

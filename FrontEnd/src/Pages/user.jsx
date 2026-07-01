@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import Header from "../Components/header";
 import Footer from "../Components/footer";
-import './User.css';
+import './user.css';
 
 const User = () => {
   const navigate = useNavigate();
