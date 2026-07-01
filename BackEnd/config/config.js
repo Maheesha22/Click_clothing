@@ -1,6 +1,8 @@
 'use strict';
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 
 const toNumber = (value, fallback) => {
   if (value === undefined || value === null || value === '') return fallback;
@@ -8,9 +10,23 @@ const toNumber = (value, fallback) => {
   return Number.isNaN(parsed) ? fallback : parsed;
 };
 
+// Load ca.pem for Aiven SSL if it exists next to this config
+const caPemPath = path.resolve(__dirname, '..', 'ca.pem');
+const sslOptions = fs.existsSync(caPemPath)
+  ? {
+      ssl: {
+        rejectUnauthorized: true,
+        ca: fs.readFileSync(caPemPath).toString(),
+      },
+    }
+  : {};
+
 const common = {
   dialect: process.env.DB_DIALECT || 'mysql',
   logging: process.env.DB_LOGGING === 'true' ? console.log : false,
+  dialectOptions: {
+    ...sslOptions,
+  },
 };
 
 const fromEnv = () => {

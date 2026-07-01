@@ -1,0 +1,171 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ── USERS ─────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `Users` (
+  `id` int NOT NULL AUTO_INCREMENT, `first_name` varchar(255), `last_name` varchar(255),
+  `email` varchar(255), `password` varchar(255), `googleId` varchar(255),
+  `isAdmin` tinyint(1), `createdAt` datetime NOT NULL, `updatedAt` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `Users` (id,first_name,last_name,email,password,googleId,isAdmin,createdAt,updatedAt) VALUES
+(1,'Maheesha','Nidushani','maheeshaecc18@gmail.com','$2b$10$7tfNLl5keoGmhQdVDlSM2.fifdB2uZP.0QGLoBY6EBhWEhfelGxg.',NULL,0,'2026-05-02 09:28:44','2026-05-02 09:28:44'),
+(2,'dimuthu','tharuka','dimuthu@gmail.com','$2b$10$JDzrMgPmI/U7.cMRW0tQIOcXisJdYf1jetIu9LMSoV9RGBrORmhoC',NULL,0,'2026-05-02 16:50:26','2026-05-02 16:50:26'),
+(3,'Admin','User','admin@gmail.com','admin123',NULL,1,'2026-05-02 22:28:42','2026-05-02 22:28:42'),
+(4,'John','Doe','john1@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(5,'Jane','Smith','jane1@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(6,'Michael','Brown','michael@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(7,'Emily','Davis','emily@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(8,'Daniel','Wilson','daniel@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(9,'Olivia','Taylor','olivia@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(10,'Matthew','Anderson','matthew@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(11,'Sophia','Thomas','sophia@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(12,'David','Jackson','david@gmail.com','pass123',NULL,0,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(13,'Isabella','White','isabella@gmail.com','pass123',NULL,1,'2026-05-04 21:01:12','2026-05-04 21:01:12'),
+(16,'Shasidu','Lakshan','shasi@gmail.com','$2b$10$rEo235kbabYULtoQK50E7O7vph7j.pfHbMvqhgLoeBQ0ggYM1k3q6',NULL,0,'2026-05-06 15:30:22','2026-05-06 15:30:22'),
+(17,'kalidu','dahanayaka','kali@gmail.com','$2b$10$I0u3Hrp2L3YsayTWOBS2j.acPwZkXwvLrRfXfbWTQS9iarjrz5xXi',NULL,0,'2026-05-06 15:34:20','2026-05-06 15:34:20'),
+(18,'Chavi','Nisha','chavinisha12@gmail.com',NULL,'102495407217672568079',0,'2026-05-06 15:47:56','2026-05-06 15:47:56'),
+(19,'clikk','12','clikk136@gmail.com',NULL,'107442422009831204813',0,'2026-05-06 20:39:52','2026-05-06 20:39:52'),
+(20,'Chanudi','Sihansa','chanu@gmail.com','$2b$10$aKE6Yw8q0VEyfqcVYgtE1efquwUzNBAh0BrBlleCWFvS33dlEcWpu',NULL,0,'2026-05-07 23:56:42','2026-05-07 23:56:42'),
+(21,'navodya','hansini','navodya@gmail.com','$2b$10$lYFLWKDOnM54V/xy2gt3cuPDDUCqEe8dq1R6J1asmvgAvGsEt8m6W',NULL,0,'2026-05-08 00:11:19','2026-05-08 00:11:19'),
+(22,'tanushi','dilrangani','tanushi@gmail.com','$2b$10$p.xTBlVmt4uFXBNhPUnIwuECIH4H.D7jEJ7aXFHLRd5T4rOiG8vAq',NULL,0,'2026-05-08 00:14:23','2026-05-08 00:14:23'),
+(23,'sadun','bagya','sadun@gmail.com','$2b$10$B6UOo3g08uAFHXuo1an1lu2CqbNcKc2ute1eK8BrMh3F4rMTW3GFW',NULL,0,'2026-05-08 00:16:01','2026-05-08 00:16:01'),
+(24,'rashmika','nilupul','nilupul@gmail.com','$2b$10$ysHhDQVPDJ8h0RK4pap6DOw9sKzLn6EaLdKpEMmoDItdusXaAkWFS',NULL,0,'2026-05-08 00:17:41','2026-05-08 00:17:41'),
+(25,'senith','sasi','senith@gmail.com','$2b$10$w4lxVPYi3Ijwprata9jbEOIdjtro4iqvqHUuN2qBw48pUR9JDe3/.',NULL,0,'2026-05-08 00:19:11','2026-05-08 00:19:11'),
+(26,'Gayan','madushanka','gayan@gmail.com','$2b$10$TpRU20BgITUXUpxoB2OK2eFWOnZrFvYc0WzVzwXka2KQsNycAq3ma',NULL,0,'2026-05-23 16:24:44','2026-05-23 16:24:44');
+
+-- ── CATEGORIES ────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int NOT NULL AUTO_INCREMENT, `name` varchar(50) NOT NULL,
+  `createdAt` datetime NOT NULL, `updatedAt` datetime NOT NULL,
+  PRIMARY KEY (`id`), UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `categories` (id,name,createdAt,updatedAt) VALUES
+(2,'shirts','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(3,'shorts','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(4,'pants','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(5,'denims','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(6,'tshirts','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(7,'arm cuts','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(8,'hoodie','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(9,'long sleeves','2026-05-04 21:18:22','2026-05-04 21:18:22'),
+(10,'accessories','2026-05-04 21:18:22','2026-05-04 21:18:22');
+
+-- ── PRODUCTS ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` int NOT NULL AUTO_INCREMENT, `name` varchar(255), `description` text,
+  `price` decimal(10,2), `categoryId` int,
+  `createdAt` datetime NOT NULL, `updatedAt` datetime NOT NULL,
+  PRIMARY KEY (`id`), KEY `categoryId` (`categoryId`),
+  CONSTRAINT `products_cat_fk` FOREIGN KEY (`categoryId`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `products` (id,name,description,price,categoryId,createdAt,updatedAt) VALUES
+(1,'Printed shirts','Stylish printed shirts for casual wear',2250.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(2,'Striped lin','Lightweight striped shirt for everyday comfort',2800.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(3,'Striped linen','Breathable linen striped shirt',2800.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(4,'Striped shirt','Classic striped shirt design',2800.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(5,'Two tone shirt','Modern two-tone shirt',2850.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(6,'Linen print shirt','Printed linen shirt for a stylish look',2650.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(7,'Plain linen shirt','Minimal plain linen shirt',2800.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(8,'Acid wash shirt','Vintage acid wash shirt',2900.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(9,'Cuban collar shirt','Relaxed Cuban collar shirt',2600.00,2,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(10,'Denim pocket shorts','Denim shorts with multiple pockets',2400.00,3,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(11,'Acid wash denim shorts','Stylish acid wash denim shorts',2300.00,3,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(12,'Denim patch short','Denim shorts with patch design',2300.00,3,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(13,'Cargo pants','Utility cargo pants with pockets',3200.00,4,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(14,'Print cargo pant','Printed cargo pants',2950.00,4,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(15,'Cargo pocket pant','Cargo pants with extra pockets',3200.00,4,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(16,'Plain denim','Classic plain denim jeans',4200.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(17,'Big fold denim','Denim with big fold style',4200.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(18,'Big fold denim trouser','Folded denim trousers',4200.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(19,'Knee patch denim','Denim with knee patch design',4250.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(20,'Denim side pocket','Denim with side pockets',4600.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(21,'Ash color plain denim','Ash color denim jeans',4200.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(22,'Black plain denim','Black denim jeans',4200.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(23,'Denim full patch trousers','Full patch denim trousers',4300.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(24,'Pocket denim trouser','Denim trousers with pockets',4600.00,5,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(25,'Zip collar line','T-shirt with zip collar design',2700.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(26,'Hot wheel collar t shirt','Graphic collar t-shirt',2850.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(27,'Emirates acid wash','Acid wash t-shirt style',2000.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(28,'Two tone edge t shirt','Two tone modern t-shirt',2400.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(29,'Click collar t shirt','Collar style t-shirt',1950.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(30,'Back print t shirt','T-shirt with back print',2690.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(31,'Puff back print','Puff print t-shirt design',2350.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(32,'Click white collar t shirt','White collar t-shirt',2200.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(33,'Striped t shirt','Striped casual t-shirt',2100.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(34,'Puff print t shirt','Puff print styled t-shirt',2250.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(35,'Unisex t shirt (2000)','Unisex t-shirt basic',2000.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(36,'Unisex t shirt (2250)','Unisex t-shirt premium',2250.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(37,'Front print t shirt','Front print t-shirt',2250.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(38,'Lufa outfit t shirt','Stylish outfit t-shirt',2400.00,6,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(39,'Arm cuts','Sleeveless arm cut shirt',500.00,7,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(40,'Adidas hoodie','Warm Adidas style hoodie',3000.00,8,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(41,'Nike hoodie','Comfortable Nike style hoodie',2800.00,8,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(42,'Harly long sleeve','Long sleeve casual shirt',2800.00,9,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(43,'Half zip full sleeve','Half zip full sleeve shirt',3200.00,9,'2026-05-05 15:06:13','2026-05-05 15:06:13'),
+(44,'Cap','Casual wear cap',1000.00,10,'2026-05-05 15:06:13','2026-05-05 15:06:13');
+
+-- ── PRODUCT_VARIANTS ──────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS `product_variants` (
+  `id` int NOT NULL AUTO_INCREMENT, `productId` int NOT NULL,
+  `size` varchar(10) NOT NULL, `color` varchar(30) NOT NULL,
+  `quantity` int NOT NULL DEFAULT 0, `imageUrl` varchar(500),
+  `createdAt` datetime NOT NULL, `updatedAt` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pv` (`productId`,`size`,`color`),
+  CONSTRAINT `pv_prod_fk` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `product_variants` (id,productId,size,color,quantity,imageUrl,createdAt,updatedAt) VALUES
+(1,1,'S','Blue',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975423/dezzmutkhryxic00kph8.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(2,1,'M','Blue',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975423/dezzmutkhryxic00kph8.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(3,1,'L','Blue',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975423/dezzmutkhryxic00kph8.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(4,1,'XL','Blue',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975423/dezzmutkhryxic00kph8.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(5,1,'XXL','Blue',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975423/dezzmutkhryxic00kph8.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(6,1,'S','Green',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975485/rikzazogq5as8quxjyla.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(7,1,'M','Green',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975485/rikzazogq5as8quxjyla.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(8,1,'L','Green',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975485/rikzazogq5as8quxjyla.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(9,1,'XL','Green',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975485/rikzazogq5as8quxjyla.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(10,1,'XXL','Green',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975485/rikzazogq5as8quxjyla.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(11,1,'S','Brown',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975523/swansjkqmm42ggv2zn19.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(12,1,'M','Brown',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975523/swansjkqmm42ggv2zn19.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(13,1,'L','Brown',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975523/swansjkqmm42ggv2zn19.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(14,1,'XL','Brown',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975523/swansjkqmm42ggv2zn19.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(15,1,'XXL','Brown',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975523/swansjkqmm42ggv2zn19.jpg','2026-05-05 15:51:11','2026-05-05 15:51:11'),
+(16,2,'S','Pink',15,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975751/utedsfmisxv969jbs7os.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(17,2,'M','Pink',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975751/utedsfmisxv969jbs7os.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(18,2,'L','Pink',35,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975751/utedsfmisxv969jbs7os.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(19,2,'XL','Pink',12,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975751/utedsfmisxv969jbs7os.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(20,2,'XXL','Pink',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975751/utedsfmisxv969jbs7os.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(21,2,'S','Green',15,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975799/ddhrrrdjv7q3q3ig9ta5.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(22,2,'M','Green',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975799/ddhrrrdjv7q3q3ig9ta5.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(23,2,'L','Green',35,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975799/ddhrrrdjv7q3q3ig9ta5.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(24,2,'XL','Green',12,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975799/ddhrrrdjv7q3q3ig9ta5.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(25,2,'XXL','Green',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975799/ddhrrrdjv7q3q3ig9ta5.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(26,2,'S','Blue',15,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975852/rtduty3dqndc9uqaklbz.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(27,2,'M','Blue',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975852/rtduty3dqndc9uqaklbz.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(28,2,'L','Blue',35,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975852/rtduty3dqndc9uqaklbz.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(29,2,'XL','Blue',12,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975852/rtduty3dqndc9uqaklbz.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(30,2,'XXL','Blue',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975852/rtduty3dqndc9uqaklbz.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(31,2,'S','LightBrown',15,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975901/lwhvlwvpcv9wfm4m1uln.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(32,2,'M','LightBrown',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975901/lwhvlwvpcv9wfm4m1uln.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(33,2,'L','LightBrown',35,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975901/lwhvlwvpcv9wfm4m1uln.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(34,2,'XL','LightBrown',12,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975901/lwhvlwvpcv9wfm4m1uln.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(35,2,'XXL','LightBrown',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777975901/lwhvlwvpcv9wfm4m1uln.jpg','2026-05-05 20:07:28','2026-05-05 20:07:28'),
+(36,3,'S','LightBlue',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/zjhghtlyztet6ytfik7z.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(37,3,'M','LightBlue',25,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/zjhghtlyztet6z.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(38,3,'L','LightBlue',35,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/zjhghtlyztet6ytfik7z.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(39,3,'XL','LightBlue',25,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/zjhghtlyztet6ytfik7z.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(40,3,'XXL','LightBlue',15,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/zjhghtlyztet6ytfik7z.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(41,3,'S','LightBrown',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/ij5s2veouyhq1t5tz7no.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(42,3,'M','LightBrown',25,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/ij5s2veouyhq1t5tz7no.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(43,3,'L','LightBrown',35,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/ij5s2veouyhq1t5tz7no.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(44,3,'XL','LightBrown',25,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/ij5s2veouyhq1t5tz7no.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(45,3,'XXL','LightBrown',15,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976321/ij5s2veouyhq1t5tz7no.jpg','2026-05-05 20:07:32','2026-05-05 20:07:32'),
+(46,4,'S','Black',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976973/quovoqejstatogwm9xvn.jpg','2026-05-05 20:08:38','2026-05-05 20:08:38'),
+(47,4,'M','Black',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976973/quovoqejstatogwm9xvn.jpg','2026-05-05 20:08:38','2026-05-05 20:08:38'),
+(48,4,'L','Black',20,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976973/quovoqejstatogwm9xvn.jpg','2026-05-05 20:08:38','2026-05-05 20:08:38'),
+(49,4,'XL','Black',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976973/quovoqejstatogwm9xvn.jpg','2026-05-05 20:08:38','2026-05-05 20:08:38'),
+(50,4,'XXL','Black',10,'https://res.cloudinary.com/dv4ubqk9d/image/upload/v1777976973/quovoqejstatogwm9xvn.jpg','2026-05-05 20:08:38','2026-05-05 20:08:38');
