@@ -35,7 +35,7 @@ const parseCorsOrigin = (origin) => {
 };
 
 const port = Number(process.env.PORT) || 3000;
-const corsOrigin = parseCorsOrigin(process.env.CORS_ORIGIN || process.env.FRONTEND_URL || '*');
+const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
 
 app.use(cors({
   origin: corsOrigin,
