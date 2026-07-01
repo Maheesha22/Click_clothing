@@ -3,6 +3,7 @@
   "outputDirectory": "FrontEnd/dist",
   "installCommand": "echo 'skip root install'",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/BackEnd/api/index.js" },
+    { "source": "/(.*)", "destination": "/FrontEnd/index.html" }
   ]
 }

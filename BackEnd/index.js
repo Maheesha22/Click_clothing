@@ -84,9 +84,15 @@ const startServer = async () => {
       console.log('Database sync completed.');
     }
 
-    app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-    });
+    // Only listen on port if not in Vercel serverless environment
+    if (process.env.VERCEL) {
+      console.log('Running in Vercel serverless environment');
+      module.exports = app;
+    } else {
+      app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+      });
+    }
   } catch (err) {
     console.error('Unable to start server:', err);
     process.exit(1);
