@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npm install --prefix BackEnd",
-  "outputDirectory": "BackEnd",
+  "buildCommand": "npm install --prefix FrontEnd && npm run build --prefix FrontEnd",
+  "outputDirectory": "FrontEnd/dist",
   "installCommand": "echo 'skip root install'",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/BackEnd/api/index.js" }
+    { "source": "/(.*)", "destination": "/FrontEnd/index.html" }
   ]
 }
