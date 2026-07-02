@@ -1,210 +1,465 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import API from '../../services/api';
 import './Reviews.css';
 
-const Reviews = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { storedUser } = useOutletContext();
-  
-  const orderId = location.state?.orderId;
-  const orderNumber = location.state?.orderNumber;
-
-  const [rating, setRating] = useState(0);
+/* ─────────────────────────────── helpers ────────────────────────────────── */
+const StarRating = ({ value, onChange, readonly = false }) => {
   const [hover, setHover] = useState(0);
+  return (
+    <div className="rv-stars" aria-label={`Rating: ${value} of 5`}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <button
+          key={i}
+          type="button"
+          className={`rv-star-btn ${i <= (hover || value) ? 'on' : 'off'}`}
+          onClick={() => !readonly && onChange && onChange(i)}
+          onMouseEnter={() => !readonly && setHover(i)}
+          onMouseLeave={() => !readonly && setHover(0)}
+          disabled={readonly}
+          aria-label={`${i} star${i > 1 ? 's' : ''}`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+};
+
+const ratingLabel = r => ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][r] || '';
+
+const getProductImage = (item) => {
+  const variants = item?.Product?.variants || [];
+  const exact = variants.find(v =>
+    String(v.color || '').toLowerCase() === String(item.color || '').toLowerCase() && v.imageUrl
+  );
+  const any = variants.find(v => v.imageUrl);
+  return exact?.imageUrl || any?.imageUrl || null;
+};
+
+/* ──────────────────────────── ProductReviewCard ─────────────────────────── */
+const ProductReviewCard = ({ item, orderId, orderNumber, onReviewed }) => {
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef();
+  const captureInputRef = useRef();
 
-  useEffect(() => {
-    if (!orderId) {
-      fetchOrders();
-    }
-  }, [orderId]);
+  const productImg = getProductImage(item);
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const response = await API.get(`/customer-orders/user/${storedUser?.id}`);
-      if (response.data.success) {
-        // Filter for delivered orders that could be reviewed
-        const deliveredOrders = response.data.data.filter(o => o.status?.toLowerCase() === 'delivered');
-        setOrders(deliveredOrders);
-      }
-    } catch (err) {
-      console.error('Error fetching orders:', err);
-    } finally {
-      setLoading(false);
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    // Max 5 images
+    if (imageFiles.length + files.length > 5) {
+      setError('You can upload a maximum of 5 photos.');
+      return;
     }
+
+    const newFiles = [...imageFiles, ...files];
+    const newPreviews = [...imagePreviews, ...files.map(f => URL.createObjectURL(f))];
+    
+    setImageFiles(newFiles);
+    setImagePreviews(newPreviews);
+  };
+  
+  const removeImage = (index) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    // Reset input values so the same file can be selected again
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (captureInputRef.current) captureInputRef.current.value = '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (rating === 0) {
-      setError('Please select a star rating');
-      return;
-    }
-    
-    if (!comment.trim()) {
-      setError('Please provide a comment');
-      return;
-    }
-
-    setIsSubmitting(true);
     setError('');
+    if (rating === 0) return setError('Please select a star rating.');
+    if (!comment.trim()) return setError('Please write a comment.');
 
+    setSubmitting(true);
     try {
-      // still there is no end point 
-      await API.post('/reviews', {
-        userId: storedUser?.id,
-        orderId: orderId,
-        rating: rating,
-        comment: comment,
-        userName: `${storedUser?.firstName} ${storedUser?.lastName}`
+      const formData = new FormData();
+      formData.append('orderId', orderId);
+      formData.append('productId', item.productId);
+      formData.append('color', item.color || '');
+      formData.append('rating', rating);
+      formData.append('comment', comment.trim());
+      imageFiles.forEach(file => {
+        formData.append('images', file);
       });
-      
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/user/orders');
-      }, 3000);
+
+      await API.post('/reviews', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      setOpen(false);
+      onReviewed(orderId, item.productId);
     } catch (err) {
-      console.error('Error submitting review:', err);
-      // Fallback: If /reviews doesn't exist, try /feedbacks as a backup if that's what the user prefers
-      try {
-        await API.post('/feedbacks', {
-          name: `${storedUser?.firstName} ${storedUser?.lastName}`,
-          email: storedUser?.email,
-          message: `Order #${orderNumber} Review (${rating} Stars): ${comment}`
-        });
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/user/orders');
-        }, 3000);
-      } catch (fallbackErr) {
-        setError('Failed to submit review. Please try again later.');
-      }
+      const msg = err.response?.data?.message || 'Failed to submit review.';
+      setError(msg);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="review-container success-state">
-        <div className="success-card">
-          <div className="success-icon">✓</div>
-          <h2>Thank You!</h2>
-          <p>Your review for Order <strong>#{orderNumber}</strong> has been submitted successfully.</p>
-          <p className="redirect-text">Redirecting you back to your orders...</p>
+  return (
+    <div className={`rv-product-card ${item.alreadyReviewed ? 'reviewed' : ''}`}>
+      <div className="rv-product-row">
+        {/* Product image */}
+        <div className="rv-product-img-wrap">
+          {productImg
+            ? <img src={productImg} alt={item.Product?.name} className="rv-product-img" onError={e => { e.target.style.display = 'none'; }} />
+            : <div className="rv-product-img-placeholder">📦</div>
+          }
+        </div>
+
+        {/* Product info */}
+        <div className="rv-product-info">
+          <span className="rv-product-name">{item.Product?.name || 'Product'}</span>
+          <div className="rv-product-meta">
+            {item.color && <span className="rv-meta-chip color-chip">{item.color}</span>}
+            {item.size && <span className="rv-meta-chip size-chip">{item.size}</span>}
+            <span className="rv-meta-chip qty-chip">Qty: {item.quantity}</span>
+          </div>
+        </div>
+
+        {/* Action */}
+        <div className="rv-product-action">
+          {item.alreadyReviewed ? (
+            <span className="rv-reviewed-badge">✓ Reviewed</span>
+          ) : (
+            <button
+              className={`rv-write-btn ${open ? 'active' : ''}`}
+              onClick={() => setOpen(o => !o)}
+            >
+              {open ? 'Cancel' : 'Write Review'}
+            </button>
+          )}
         </div>
       </div>
-    );
-  }
 
-  if (!orderId) {
-    return (
-      <div className="reviews-section">
-        <h2 className="section-title">My Reviews</h2>
-        <p className="review-subtitle">Select a delivered order to share your feedback.</p>
-        
-        {loading ? (
-          <div className="loading-spinner">Loading orders...</div>
-        ) : orders.length > 0 ? (
-          <div className="reviewable-orders-list">
-            {orders.map(order => (
-              <div key={order.id} className="reviewable-order-card">
-                <div className="order-main-info">
-                  <span className="order-number">Order #{order.order_number}</span>
-                  <span className="order-date">{new Date(order.createdAt).toLocaleDateString()}</span>
-                </div>
+      {/* Inline review form */}
+      {open && !item.alreadyReviewed && (
+        <form className="rv-inline-form" onSubmit={handleSubmit}>
+          <div className="rv-form-section">
+            <label className="rv-label">Your Rating</label>
+            <StarRating value={rating} onChange={setRating} />
+            {rating > 0 && <span className="rv-rating-label">{ratingLabel(rating)}</span>}
+          </div>
+
+          <div className="rv-form-section">
+            <label className="rv-label" htmlFor={`comment-${item.productId}`}>Your Review</label>
+            <div className="rv-textarea-wrapper">
+              <textarea
+                id={`comment-${item.productId}`}
+                className="rv-textarea has-icon"
+                placeholder="How was the quality, fit, and delivery? Share your honest experience..."
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                rows={4}
+              />
+              <div className="rv-textarea-actions">
                 <button 
-                  className="write-review-btn-small"
-                  onClick={() => navigate('/user/reviews', { state: { orderId: order.id, orderNumber: order.order_number } })}
+                  type="button" 
+                  className="rv-inline-upload-btn"
+                  onClick={() => captureInputRef.current.click()}
+                  title="Take a photo"
                 >
-                  Write Review
+                  📷
+                </button>
+                <button 
+                  type="button" 
+                  className="rv-inline-upload-btn"
+                  onClick={() => fileInputRef.current.click()}
+                  title="Attach a photo"
+                >
+                  📎
                 </button>
               </div>
-            ))}
+            </div>
+            
+            {imagePreviews.length > 0 && (
+              <div className="rv-inline-image-preview-list">
+                {imagePreviews.map((preview, idx) => (
+                  <div key={idx} className="rv-inline-image-preview-item">
+                    <img src={preview} alt={`Preview ${idx + 1}`} className="rv-upload-preview" />
+                    <button
+                      type="button"
+                      className="rv-remove-img-btn"
+                      onClick={() => removeImage(idx)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleImageChange}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              ref={captureInputRef}
+              style={{ display: 'none' }}
+              onChange={handleImageChange}
+            />
           </div>
-        ) : (
-          <div className="empty-reviews-state">
-            <p>You have no delivered orders to review yet.</p>
-            <button className="shop-now-btn" onClick={() => navigate('/')}>Shop Now</button>
+
+          {error && <div className="rv-error">{error}</div>}
+
+          <div className="rv-form-actions">
+            <button type="button" className="rv-cancel-btn" onClick={() => { setOpen(false); setError(''); }}>
+              Cancel
+            </button>
+            <button type="submit" className="rv-submit-btn" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Submit Review'}
+            </button>
           </div>
+        </form>
+      )}
+    </div>
+  );
+};
+
+/* ──────────────────────────── OrderReviewBlock ──────────────────────────── */
+const OrderReviewBlock = ({ order, onReviewed }) => {
+  const [expanded, setExpanded] = useState(false);
+  const allReviewed = order.items?.every(i => i.alreadyReviewed);
+
+  return (
+    <div className={`rv-order-block ${allReviewed ? 'all-reviewed' : ''}`}>
+      <div className="rv-order-header" onClick={() => setExpanded(o => !o)}>
+        <div className="rv-order-header-left">
+          <span className="rv-order-number">Order #{order.order_number || order.id}</span>
+          <span className="rv-order-date">{new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <span className="rv-order-items-count">{order.items?.length} product{order.items?.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div className="rv-order-header-right">
+          {allReviewed
+            ? <span className="rv-all-reviewed-badge">All Reviewed ✓</span>
+            : <span className="rv-pending-badge">{order.items?.filter(i => !i.alreadyReviewed).length} pending</span>
+          }
+          <span className={`rv-chevron ${expanded ? 'up' : 'down'}`}>›</span>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="rv-products-list">
+          {order.items?.map(item => (
+            <ProductReviewCard
+              key={`${order.id}-${item.productId}`}
+              item={item}
+              orderId={order.id}
+              orderNumber={order.order_number}
+              onReviewed={onReviewed}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ──────────────────────────── SubmittedReview ───────────────────────────── */
+const SubmittedReview = ({ review }) => {
+  const variants = review.product?.variants || [];
+  const colorVariant = variants.find(v =>
+    String(v.color || '').toLowerCase() === String(review.color || '').toLowerCase() && v.imageUrl
+  );
+  const anyVariant = variants.find(v => v.imageUrl);
+  const productImg = colorVariant?.imageUrl || anyVariant?.imageUrl || null;
+
+  return (
+    <div className="rv-submitted-card">
+      <div className="rv-submitted-top">
+        {productImg && (
+          <img src={productImg} alt={review.product?.name} className="rv-submitted-product-img" onError={e => { e.target.style.display = 'none'; }} />
         )}
+        <div className="rv-submitted-info">
+          <span className="rv-submitted-product-name">{review.product?.name || 'Product'}</span>
+          <span className="rv-submitted-order">Order #{review.order?.order_number || review.orderId}</span>
+          {review.color && <span className="rv-meta-chip color-chip">{review.color}</span>}
+          <StarRating value={review.rating} readonly />
+          <span className="rv-submitted-rating-label">{ratingLabel(review.rating)}</span>
+          <span className="rv-submitted-date">{new Date(review.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        </div>
+      </div>
+      <p className="rv-submitted-comment">"{review.comment}"</p>
+      {review.imageUrls && review.imageUrls.length > 0 && (
+        <div className="rv-submitted-img-wrap">
+          {review.imageUrls.map((url, idx) => (
+            <img key={idx} src={url} alt={`Review ${idx + 1}`} className="rv-submitted-review-img" />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ──────────────────────────── Main Component ────────────────────────────── */
+const Reviews = () => {
+  const navigate = useNavigate();
+  const { storedUser, isLoggedIn } = useOutletContext();
+
+  const [activeTab, setActiveTab] = useState('write');
+  const [orders, setOrders] = useState([]);
+  const [myReviews, setMyReviews] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [ordersError, setOrdersError] = useState('');
+  const [reviewsError, setReviewsError] = useState('');
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    fetchOrders();
+    fetchMyReviews();
+  }, [isLoggedIn]);
+
+  const fetchOrders = async () => {
+    setLoadingOrders(true);
+    setOrdersError('');
+    try {
+      const res = await API.get('/reviews/eligible-orders');
+      if (res.data.success) setOrders(res.data.data);
+    } catch (err) {
+      setOrdersError('Failed to load orders. Please try again.');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const fetchMyReviews = async () => {
+    setLoadingReviews(true);
+    setReviewsError('');
+    try {
+      const res = await API.get('/reviews/my-reviews');
+      if (res.data.success) setMyReviews(res.data.data);
+    } catch (err) {
+      setReviewsError('Failed to load your reviews.');
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  // Optimistically mark a product as reviewed in the orders list
+  const handleReviewed = (orderId, productId) => {
+    setOrders(prev => prev.map(order => {
+      if (order.id !== orderId) return order;
+      return {
+        ...order,
+        items: order.items.map(item =>
+          item.productId === productId ? { ...item, alreadyReviewed: true } : item
+        )
+      };
+    }));
+    // Refresh submitted reviews tab
+    fetchMyReviews();
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="reviews-section">
+        <div className="rv-not-logged-in">
+          <p>Please log in to write or view your reviews.</p>
+          <button className="rv-submit-btn" onClick={() => navigate('/login')}>Login</button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="reviews-section">
-      <div className="review-header">
-        <h2 className="section-title">Write a Review</h2>
-        <p className="review-subtitle">Share your experience with Order #{orderNumber}</p>
+      <div className="rv-page-header">
+        <h2 className="section-title">My Reviews</h2>
+        <p className="review-subtitle">Share your experience with delivered products.</p>
       </div>
 
-      <div className="review-form-card">
-        <form onSubmit={handleSubmit}>
-          <div className="rating-section">
-            <label className="input-label">How would you rate your experience?</label>
-            <div className="star-rating">
-              {[...Array(5)].map((star, index) => {
-                index += 1;
-                return (
-                  <button
-                    type="button"
-                    key={index}
-                    className={index <= (hover || rating) ? "star-btn on" : "star-btn off"}
-                    onClick={() => setRating(index)}
-                    onMouseEnter={() => setHover(index)}
-                    onMouseLeave={() => setHover(rating)}
-                  >
-                    <span className="star">&#9733;</span>
-                  </button>
-                );
-              })}
+      {/* Tab switcher */}
+      <div className="rv-tab-bar">
+        <button
+          className={`rv-tab ${activeTab === 'write' ? 'active' : ''}`}
+          onClick={() => setActiveTab('write')}
+        >
+          Write Reviews
+          {orders.length > 0 && (
+            <span className="rv-tab-count">
+              {orders.reduce((n, o) => n + (o.items?.filter(i => !i.alreadyReviewed).length || 0), 0)}
+            </span>
+          )}
+        </button>
+        <button
+          className={`rv-tab ${activeTab === 'submitted' ? 'active' : ''}`}
+          onClick={() => setActiveTab('submitted')}
+        >
+          Submitted Reviews
+          {myReviews.length > 0 && <span className="rv-tab-count">{myReviews.length}</span>}
+        </button>
+      </div>
+
+      {/* ── WRITE REVIEWS TAB ── */}
+      {activeTab === 'write' && (
+        <div className="rv-tab-content">
+          {loadingOrders ? (
+            <div className="rv-loading">Loading your orders...</div>
+          ) : ordersError ? (
+            <div className="rv-error-state">{ordersError}</div>
+          ) : orders.length === 0 ? (
+            <div className="rv-empty-state">
+              <div className="rv-empty-icon">🛍️</div>
+              <p className="rv-empty-title">No delivered orders yet</p>
+              <p className="rv-empty-sub">Once your orders are delivered, you can review each product here.</p>
+              <button className="rv-submit-btn" onClick={() => navigate('/')}>Shop Now</button>
             </div>
-            {rating > 0 && (
-              <span className="rating-text">
-                {rating === 1 && "Poor"}
-                {rating === 2 && "Fair"}
-                {rating === 3 && "Good"}
-                {rating === 4 && "Very Good"}
-                {rating === 5 && "Excellent"}
-              </span>
-            )}
-          </div>
+          ) : (
+            <div className="rv-orders-list">
+              {orders.map(order => (
+                <OrderReviewBlock
+                  key={order.id}
+                  order={order}
+                  onReviewed={handleReviewed}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-          <div className="comment-section">
-            <label className="input-label" htmlFor="comment">Your Feedback</label>
-            <textarea
-              id="comment"
-              className="review-textarea"
-              placeholder="What did you like or dislike? How was the quality and delivery?"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows="6"
-            />
-          </div>
-
-          {error && <div className="review-error">{error}</div>}
-
-          <div className="form-actions">
-            <button 
-              type="submit" 
-              className="submit-review-btn" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Submitting..." : "Submit Review"}
-            </button>
-          </div>
-        </form>
-      </div>
+      {/* ── SUBMITTED REVIEWS TAB ── */}
+      {activeTab === 'submitted' && (
+        <div className="rv-tab-content">
+          {loadingReviews ? (
+            <div className="rv-loading">Loading your reviews...</div>
+          ) : reviewsError ? (
+            <div className="rv-error-state">{reviewsError}</div>
+          ) : myReviews.length === 0 ? (
+            <div className="rv-empty-state">
+              <div className="rv-empty-icon">✍️</div>
+              <p className="rv-empty-title">No reviews yet</p>
+              <p className="rv-empty-sub">Switch to the "Write Reviews" tab to share your thoughts.</p>
+            </div>
+          ) : (
+            <div className="rv-submitted-list">
+              {myReviews.map(review => (
+                <SubmittedReview key={review.id} review={review} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
