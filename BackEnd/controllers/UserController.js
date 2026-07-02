@@ -1,5 +1,6 @@
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { notifyNewCustomerSignup } = require('../services/notificationService');
@@ -30,8 +31,16 @@ exports.register = async (req, res) => {
     // Notify the admin dashboard of the new registration (non-blocking).
     notifyNewCustomerSignup(user).catch(err => console.error('notifyNewCustomerSignup failed:', err));
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
     res.status(201).json({
       message: "User registered successfully",
+      token,
       userId: user.id
     });
 
@@ -76,9 +85,17 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // return user data
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // return user data with token
     res.json({
       message: "Login successful",
+      token,
       user: {
         id: user.id,
         firstName: user.first_name,
@@ -120,6 +137,11 @@ exports.googleLogin = async (req, res) => {
 
     res.json({
       message: "Google login successful",
+      token: jwt.sign(
+        { id: user.id, email: user.email, isAdmin: user.isAdmin },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      ),
       user: {
         id: user.id,
         firstName: user.first_name,
