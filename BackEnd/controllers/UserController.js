@@ -44,21 +44,33 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log(`[LOGIN] Attempting login for email: ${email}`);
+
     // find user by email
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      console.log(`[LOGIN] User not found: ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    console.log(`[LOGIN] User found: ${email}, password stored: ${user.password ? 'YES' : 'NO'}`);
+
     let isValid = false;
-    
-    if (user.password && user.password.startsWith('$2b$')) {
-      // Hashed password
+
+    if (user.password && user.password.startsWith("$2")) {
+      console.log(`[LOGIN] Password is hashed (bcrypt), comparing...`);
       isValid = await bcrypt.compare(password, user.password);
     } else {
-      // Plain text password 
-      isValid = (user.password === password);
+      console.log(`[LOGIN] Password is plain text, doing direct comparison...`);
+      isValid = user.password === password;
+      if (isValid) {
+        console.log(`[LOGIN] Plain text password matched, hashing for future use...`);
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+      }
     }
+
+    console.log(`[LOGIN] Password validation result: ${isValid}`);
 
     if (!isValid) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -77,7 +89,8 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(`[LOGIN] Error during login:`, error);
+    return res.status(500).json({ error: error.message });
   }
 };
 
