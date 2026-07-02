@@ -14,7 +14,7 @@ const AboutUs = () => {
         <div className="about-hero">
           <img
             className="about-hero-img"
-            src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format"
+            src="https://accofashion.de/wp-content/uploads/2024/06/Offline-Shopping-in-the-Digital-Age-What-Men-Value-on-Their-Shopping-Trips-acco-fashion.webp"
             alt="Fashionable woman shopping online - Click Clothing Super Mall"
             onError={(e) => {
               e.target.src = "https://placehold.co/1400x600/2a2f36/ffffff?text=Click+Clothing+Super+Mall";
