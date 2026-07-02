@@ -200,7 +200,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-exports.createPlainTextAdmin = async (req, res) => {
+exports.createAdmin = exports.createPlainTextAdmin = async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
     
