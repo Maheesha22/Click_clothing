@@ -103,7 +103,7 @@ const User = () => {
             {/* Wishlist */}
             <NavLink to="/user/wishlist" className={navClass}>
               <span className="nav-icon"><WishlistIcon /></span>
-              <span className="nav-label">ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg</span>
+              <span className="nav-label">wishlist</span>
             </NavLink>
 
             {/* Recently Viewed */}
