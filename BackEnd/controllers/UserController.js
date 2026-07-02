@@ -1,5 +1,6 @@
 const { User } = require("../models");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { notifyNewCustomerSignup } = require('../services/notificationService');
@@ -30,8 +31,16 @@ exports.register = async (req, res) => {
     // Notify the admin dashboard of the new registration (non-blocking).
     notifyNewCustomerSignup(user).catch(err => console.error('notifyNewCustomerSignup failed:', err));
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
     res.status(201).json({
       message: "User registered successfully",
+      token,
       userId: user.id
     });
 
@@ -44,29 +53,49 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log(`[LOGIN] Attempting login for email: ${email}`);
+
     // find user by email
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      console.log(`[LOGIN] User not found: ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    console.log(`[LOGIN] User found: ${email}, password stored: ${user.password ? 'YES' : 'NO'}`);
+
     let isValid = false;
-    
-    if (user.password && user.password.startsWith('$2b$')) {
-      // Hashed password
+
+    if (user.password && user.password.startsWith("$2")) {
+      console.log(`[LOGIN] Password is hashed (bcrypt), comparing...`);
       isValid = await bcrypt.compare(password, user.password);
     } else {
-      // Plain text password 
-      isValid = (user.password === password);
+      console.log(`[LOGIN] Password is plain text, doing direct comparison...`);
+      isValid = user.password === password;
+      if (isValid) {
+        console.log(`[LOGIN] Plain text password matched, hashing for future use...`);
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+      }
     }
+
+    console.log(`[LOGIN] Password validation result: ${isValid}`);
 
     if (!isValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // return user data
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // return user data with token
     res.json({
       message: "Login successful",
+      token,
       user: {
         id: user.id,
         firstName: user.first_name,
@@ -77,7 +106,8 @@ exports.login = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error(`[LOGIN] Error during login:`, error);
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -107,6 +137,11 @@ exports.googleLogin = async (req, res) => {
 
     res.json({
       message: "Google login successful",
+      token: jwt.sign(
+        { id: user.id, email: user.email, isAdmin: user.isAdmin },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      ),
       user: {
         id: user.id,
         firstName: user.first_name,
@@ -187,7 +222,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-exports.createPlainTextAdmin = async (req, res) => {
+exports.createAdmin = exports.createPlainTextAdmin = async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
     
