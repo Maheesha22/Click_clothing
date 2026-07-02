@@ -1,5 +1,5 @@
 const { User } = require("../models");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const crypto = require('crypto');
 const { Op } = require('sequelize');
 const { notifyNewCustomerSignup } = require('../services/notificationService');
