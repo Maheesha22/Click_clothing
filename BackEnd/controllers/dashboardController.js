@@ -1,5 +1,5 @@
 const { sequelize } = require('../models');
-const { QueryTypes } = require('sequelize');
+const { QueryTypes } = require('sequelize'); 
 
 /**
  * GET /api/dashboard/stats
