@@ -36,10 +36,42 @@ const parseCorsOrigin = (originEnv) => {
 };
 
 const port = Number(process.env.PORT) || 3000;
-const corsOrigin = parseCorsOrigin(process.env.CORS_ORIGIN || process.env.FRONTEND_URL);
+let corsOrigin = parseCorsOrigin(process.env.CORS_ORIGIN || process.env.FRONTEND_URL);
+
+// During local development, ensure the frontend dev server is allowed
+if (process.env.NODE_ENV !== 'production') {
+  const devOrigin = 'http://localhost:5173';
+  if (corsOrigin === true || corsOrigin === '*') {
+    // already allows all origins
+  } else if (typeof corsOrigin === 'string') {
+    const list = corsOrigin.split(',').map((o) => o.trim()).filter(Boolean);
+    if (!list.includes(devOrigin)) list.push(devOrigin);
+    corsOrigin = list.length === 1 ? list[0] : list;
+  } else if (Array.isArray(corsOrigin)) {
+    if (!corsOrigin.includes(devOrigin)) corsOrigin.push(devOrigin);
+  }
+}
+
+// Build a normalized allowed origins list and use a function to echo back
+// the request origin when it's allowed. This ensures correct header values.
+const buildAllowedList = (originConf) => {
+  if (originConf === true || originConf === '*') return ['*'];
+  if (!originConf) return [];
+  if (Array.isArray(originConf)) return originConf.map((o) => o.trim()).filter(Boolean);
+  return originConf.split(',').map((o) => o.trim()).filter(Boolean);
+};
+
+const allowedOrigins = buildAllowedList(corsOrigin);
 
 app.use(cors({
-  origin: corsOrigin,
+  origin: function (requestOrigin, callback) {
+    // Allow non-browser requests (like curl) when no origin is present
+    if (!requestOrigin) return callback(null, true);
+    if (allowedOrigins.includes('*')) return callback(null, true);
+    if (allowedOrigins.includes(requestOrigin)) return callback(null, true);
+    // Not allowed
+    return callback(null, false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

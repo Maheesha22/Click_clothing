@@ -13,6 +13,11 @@ const toNumber = (value, fallback) => {
 // Load ca.pem for Aiven SSL
 // Priority: DB_SSL_CA env var (for Vercel) → ca.pem file (for local)
 const getSslOptions = () => {
+  // Skip SSL for local development (localhost)
+  if (process.env.DB_HOST && (process.env.DB_HOST === 'localhost' || process.env.DB_HOST === '127.0.0.1')) {
+    return {};
+  }
+
   // If SSL is explicitly disabled
   if (process.env.DB_SSL === 'false') return {};
 
