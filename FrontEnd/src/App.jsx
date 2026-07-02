@@ -24,7 +24,7 @@ import UploadSlipPage from './Pages/UploadSlip';
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
-import Settings from "./Pages/userpages/Settings";
+
 import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
 import RecentlyViewed from "./Pages/userpages/RecentlyViewed";  // ← ADD THIS
 
@@ -81,10 +81,10 @@ function App() {
 
         {/* User — nested routes */}
         <Route path="/user" element={<UserPage />}>
-          <Route index element={<Navigate to="/" replace />} />
+          <Route index element={<OrderHistory />} />
           <Route path="wishlist" element={<Wishlist />} />
           <Route path="orders" element={<OrderHistory />} />
-          <Route path="settings" element={<Settings />} />
+
           <Route path="reviews" element={<Reviews />} />  {/* ← ADD THIS */}
           <Route path="recently-viewed" element={<RecentlyViewed />} />  {/* ← ADD THIS */}
         </Route>
