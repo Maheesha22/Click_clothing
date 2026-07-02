@@ -1,55 +1,155 @@
 import { useState, useEffect } from 'react';
-import API from '../../../services/api';
+import axios from 'axios';
 import { O_BADGE, Avatar, Badge, IcoBox, IcoCart, IcoUsers, IcoChartBar } from './shared';
 
-/* ── Sales Analytics Chart ── */
-function ChartSalesBar({ weeklyRevenue = [] }) {
-  const today = new Date();
-  const days = [];
-  const rev = [];
-  const ord = [];
+/* ── Revenue by Order Status Chart ── */
+function ChartRevenueByStatus() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [tooltip, setTooltip] = useState(null);
 
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const iso = d.toISOString().split('T')[0];
-    const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const found = weeklyRevenue.find(w => w.day === iso);
-    days.push(dayLabel);
-    rev.push(found ? Number(found.revenue) : 0);
-    ord.push(found ? Number(found.orderCount) : 0);
+  useEffect(() => {
+    axios.get('http://localhost:3000/api/orders/revenue-by-status')
+      .then(res => {
+        if (res.data.success) {
+          setData(res.data.data);
+        } else {
+          setError(res.data.message);
+        }
+      })
+      .catch(err => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>Loading chart...</div>;
+  }
+  if (error) {
+    return <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontSize: 13, fontWeight: 600 }}>{error}</div>;
   }
 
-  const maxRev = Math.max(...rev, 1);
-  const maxH = 100;
+  const STATUSES = ['pending', 'confirmed', 'shipped', 'delivered'];
+  const STATUS_GRADIENTS = {
+    pending: { start: '#FBBF24', end: '#D97706' },
+    confirmed: { start: '#818CF8', end: '#4338CA' },
+    shipped: { start: '#60A5FA', end: '#2563EB' },
+    delivered: { start: '#34D399', end: '#059669' },
+  };
+
+  const chartData = STATUSES.map(st => {
+    const found = data.find(d => d.status && d.status.toLowerCase() === st);
+    return {
+      status: st,
+      label: st.charAt(0).toUpperCase() + st.slice(1),
+      revenue: found ? Number(found.total_revenue) : 0,
+      gradStart: STATUS_GRADIENTS[st].start,
+      gradEnd: STATUS_GRADIENTS[st].end
+    };
+  });
+
+  const maxRev = Math.max(...chartData.map(d => d.revenue), 1);
+  const W = 620, H = 220;
+  const padL = 74, padR = 12, padTop = 24, padBot = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padTop - padBot;
+  
+  // Clean, professional ticks
+  const niceMax = (Math.ceil(maxRev / 5000) * 5000) || 5000;
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(t => Math.round(niceMax * t));
+
+  const fmtTick = v => `Rs. ${v.toLocaleString('en-US')}`;
+  const fmtRev = v => `Rs. ${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  const groupW = chartW / 4;
+  const barW = Math.min(groupW * 0.45, 38);
 
   return (
-    <div className="chart-wrap">
-      <svg viewBox="0 0 600 160" width="100%" height="160" preserveAspectRatio="none">
-        {/* Horizontal background lines */}
-        {[0, 25, 50, 75, 100].map(p => {
-          const y = 130 - (p / 100) * maxH;
-          return <line key={p} x1="30" y1={y} x2="570" y2={y} stroke="#f1f3f5" strokeWidth="1" />;
-        })}
-        {days.map((d, i) => {
-          const rx = 55 + i * 75;
-          const revH = (rev[i] / maxRev) * maxH;
-          const ordH = (ord[i] / Math.max(...ord, 1)) * maxH;
+    <div className="chart-wrap" style={{ position: 'relative', userSelect: 'none', height: 220, animation: 'fadeIn 0.5s ease forwards' }}>
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleUp { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        .chart-bar { transform-origin: bottom; animation: scaleUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      `}</style>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none"
+        style={{ display: 'block', overflow: 'visible' }}
+        onMouseLeave={() => setTooltip(null)}
+      >
+        <defs>
+          {chartData.map(d => (
+            <linearGradient key={`grad-${d.status}`} id={`grad-${d.status}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={d.gradStart} />
+              <stop offset="100%" stopColor={d.gradEnd} />
+            </linearGradient>
+          ))}
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.08" />
+          </filter>
+        </defs>
+
+        {/* Horizontal background lines & Y-axis labels */}
+        {ticks.map((tick, i) => {
+          const y = padTop + chartH - (tick / niceMax) * chartH;
           return (
-            <g key={d + i} className="chart-group">
-              {/* Revenue bar */}
-              <rect x={rx} y={130 - revH} width="16" height={revH} rx="3" fill="#111" />
-              {/* Order bar */}
-              <rect x={rx + 20} y={130 - ordH} width="16" height={ordH} rx="3" fill="#e2e6ea" />
-              <text x={rx + 18} y="152" textAnchor="middle" fontSize="10" fontWeight="600" fill="#adb5bd">{d}</text>
+            <g key={i}>
+              <line x1={padL} y1={y} x2={W - padR} y2={y} stroke={tick === 0 ? '#cbd5e1' : '#f1f5f9'} strokeWidth={tick === 0 ? 1.5 : 1} strokeDasharray={tick === 0 ? '0' : '4 4'} />
+              <text x={padL - 12} y={y + 4} textAnchor="end" fontSize="11" fontWeight="600" fill="#94a3b8" style={{ fontFamily: 'inherit' }}>
+                {fmtTick(tick)}
+              </text>
+            </g>
+          );
+        })}
+        {/* Bars and X-axis labels */}
+        {chartData.map((d, i) => {
+          const cx = padL + i * groupW + groupW / 2;
+          const revH = (d.revenue / niceMax) * chartH;
+          const barX = cx - barW / 2;
+          const baseY = padTop + chartH;
+          const isHov = tooltip?.i === i;
+          return (
+            <g key={d.status}
+              onMouseEnter={e => {
+                const r = e.currentTarget.closest('svg').getBoundingClientRect();
+                setTooltip({ i, svgX: e.clientX - r.left, svgY: e.clientY - r.top, d });
+              }}
+              onMouseMove={e => {
+                const r = e.currentTarget.closest('svg').getBoundingClientRect();
+                setTooltip(prev => prev ? { ...prev, svgX: e.clientX - r.left, svgY: e.clientY - r.top } : prev);
+              }}
+              style={{ cursor: 'pointer' }}
+            >
+              <rect x={cx - groupW / 2} y={padTop} width={groupW} height={chartH + padBot} fill="transparent" />
+              {revH > 0 
+                ? <rect className="chart-bar" x={barX} y={baseY - revH} width={barW} height={revH} rx="6" fill={`url(#grad-${d.status})`} style={{ opacity: isHov ? 0.9 : 1, transition: 'opacity 0.2s ease', filter: 'url(#shadow)' }} />
+                : <rect className="chart-bar" x={barX} y={baseY - 3} width={barW} height={3} rx="1.5" fill="#e2e8f0" />
+              }
+              <text x={cx} y={H - 12} textAnchor="middle" fontSize="12" fontWeight="700" fill={isHov ? '#334155' : '#64748b'} style={{ transition: 'fill 0.2s ease', letterSpacing: '0.02em', fontFamily: 'inherit' }}>
+                {d.label}
+              </text>
             </g>
           );
         })}
       </svg>
-      <div className="chart-legend">
-        <div className="legend-item"><span style={{ background: '#111', width:12, height:12, borderRadius:4 }} /> Revenue</div>
-        <div className="legend-item"><span style={{ background: '#e2e6ea', width:12, height:12, borderRadius:4 }} /> Orders</div>
-      </div>
+      
+      {/* Sleek Tooltip */}
+      {tooltip && (
+        <div style={{
+          position: 'absolute', left: tooltip.svgX, top: tooltip.svgY - 14, transform: 'translate(-50%, -100%)',
+          pointerEvents: 'none', background: 'rgba(15, 23, 42, 0.92)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)', color: '#fff', borderRadius: '10px', padding: '10px 16px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.2)', whiteSpace: 'nowrap', zIndex: 50, display: 'flex', flexDirection: 'column', gap: '4px'
+        }}>
+          <div style={{ fontSize: '11px', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>{tooltip.d.label} Revenue</div>
+          <div style={{ color: '#f8fafc', fontWeight: 800, fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: tooltip.d.gradStart, display: 'inline-block' }}></span>
+            {fmtRev(tooltip.d.revenue)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -87,7 +187,7 @@ export default function Dashboard({ goOrders, onRestock }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await API.get('/dashboard/stats');
+      const res = await axios.get('http://localhost:3000/api/dashboard/stats');
       if (res.data.success) {
         setStats(res.data.data);
       } else {
@@ -175,46 +275,9 @@ export default function Dashboard({ goOrders, onRestock }) {
       <div className="mid-grid">
         <div className="chart-card">
           <div className="c-hdr">
-            <div><div className="c-title">Sales Analytics</div><div className="c-sub">Revenue &amp; order trends</div></div>
-            <div className="tog-grp">
-              <button className={`tog-btn${tab === 'weekly' ? ' active' : ''}`} onClick={() => setTab('weekly')}>Chart</button>
-              <button className={`tog-btn${tab === 'table' ? ' active' : ''}`} onClick={() => setTab('table')}>Table</button>
-            </div>
+            <div><div className="c-title">Revenue by Order Status</div></div>
           </div>
-          {loading ? (
-            <div style={{ height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 }}>
-              Loading analytics data…
-            </div>
-          ) : tab === 'table' ? (
-            <div className="tbl-wrap" style={{ maxHeight: 180, overflowY: 'auto' }}>
-              <table className="tbl tbl-sm">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Day</th>
-                    <th>Orders</th>
-                    <th>Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats?.weeklyRevenue?.length === 0 ? (
-                    <tr><td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>No data for the selected period</td></tr>
-                  ) : (
-                    [...(stats?.weeklyRevenue || [])].reverse().map((row, i) => (
-                      <tr key={i}>
-                        <td>{row.day}</td>
-                        <td>{row.dayName}</td>
-                        <td style={{ fontWeight: 700 }}>{row.orderCount}</td>
-                        <td style={{ color: '#111', fontWeight: 800 }}>Rs. {Number(row.revenue).toLocaleString()}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <ChartSalesBar weeklyRevenue={stats?.weeklyRevenue || []} />
-          )}
+          <ChartRevenueByStatus />
         </div>
 
         <div className="ls-card">
@@ -247,13 +310,13 @@ export default function Dashboard({ goOrders, onRestock }) {
                   const isExpanded = expandedCat === catName;
                   return (
                     <div key={catName} className="ls-group-wrap" style={{ marginBottom: 12 }}>
-                      <button 
-                        className="ls-cat-head" 
+                      <button
+                        className="ls-cat-head"
                         onClick={() => setExpandedCat(isExpanded ? null : catName)}
                         style={{
                           width: '100%', textAlign: 'left', padding: '14px 16px',
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          background: isExpanded ? '#000' : '#f8fafc', 
+                          background: isExpanded ? '#000' : '#f8fafc',
                           color: isExpanded ? '#fff' : '#475569',
                           border: '1px solid #e2e8f0', borderRadius: '12px', fontWeight: 800, fontSize: '13px',
                           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer',
@@ -262,9 +325,9 @@ export default function Dashboard({ goOrders, onRestock }) {
                       >
                         <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <span style={{ fontSize: 16 }}>{isExpanded ? '' : ''}</span>
-                          {catName} 
-                          <span style={{ 
-                            background: isExpanded ? 'rgba(255,255,255,0.2)' : '#e2e8f0', 
+                          {catName}
+                          <span style={{
+                            background: isExpanded ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
                             padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, marginLeft: 4
                           }}>
                             {items.length}
@@ -272,14 +335,14 @@ export default function Dashboard({ goOrders, onRestock }) {
                         </span>
                         <span style={{ fontSize: 10, opacity: 0.5 }}>{isExpanded ? '▼' : '▶'}</span>
                       </button>
-                      
+
                       {isExpanded && (
-                        <div className="ls-cat-body" style={{ 
+                        <div className="ls-cat-body" style={{
                           marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 6,
                           animation: 'slideDownFade 0.3s ease forwards'
                         }}>
                           {items.map(item => (
-                            <div key={item.variantId} className="ls-row" style={{ 
+                            <div key={item.variantId} className="ls-row" style={{
                               background: '#fff', border: '1px solid #f1f3f5', borderRadius: 12, padding: '12px 14px'
                             }}>
                               <div className="ls-l">

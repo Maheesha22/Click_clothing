@@ -1,0 +1,213 @@
+.notification-bell {
+  position: relative;
+  display: inline-block;
+}
+
+/* Matches the site's .icon-btn look (see AdminDashboard.css) so the
+   bell keeps its original square, bordered appearance — this class
+   just adds the positioning needed for the unread badge. */
+.bell-button {
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--red, #ef4444);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--white, #fff);
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 380px;
+  max-height: 480px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  margin-top: 8px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.mark-all-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.mark-all-btn:hover {
+  background: #f5f5f5;
+  color: #111;
+}
+
+.dropdown-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.notification-item:hover {
+  background: #fafafa;
+}
+
+.notification-item.unread {
+  background: #f8f9ff;
+}
+
+.notification-item.unread:hover {
+  background: #f0f2ff;
+}
+
+.notif-icon {
+  font-size: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 3px;
+}
+
+.notif-message {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.notif-time {
+  font-size: 10px;
+  color: #aaa;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #ccc;
+  cursor: pointer;
+  padding: 0 4px;
+  margin-left: 8px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.delete-btn:hover {
+  color: #ef4444;
+}
+
+.dropdown-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dropdown-body::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.dropdown-body::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 4px;
+}
+
+.dropdown-body::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+.dropdown-footer {
+  padding: 10px 20px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+.clear-all-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.clear-all-btn:hover {
+  background: #fef2f2;
+}
+
+@media (max-width: 480px) {
+  .notification-dropdown {
+    width: 320px;
+    right: -60px;
+  }
+}

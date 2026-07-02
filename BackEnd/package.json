@@ -29,7 +29,13 @@
         "maxDuration": 30
       }
     },
-    "externalPackages": ["mysql2", "sequelize", "bcryptjs", "nodemailer", "cloudinary"]
+    "externalPackages": [
+      "mysql2",
+      "sequelize",
+      "bcryptjs",
+      "nodemailer",
+      "cloudinary"
+    ]
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

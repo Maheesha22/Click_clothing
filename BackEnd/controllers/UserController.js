@@ -1,61 +1,51 @@
 const { User } = require("../models");
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const { Op } = require("sequelize");
+const crypto = require('crypto');
+const { Op } = require('sequelize');
+const { notifyNewCustomerSignup } = require('../services/notificationService');
 
-const publicUser = (user) => ({
-  id: user.id,
-  firstName: user.first_name,
-  lastName: user.last_name,
-  email: user.email,
-  isAdmin: Boolean(user.isAdmin),
-});
-
-const signToken = (user) => {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      isAdmin: Boolean(user.isAdmin),
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
-  );
-};
-
+// REGISTER
 exports.register = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
+    // check if user exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // create user
     const user = await User.create({
       first_name: firstName,
       last_name: lastName,
       email,
       password: hashedPassword,
-      isAdmin: false,
+      isAdmin: false
     });
 
-    return res.status(201).json({
+    // Notify the admin dashboard of the new registration (non-blocking).
+    notifyNewCustomerSignup(user).catch(err => console.error('notifyNewCustomerSignup failed:', err));
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    res.status(201).json({
       message: "User registered successfully",
-      userId: user.id,
+      token,
+      userId: user.id
     });
+
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -63,44 +53,68 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log(`[LOGIN] Attempting login for email: ${email}`);
+
+    // find user by email
     const user = await User.findOne({ where: { email } });
     if (!user) {
+      console.log(`[LOGIN] User not found: ${email}`);
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
+    console.log(`[LOGIN] User found: ${email}, password stored: ${user.password ? 'YES' : 'NO'}`);
 
     let isValid = false;
 
     if (user.password && user.password.startsWith("$2")) {
+      console.log(`[LOGIN] Password is hashed (bcrypt), comparing...`);
       isValid = await bcrypt.compare(password, user.password);
     } else {
+      console.log(`[LOGIN] Password is plain text, doing direct comparison...`);
       isValid = user.password === password;
       if (isValid) {
+        console.log(`[LOGIN] Plain text password matched, hashing for future use...`);
         user.password = await bcrypt.hash(password, 10);
         await user.save();
       }
     }
 
+    console.log(`[LOGIN] Password validation result: ${isValid}`);
+
     if (!isValid) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    return res.json({
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    // return user data with token
+    res.json({
       message: "Login successful",
-      token: signToken(user),
-      user: publicUser(user),
+      token,
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        isAdmin: user.isAdmin
+      }
     });
+
   } catch (error) {
+    console.error(`[LOGIN] Error during login:`, error);
     return res.status(500).json({ error: error.message });
   }
 };
 
+// GOOGLE LOGIN
 exports.googleLogin = async (req, res) => {
   try {
     const { email, firstName, lastName, googleId } = req.body;
-
-    if (!email || !googleId) {
-      return res.status(400).json({ message: "Google account data is incomplete" });
-    }
 
     let user = await User.findOne({ where: { email } });
 
@@ -108,116 +122,143 @@ exports.googleLogin = async (req, res) => {
       user = await User.create({
         first_name: firstName || "",
         last_name: lastName || "",
-        email,
-        googleId,
+        email: email,
+        googleId: googleId,
         password: null,
-        isAdmin: false,
+        isAdmin: false
       });
+
+      // New account via Google — notify the admin dashboard (non-blocking).
+      notifyNewCustomerSignup(user).catch(err => console.error('notifyNewCustomerSignup failed:', err));
     } else if (!user.googleId) {
       user.googleId = googleId;
       await user.save();
     }
 
-    return res.json({
+    res.json({
       message: "Google login successful",
-      token: signToken(user),
-      user: publicUser(user),
+      token: jwt.sign(
+        { id: user.id, email: user.email, isAdmin: user.isAdmin },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      ),
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        isAdmin: user.isAdmin
+      }
     });
+
   } catch (error) {
     console.error("Google login error:", error);
-    return res.status(500).json({ message: "Google login failed", error: error.message });
+    res.status(500).json({ message: "Google login failed", error: error.message });
   }
 };
 
+// FORGOT PASSWORD
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(404).json({
-        message: "No account found with this email address",
+      return res.status(404).json({ 
+        message: "No account found with this email address" 
       });
     }
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
     user.reset_token = resetToken;
     user.reset_expires = new Date(Date.now() + 3600000);
     await user.save();
 
-    return res.json({
+    console.log("Reset token for:", email, "→", resetToken);
+
+    res.json({ 
       message: "Password reset link sent to your email",
+      resetToken: resetToken
     });
+
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
+// RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 
-    const user = await User.findOne({
-      where: {
+    const user = await User.findOne({ 
+      where: { 
         reset_token: token,
-        reset_expires: { [Op.gt]: new Date() },
-      },
+        reset_expires: { [Op.gt]: new Date() }
+      } 
     });
 
     if (!user) {
-      return res.status(400).json({
-        message: "Invalid or expired reset token",
+      return res.status(400).json({ 
+        message: "Invalid or expired reset token" 
       });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
     user.reset_token = null;
     user.reset_expires = null;
     await user.save();
 
-    return res.json({
-      message: "Password reset successful! You can now login with your new password.",
+    res.json({ 
+      message: "Password reset successful! You can now login with your new password." 
     });
+
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-exports.createAdmin = async (req, res) => {
+exports.createAdmin = exports.createPlainTextAdmin = async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Check if exists
     const existingUser = await User.findOne({ where: { email } });
-
+    
     if (existingUser) {
-      existingUser.password = hashedPassword;
+      // Update existing user to admin with plain text password
+      existingUser.password = password;
       existingUser.isAdmin = true;
       await existingUser.save();
-
-      return res.json({
-        message: "User updated to admin",
-        user: publicUser(existingUser),
+      
+      return res.json({ 
+        message: "User updated to admin with plain text password",
+        email: existingUser.email,
+        isAdmin: true
       });
     }
-
+    
+    // Create new admin with plain text password
     const admin = await User.create({
       first_name: firstName || "Admin",
       last_name: lastName || "User",
-      email,
-      password: hashedPassword,
-      isAdmin: true,
+      email: email,
+      password: password,  // Store as plain text
+      isAdmin: true
     });
-
-    return res.status(201).json({
-      message: "Admin created",
-      user: publicUser(admin),
+    
+    res.status(201).json({
+      message: "Admin created with plain text password",
+      email: admin.email,
+      password: password,
+      isAdmin: true
     });
+    
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };

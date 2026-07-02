@@ -5,14 +5,16 @@
       "src": "api/index.js",
       "use": "@vercel/node",
       "config": {
-        "bundle": false,
+        "bundle": true,
         "includeFiles": [
-          "node_modules/**",
           "models/**",
           "controllers/**",
           "routes/**",
           "config/**",
           "middleware/**",
+          "services/**",
+          "utils/**",
+          "seeders/**",
           "ca.pem"
         ]
       }
