@@ -110,10 +110,13 @@ app.get('/', (req, res) => {
 });
 
 // Initialize database connection for both serverless and traditional deployment
+let dbInitialized = false;
 const initializeDatabase = async () => {
+  if (dbInitialized) return;
   try {
     await db.sequelize.authenticate();
     console.log('Database connected successfully.');
+    dbInitialized = true;
 
     if (process.env.DB_SYNC === 'true' && process.env.NODE_ENV !== 'production') {
       await db.sequelize.sync();
@@ -121,14 +124,26 @@ const initializeDatabase = async () => {
     }
   } catch (err) {
     console.error('Unable to connect to database:', err);
+    throw err;
   }
 };
 
-// Initialize database immediately
-initializeDatabase();
+// For Vercel serverless: Initialize on first request
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      await initializeDatabase();
+    } catch (err) {
+      console.error('Database initialization failed:', err);
+      return res.status(503).json({ error: 'Service unavailable - database connection failed' });
+    }
+  }
+  next();
+});
 
 const startServer = async () => {
   try {
+    await initializeDatabase();
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
