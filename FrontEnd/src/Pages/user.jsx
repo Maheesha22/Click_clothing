@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import Header from "../Components/header";
 import Footer from "../Components/footer";
-import './user.css';
+import './User.css';
 
 const User = () => {
   const navigate = useNavigate();
@@ -20,9 +20,6 @@ const User = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem('user');
-    sessionStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
     navigate('/login');
   };
 
@@ -66,12 +63,7 @@ const User = () => {
     </svg>
   );
 
-  const SettingsIcon = () => (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
+
 
   const LogoutIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -138,11 +130,7 @@ const User = () => {
               <span className="nav-label">My Reviews</span>
             </NavLink>
 
-            {/* Settings */}
-            <NavLink to="/user/settings" className={navClass}>
-              <span className="nav-icon"><SettingsIcon /></span>
-              <span className="nav-label">Settings</span>
-            </NavLink>
+
 
             {/* Logout or Login */}
             {isLoggedIn ? (
