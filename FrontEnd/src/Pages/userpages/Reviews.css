@@ -239,6 +239,25 @@
   flex-direction: column;
 }
 
+.rv-to-be-reviewed-section {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rv-section-heading {
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #888;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed #ede9e4;
+  padding-bottom: 8px;
+}
+
 /* ─── Product Card ──────────────────────────────────────────────────────────── */
 .rv-product-card {
   border-bottom: 1px solid #f5f2ee;
