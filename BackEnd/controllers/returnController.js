@@ -1,5 +1,6 @@
 const { Return, User, Order, Product, OrderItem } = require('../models');
-const { Op } = require('sequelize'); 
+const { Op } = require('sequelize');
+const { notifyNewReturn } = require('../services/notificationService');
 
 //used
 const getAllReturns = async (req, res) => {
@@ -239,6 +240,9 @@ const createMultiProductReturn = async (req, res) => {
 
     console.log('Return created with ID:', newReturn.id);
 
+    // Notify the admin dashboard of the new return request (non-blocking).
+    notifyNewReturn(newReturn, order.order_number).catch(err => console.error('notifyNewReturn failed:', err));
+
     
     const productsWithDetails = await Promise.all(
       (newReturn.products || []).map(async (product) => {
@@ -327,6 +331,9 @@ const createReturn = async (req, res) => {
       reason: reason || null,
       status: 'pending'
     });
+
+    // Notify the admin dashboard of the new return request (non-blocking).
+    notifyNewReturn(newReturn, order.order_number).catch(err => console.error('notifyNewReturn failed:', err));
 
     const returnWithDetails = await Return.findByPk(newReturn.id, {
       include: [

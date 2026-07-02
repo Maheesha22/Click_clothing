@@ -1,6 +1,7 @@
 const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail, Product, ProductVariant } = require('../models');
 const { generateBarcode } = require('../utils/barcodeGenerator');
 const { sendOrderConfirmationEmail } = require('../services/emailService');
+const { notifyNewOrder, notifyLowStock, notifyPaymentFailure } = require('../services/notificationService');
 
 // Generate unique order number
 const generateOrderNumber = () => {
@@ -164,6 +165,7 @@ const createOrder = async (req, res) => {
     console.log('Order items created');
 
     // 4.5 Deduct inventory — reduce ProductVariant quantity for each ordered item
+    const variantsToCheckForLowStock = [];
     for (const item of itemsToProcess) {
       try {
         const variant = await ProductVariant.findOne({
@@ -182,6 +184,15 @@ const createOrder = async (req, res) => {
           console.log(
             `Stock deducted — productId:${item.productId} color:${item.color} size:${item.size} | ${variant.quantity} → ${newQty}`
           );
+          // Remember the post-deduction quantity so we can raise a low-stock
+          // notification after the transaction commits.
+          variantsToCheckForLowStock.push({
+            id: variant.id,
+            productId: variant.productId,
+            size: variant.size,
+            color: variant.color,
+            quantity: newQty
+          });
         } else {
           console.warn(
             `Variant not found for deduction — productId:${item.productId} color:${item.color} size:${item.size}`
@@ -224,6 +235,16 @@ const createOrder = async (req, res) => {
     // Commit the transaction — all DB changes are now permanent
     await t.commit();
     console.log('Transaction committed successfully');
+
+    // Fire admin-dashboard notifications now that the order is safely
+    // committed. These never throw — a notification failure must not
+    // affect the customer-facing order response.
+    notifyNewOrder(order).catch(err => console.error('notifyNewOrder failed:', err));
+
+    for (const v of variantsToCheckForLowStock) {
+      const product = await Product.findByPk(v.productId).catch(() => null);
+      notifyLowStock(v, product).catch(err => console.error('notifyLowStock failed:', err));
+    }
 
     // Enrich items with actual product names from the database for the email template
     const enrichedItems = [];
@@ -491,7 +512,12 @@ const updatePaymentStatus = async (req, res) => {
     }
 
     await order.update({ payment_status: paymentStatus });
-    
+
+    // Notify admins if this update marks the payment as failed.
+    if ((paymentStatus || '').toLowerCase() === 'failed') {
+      notifyPaymentFailure(order).catch(err => console.error('notifyPaymentFailure failed:', err));
+    }
+
     res.status(200).json({
       success: true,
       message: 'Payment status updated successfully',
@@ -599,6 +625,32 @@ const uploadPaymentSlip = async (req, res) => {
   }
 };
 
+// Get revenue by status (Bar Chart)
+const getRevenueByStatus = async (req, res) => {
+  try {
+    const { sequelize } = require('../models');
+    const { QueryTypes } = require('sequelize');
+    const results = await sequelize.query(`
+      SELECT status, SUM(total_bill) AS total_revenue
+      FROM orders
+      GROUP BY status;
+    `, {
+      type: QueryTypes.SELECT
+    });
+
+    res.status(200).json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error('Error fetching revenue by status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database error'
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
@@ -608,5 +660,6 @@ module.exports = {
   updatePaymentStatus,
   getAllOrders,
   getOrderByNumberAndEmail,
-  uploadPaymentSlip
+  uploadPaymentSlip,
+  getRevenueByStatus
 };
