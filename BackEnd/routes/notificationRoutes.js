@@ -8,7 +8,7 @@ const {
   deleteNotification,
   clearAllNotifications,
   getSettings,
-  updateSettings
+  updateSettings 
 } = require('../controllers/notificationController');
 
 // GET /api/notifications - Get all notifications

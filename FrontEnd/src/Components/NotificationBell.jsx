@@ -6,11 +6,10 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import API from '../services/api';
 import { IcoBell } from '../Pages/adminpages/admin/shared';
 import './NotificationBell.css';
 
-const API_BASE = 'http://localhost:3000/api';
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,7 +45,7 @@ export default function NotificationBell() {
     setLoading(true);
     setError(false);
     try {
-      const res = await axios.get(`${API_BASE}/notifications`);
+      const res = await API.get('/notifications');
       if (res.data.success) {
         setNotifications(res.data.data.notifications || []);
         setUnreadCount(res.data.data.unreadCount || 0);
@@ -62,7 +61,7 @@ export default function NotificationBell() {
 
   const loadUnreadCount = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/notifications/unread-count`);
+      const res = await API.get('/notifications/unread-count');
       if (res.data.success) {
         setUnreadCount(res.data.data.unreadCount);
       }
@@ -76,7 +75,7 @@ export default function NotificationBell() {
     if (!target || target.is_read) return;
 
     try {
-      await axios.put(`${API_BASE}/notifications/${id}/read`);
+      await API.put(`/notifications/${id}/read`);
       setNotifications(prev => prev.map(n =>
         n.id === id ? { ...n, is_read: true } : n
       ));
@@ -88,7 +87,7 @@ export default function NotificationBell() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await axios.put(`${API_BASE}/notifications/read-all`);
+      await API.put('/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (err) {
@@ -98,7 +97,7 @@ export default function NotificationBell() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API_BASE}/notifications/${id}`);
+      await API.delete(`/notifications/${id}`);
       const wasUnread = notifications.find(n => n.id === id)?.is_read === false;
       setNotifications(prev => prev.filter(n => n.id !== id));
       if (wasUnread) {
@@ -111,7 +110,7 @@ export default function NotificationBell() {
 
   const handleClearAll = async () => {
     try {
-      await axios.delete(`${API_BASE}/notifications/clear-all`);
+      await API.delete('/notifications/clear-all');
       setNotifications([]);
       setUnreadCount(0);
     } catch (err) {

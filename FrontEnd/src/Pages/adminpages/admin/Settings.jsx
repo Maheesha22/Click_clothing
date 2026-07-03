@@ -4,9 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:3000/api';
+import API from '../../../services/api';
 
 export default function Settings({ toast }) {
   const [loading, setLoading] = useState(false);
@@ -26,7 +24,7 @@ export default function Settings({ toast }) {
   const loadSettings = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/notifications/settings`);
+      const res = await API.get('/notifications/settings');
       if (res.data.success) {
         setSettings(res.data.data);
       }
@@ -44,7 +42,7 @@ export default function Settings({ toast }) {
     
     try {
       setSaving(true);
-      await axios.put(`${API_BASE}/notifications/settings`, newSettings);
+      await API.put('/notifications/settings', newSettings);
       if (toast) toast('✅', 'Settings updated!');
     } catch (error) {
       if (toast) toast('❌', 'Failed to update settings');

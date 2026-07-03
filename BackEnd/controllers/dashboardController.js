@@ -49,7 +49,7 @@ const getDashboardStats = async (req, res) => {
     const newCustResult = await sequelize.query(
       `SELECT COUNT(*) AS cnt FROM customers
        WHERE DATE(createdAt) = CURDATE()`,
-      { type: QueryTypes.SELECT }
+      { type: QueryTypes.SELECT } 
     );
     const newCustomersToday = Number(newCustResult[0].cnt);
 

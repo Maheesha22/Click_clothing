@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import API from '../../../services/api';
-import { COURIERS, Avatar, Badge, MiniStats, Modal, IcoClose, IcoCard } from './shared';
+import { Avatar, Badge, MiniStats, Modal, IcoClose } from './shared';
 
 export default function Payments() {
   const [orders, setOrders] = useState([]);
@@ -8,6 +8,8 @@ export default function Payments() {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Status badge styling lookup
   const tBadge = {
@@ -90,6 +92,13 @@ export default function Payments() {
     ];
   };
 
+  const pagedOrders = orders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const pageCount = Math.max(1, Math.ceil(orders.length / pageSize));
+
+  const goToPage = (page) => {
+    setCurrentPage(Math.min(Math.max(page, 1), pageCount));
+  };
+
   return (
     <div className="view">
       <div className="ph">
@@ -115,7 +124,6 @@ export default function Payments() {
                 <th>Amount</th>
                 <th>Method</th>
                 <th>Slip / Proof</th>
-                <th>Status</th>
                 <th>Date</th>
                 <th>Action</th>
               </tr>
@@ -123,24 +131,24 @@ export default function Payments() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="empty-cell">
+                  <td colSpan="8" className="empty-cell">
                     Loading payments from database...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan="9" className="empty-cell" style={{ color: 'var(--red)' }}>
+                  <td colSpan="8" className="empty-cell" style={{ color: 'var(--red)' }}>
                     {error}
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="empty-cell">
+                  <td colSpan="8" className="empty-cell">
                     No transaction records found.
                   </td>
                 </tr>
               ) : (
-                orders.map(o => {
+                pagedOrders.map(o => {
                   const paymentId = `PAY-${o.id.toString().padStart(4, '0')}`;
                   const customerName = o.customer
                     ? `${o.customer.firstName} ${o.customer.lastName}`
@@ -163,26 +171,27 @@ export default function Payments() {
                       <td className="cell-dim">{o.payment_method}</td>
                       <td>
                         {o.payment_slip ? (
-                          <span
-                            style={{
-                              color: 'var(--blue, #0066cc)',
-                              cursor: 'pointer',
-                              fontWeight: 600,
-                              textDecoration: 'underline'
-                            }}
+                          <button
                             onClick={() => setSelectedPayment(o)}
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid rgba(15, 23, 42, 0.08)',
+                              color: 'var(--black)',
+                              fontWeight: 700,
+                              borderRadius: '10px',
+                              padding: '8px 14px',
+                              cursor: 'pointer',
+                              minWidth: 120,
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.04)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
-                            📄 View Slip
-                          </span>
+                            View Slip
+                          </button>
                         ) : (
                           <span style={{ color: 'var(--g5)', fontSize: '11px' }}>No Slip Uploaded</span>
                         )}
-                      </td>
-                      <td>
-                        <Badge
-                          label={o.payment_status || 'PENDING'}
-                          cls={tBadge[o.payment_status] || 'b-pending'}
-                        />
                       </td>
                       <td className="cell-dim">{new Date(o.createdAt).toLocaleDateString()}</td>
                       <td>
@@ -197,47 +206,57 @@ export default function Payments() {
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div className="admin-card" style={{ overflow: 'hidden' }}>
-        <div className="admin-card-hdr-pad">
-          <div className="c-title">Courier Service Payments</div>
-          <div className="c-sub" style={{ marginTop: 4 }}>
-            Delivery partner settlements
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid var(--g3)', background: 'var(--g1)' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              style={{
+                border: '1px solid rgba(15, 23, 42, 0.1)',
+                background: currentPage <= 1 ? 'var(--g2)' : 'white',
+                color: currentPage <= 1 ? 'var(--g5)' : 'var(--black)',
+                padding: '8px 12px',
+                borderRadius: '10px',
+                cursor: currentPage <= 1 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Prev
+            </button>
+            {Array.from({ length: pageCount }, (_, index) => (
+              <button
+                key={index + 1}
+                onClick={() => goToPage(index + 1)}
+                style={{
+                  border: '1px solid rgba(15, 23, 42, 0.1)',
+                  background: currentPage === index + 1 ? 'var(--black)' : 'white',
+                  color: currentPage === index + 1 ? 'white' : 'var(--black)',
+                  padding: '8px 12px',
+                  borderRadius: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= pageCount}
+              style={{
+                border: '1px solid rgba(15, 23, 42, 0.1)',
+                background: currentPage >= pageCount ? 'var(--g2)' : 'white',
+                color: currentPage >= pageCount ? 'var(--g5)' : 'var(--black)',
+                padding: '8px 12px',
+                borderRadius: '10px',
+                cursor: currentPage >= pageCount ? 'not-allowed' : 'pointer'
+              }}
+            >
+              Next
+            </button>
           </div>
-        </div>
-        <div className="tbl-wrap">
-          <table className="tbl" style={{ minWidth: 860 }}>
-            <thead>
-              <tr>
-                <th>Courier Service</th>
-                <th>Orders Handled</th>
-                <th>Settlement Period</th>
-                <th>Total Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {COURIERS.map((c, idx) => (
-                <tr key={idx}>
-                  <td className="cell-nm">{c.name}</td>
-                  <td className="cell-price">{c.handled}</td>
-                  <td className="cell-dim">{c.period}</td>
-                  <td className="cell-price">Rs. {c.amount}</td>
-                  <td>
-                    <Badge label={c.status} cls={cBadge[c.status]} />
-                  </td>
-                  <td>
-                    <div className="act-grp">
-                      <button className="ab ab-view">View</button>
-                      <button className="ab ab-edit">Edit</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{ color: 'var(--g5)', fontSize: '13px' }}>
+            Page {currentPage} of {pageCount}
+          </div>
         </div>
       </div>
 
@@ -320,54 +339,69 @@ export default function Payments() {
                       color: 'var(--g5)',
                       fontWeight: 700,
                       textTransform: 'uppercase',
-                      marginBottom: '8px'
+                      marginBottom: '8px',
+                      letterSpacing: '0.1em'
                     }}
                   >
-                    Uploaded Payment Slip
+                    Payment Proof
                   </div>
                   <div
                     style={{
-                      background: 'var(--g1)',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      border: '1px dashed var(--g4)',
+                      background: 'white',
+                      padding: '18px',
+                      borderRadius: '20px',
+                      border: '1px solid rgba(15, 23, 42, 0.08)',
+                      boxShadow: '0 12px 34px rgba(15, 23, 42, 0.06)',
                       textAlign: 'center'
                     }}
                   >
                     {selectedPayment.payment_slip.toLowerCase().endsWith('.pdf') ? (
-                      <iframe
-                        src={selectedPayment.payment_slip}
-                        title="Payment Slip PDF"
-                        style={{ width: '100%', height: '350px', borderRadius: '8px', border: 'none' }}
-                      />
+                      <div style={{ display: 'grid', gap: '12px' }}>
+                        <div style={{
+                          padding: '26px 16px',
+                          borderRadius: '14px',
+                          background: 'var(--g1)',
+                          border: '1px solid rgba(15, 23, 42, 0.06)',
+                          color: 'var(--g6)',
+                          fontWeight: 700
+                        }}>
+                          PDF preview available below.
+                        </div>
+                        <iframe
+                          src={selectedPayment.payment_slip}
+                          title="Payment Slip PDF"
+                          style={{ width: '100%', height: '360px', borderRadius: '16px', border: '1px solid rgba(15, 23, 42, 0.08)' }}
+                        />
+                      </div>
                     ) : (
                       <img
                         src={selectedPayment.payment_slip}
                         alt="Payment Slip"
                         style={{
                           maxWidth: '100%',
-                          maxHeight: '350px',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          maxHeight: '420px',
+                          borderRadius: '18px',
+                          boxShadow: '0 18px 48px rgba(15,0,0,0.08)',
                           cursor: 'pointer'
                         }}
                         onClick={() => window.open(selectedPayment.payment_slip, '_blank')}
                       />
                     )}
-                    <div style={{ marginTop: '12px' }}>
+                    <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
                       <button
                         onClick={() => window.open(selectedPayment.payment_slip, '_blank')}
                         style={{
-                          background: 'white',
-                          border: '1px solid var(--g3)',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontSize: '11px',
+                          background: 'var(--black)',
+                          color: 'white',
+                          border: 'none',
+                          padding: '12px 18px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
                           fontWeight: 700,
                           cursor: 'pointer'
                         }}
                       >
-                        📂 Open in New Tab
+                        Open Payment Proof
                       </button>
                     </div>
                   </div>
