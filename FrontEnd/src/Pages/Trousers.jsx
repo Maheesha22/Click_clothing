@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./Trousers.css";
+import NavBar from "../Components/navsidebar";
 import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 import {
@@ -997,11 +998,11 @@ const TrousersPage = () => {
       <WhatsAppButton context={
         selectedProduct
           ? {
-              page: "trousers",
-              productName: selectedProduct.name,
-              category: selectedProduct.category,
-              price: selectedProduct.price,
-            }
+            page: "trousers",
+            productName: selectedProduct.name,
+            category: selectedProduct.category,
+            price: selectedProduct.price,
+          }
           : { page: "trousers" }
       } />
 
