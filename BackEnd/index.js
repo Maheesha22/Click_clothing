@@ -29,6 +29,8 @@ const reportRoutes = require('./routes/reportRoutes');
 const notificationRoutes = require("./routes/notificationRoutes");
 
 const db = require('./models');
+const sizeRecommendationRoutes = require('./routes/sizeRecommendationRoutes');
+const comparisonRoutes = require('./routes/comparisonRoutes');
 
 const parseCorsOrigin = (originEnv) => {
   if (!originEnv) return '*'; // fallback to allow all if not configured
@@ -81,8 +83,9 @@ app.use(cors({
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Log all requests
 app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.path}`);
+  console.log(`📍 [REQUEST] ${req.method} ${req.path}`);
   next();
 });
 
@@ -106,6 +109,9 @@ app.use('/api/selected-items', selectedItemsRoutes);
 app.use('/api/user-addresses', userAddressRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/size-recommendations', sizeRecommendationRoutes);
+app.use('/api/comparisons', comparisonRoutes);
+
 app.use("/api/notifications", notificationRoutes);
 app.get('/', (req, res) => {
   res.send('Click Clothing API is running.');
@@ -117,15 +123,15 @@ const initializeDatabase = async () => {
   if (dbInitialized) return;
   try {
     await db.sequelize.authenticate();
-    console.log('Database connected successfully.');
+    console.log('✅ Database connected successfully.');
     dbInitialized = true;
 
     if (process.env.DB_SYNC === 'true' && process.env.NODE_ENV !== 'production') {
       await db.sequelize.sync();
-      console.log('Database sync completed.');
+      console.log('✅ Database sync completed.');
     }
   } catch (err) {
-    console.error('Unable to connect to database:', err);
+    console.error('❌ Unable to connect to database:', err);
     throw err;
   }
 };
@@ -147,7 +153,7 @@ const startServer = async () => {
   try {
     await initializeDatabase();
     app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
+      console.log(`🚀 Server running on port ${port}`);
     });
   } catch (err) {
     console.error('Unable to start server:', err);

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import Header from "../Components/header";
-import Footer from "../Components/footer";
-import NavBar from "../Components/navsidebar";
-import WhatsAppButton from "../Components/whatsappbtn";
-import SizeChart from "../Components/Sizechart";
-import cartService from "../services/cartservice";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import NavBar from "../components/navsidebar";
+import WhatsAppButton from "../components/whatsappbtn";
+import SizeChart from "../components/SizeChart";
+import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
+import CompareButton from "../Components/CompareButton";
+import cartService from "../services/cartService";
 import {
   getWishlistDB,
   addToWishlistDB,
@@ -78,7 +80,7 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
 );
 
 // ---------- Product Card Component ----------
-const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
+const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, onOpenSmartSize, isHighlighted = false }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "#ffffff");
   const images = product.colorImages?.[selectedColor] || [product.img];
   const currentImage = images[0];
@@ -86,7 +88,12 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
   const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
 
   return (
-    <div className="sh-product-card" onClick={() => onOpenModal(product)}>
+    <div
+      id={`product-card-${product.id}`}
+      className={`sh-product-card ${isHighlighted ? "highlighted" : ""}`}
+      onClick={() => onOpenModal(product)}
+      style={isHighlighted ? { border: "2px solid #c8982a", boxShadow: "0 0 0 2px rgba(200, 152, 42, 0.15)" } : undefined}
+    >
       <div className="sh-card-image">
         <img src={currentImage} alt={product.name} loading="lazy" />
         <button
@@ -121,7 +128,30 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
             <span className="sh-size-more">+{product.sizes.length - 4}</span>
           )}
         </div>
-        <button className="sh-add-to-cart" disabled={!product.inStock}>Add to Cart</button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="sh-add-to-cart" disabled={!product.inStock}>Add to Cart</button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenSmartSize(product);
+            }}
+            style={{
+              border: '1px solid #111',
+              background: '#fff',
+              color: '#111',
+              borderRadius: '12px',
+              padding: '0.7rem 0.9rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              minWidth: '110px',
+            }}
+          >
+            🧠 Smart Size
+          </button>
+          <CompareButton product={product} />
+        </div>
       </div>
     </div>
   );
@@ -176,7 +206,7 @@ const ReviewsModal = ({ product, onClose }) => {
   );
 };
 
-// ---------- Product Modal (merged: SizeChart + simplified badges + escape behaviour) ----------
+// ---------- Product Modal (merged: SizeChart + Smart Size + Compare + simplified badges + escape behaviour) ----------
 const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -349,17 +379,17 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
             {/* Right Details */}
             <div className="sh-modal-details">
               <h2 className="sh-modal-title">{product.name}</h2>
-              <p className="sh-modal-sku">{product.sku}</p>
+              {/* <p className="sh-modal-sku">{product.sku}</p> */}
 
               <div className="sh-modal-price-block">
                 <span className="sh-modal-price">
                   Rs {product.basePrice?.toLocaleString()}.00 <small>LKR</small>
                 </span>
-                {product.basePrice >= 3000 && (
+                {/* {product.basePrice >= 3000 && (
                   <span className="sh-modal-installment">
                     or 3 × Rs {Math.round(product.basePrice / 3).toLocaleString()}.00 with <strong>Koko</strong>
                   </span>
-                )}
+                )} */}
               </div>
 
               <div className="sh-modal-rating-row">
@@ -372,21 +402,32 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 </button>
               </div>
 
-              {/* Size section with SizeChart button */}
+              {/* Size section with SizeChart + Smart Size buttons */}
               <div className="sh-modal-section">
                 <div className="sh-modal-section-header">
                   <label className="sh-modal-label">
                     SIZE <span className="sh-selected-val">{selectedSize || "—"}</span>
                   </label>
-                  <button
-                    className="sh-size-chart-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSizeChart(true);
-                    }}
-                  >
-                    📏 SIZE CHART
-                  </button>
+                  <div className="sh-size-chart-row">
+                    <button
+                      className="sh-size-chart-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSizeChart(true);
+                      }}
+                    >
+                      📏 SIZE CHART
+                    </button>
+                    <button
+                      className="sh-size-recommend-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/smart-size/${product.id}`, { state: { product } });
+                      }}
+                    >
+                      🧠 SMART SIZE
+                    </button>
+                  </div>
                 </div>
 
                 <div className="sh-modal-size-grid">
@@ -470,6 +511,9 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 <button className="sh-modal-cart-btn" onClick={handleAddToCart} disabled={!product.inStock}>
                   ADD TO CART
                 </button>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <CompareButton product={product} />
+                </div>
               </div>
               <button className="sh-modal-buy-now-btn" onClick={handleBuyNow} disabled={!product.inStock}>
                 BUY IT NOW
@@ -559,9 +603,14 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   );
 };
 
-// ---------- MAIN PRODUCT PAGE COMPONENT (merged wishlist logic: DB + guest) ----------
+// ---------- MAIN PRODUCT PAGE COMPONENT ----------
+// Combines: DB+guest wishlist logic, category listing, single-product-by-ID fetch,
+// Smart Size / Compare integrations, and highlight+scroll-to-product from search params.
 const ProductPage = () => {
-  const { category } = useParams();
+  const { category, productId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts]                     = useState([]);
   const [categoryName, setCategoryName]             = useState("");
   const [loading, setLoading]                       = useState(true);
@@ -572,10 +621,20 @@ const ProductPage = () => {
   const [selectedProduct, setSelectedProduct]       = useState(null);
   const [visibleCount, setVisibleCount]             = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
+  const [highlightedProductId, setHighlightedProductId] = useState(null);
+  const pendingProductId = location.state?.selectedProductId || searchParams.get("productId");
 
   // Resolve current user from sessionStorage
   const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
   const isLoggedIn = !!(storedUser?.email);
+
+  const openSmartSize = (product) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/smart-size/${product?.id || ''}`, { state: { product } });
+  };
 
   // Load wishlist (DB if logged in, else guest sessionStorage)
   useEffect(() => {
@@ -637,6 +696,7 @@ const ProductPage = () => {
       id:          apiProduct.id,
       name:        apiProduct.name,
       description: apiProduct.description,
+      categoryId:  apiProduct.categoryId ?? apiProduct.category?.id ?? null,
       img:         firstImage,
       basePrice:   parseFloat(apiProduct.price),
       price:       parseFloat(apiProduct.price),
@@ -663,9 +723,35 @@ const ProductPage = () => {
     };
   };
 
-  // Fetch products for this category by categoryId
+  // Fetch products for a category, or load a single product by ID
   useEffect(() => {
     setLoading(true);
+
+    if (productId) {
+      fetch(apiUrl(`/products/${productId}`))
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data) {
+            const singleProduct = transformProduct(data.data);
+            setProducts([singleProduct]);
+            setCategoryName(data.data.category?.name || "Product");
+            setSelectedProduct(singleProduct);
+          } else {
+            console.error("API error:", data.message);
+            setProducts([]);
+            setSelectedProduct(null);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching product:", err);
+          setLoading(false);
+          setProducts([]);
+          setSelectedProduct(null);
+        });
+      return;
+    }
+
     const categoryId = parseInt(category, 10);
     if (isNaN(categoryId)) {
       console.error("Invalid category ID");
@@ -690,7 +776,30 @@ const ProductPage = () => {
         setLoading(false);
         setProducts([]);
       });
-  }, [category]);
+  }, [category, productId]);
+
+  // Highlight + scroll to a product referenced via navigation state or ?productId=
+  useEffect(() => {
+    if (!products.length || !pendingProductId) return;
+
+    const targetProduct = products.find((product) => String(product.id) === String(pendingProductId));
+    if (targetProduct) {
+      setHighlightedProductId(String(pendingProductId));
+      const timer = window.setTimeout(() => {
+        const element = document.getElementById(`product-card-${pendingProductId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 250);
+
+      if (searchParams.get("productId")) {
+        searchParams.delete("productId");
+        setSearchParams(searchParams, { replace: true });
+      }
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [products, pendingProductId, searchParams, setSearchParams]);
 
   // Toggle wishlist – uses DB for logged-in users, guest service for non-logged-in
   const toggleWishlist = async (productId) => {
@@ -742,22 +851,15 @@ const ProductPage = () => {
   const trackProductView = async (product) => {
     setSelectedProduct(product);
 
-    console.log('📌 TRACK VIEW - Product:', product.name, 'ID:', product.id);
-    console.log('📌 TRACK VIEW - User:', storedUser);
-    console.log('📌 TRACK VIEW - Is Logged In:', isLoggedIn);
-
     if (isLoggedIn && storedUser?.id) {
       try {
         const trackingData = {
           userId: storedUser.id,
           productId: String(product.id),
         };
-        console.log('📌 TRACK VIEW - Sending to API:', trackingData);
-        
-        const response = await addToRecentlyViewedDB(trackingData);
-        console.log('✅ TRACK VIEW - Response:', response);
+        await addToRecentlyViewedDB(trackingData);
       } catch (err) {
-        console.error('❌ TRACK VIEW - API Error:', err.response?.data || err.message);
+        console.error('Error tracking recently viewed (DB):', err.response?.data || err.message);
       }
     } else {
       // Guest: use sessionStorage
@@ -768,13 +870,11 @@ const ProductPage = () => {
           price: product.price,
           imageUrl: product.img,
           description: product.description,
+          categoryId: product.categoryId || product.category?.id || null,
         };
-        console.log('📌 TRACK VIEW - Guest Tracking:', guestData);
-        
         addToGuestRecentlyViewed(guestData);
-        console.log('✅ TRACK VIEW - Guest tracked successfully');
       } catch (err) {
-        console.error('❌ TRACK VIEW - Guest tracking error:', err);
+        console.error('Error tracking recently viewed (guest):', err);
       }
     }
   };
@@ -883,6 +983,11 @@ const ProductPage = () => {
                     isWished={wishlist.includes(product.id)}
                     onToggleWishlist={toggleWishlist}
                     onOpenModal={trackProductView}
+                    isHighlighted={String(product.id) === highlightedProductId}
+                    onOpenSmartSize={(product) => {
+                      trackProductView(product);
+                      openSmartSize(product);
+                    }}
                   />
                 ))}
               </div>
@@ -913,13 +1018,13 @@ const ProductPage = () => {
       )}
 
       <WhatsAppButton
-  context={{
-    productName: selectedProduct?.name,
-    category: categoryName,
-    price: selectedProduct?.basePrice,
-    page: category || "product",
-  }}
-/>
+        context={{
+          productName: selectedProduct?.name,
+          category: categoryName,
+          price: selectedProduct?.basePrice,
+          page: category || "product",
+        }}
+      />
     </div>
   );
 };

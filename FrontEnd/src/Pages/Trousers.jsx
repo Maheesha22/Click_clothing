@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Header from "../Components/header";
-import Footer from "../Components/footer";
+import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import "./Trousers.css";
-import NavBar from "../Components/navsidebar"; 
+import NavBar from "../components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 import {
   getWishlistDB,
@@ -429,9 +430,23 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
           </div>
         )}
 
-        <button className="tr-add-to-cart" disabled={!product.available}>
-          {product.available ? "Add to Cart" : "Unavailable"}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="tr-add-to-cart" disabled={!product.available}>
+            {product.available ? "Add to Cart" : "Unavailable"}
+          </button>
+          <button
+            className="tr-smart-size-btn"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenSmartSize(product);
+            }}
+            style={{ border: '1px solid #111', background: '#fff', color: '#111', borderRadius: '12px', padding: '0.7rem 0.9rem', cursor: 'pointer', fontWeight: 600, minWidth: '110px' }}
+          >
+            🧠 Smart Size
+          </button>
+          <CompareButton product={product} />
+        </div>
       </div>
     </div>
   );
@@ -772,6 +787,17 @@ const TrousersPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
+  const navigate = useNavigate();
+
+  const openSmartSize = (product) => {
+    const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+    const isLoggedIn = !!(storedUser?.email);
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/smart-size/${product.id}`, { state: { product } });
+  };
 
   // Resolve current user from sessionStorage
   const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
@@ -942,6 +968,7 @@ const TrousersPage = () => {
                     isWished={wishlist.includes(product.id)}
                     onToggleWishlist={() => toggleWishlist(product)}
                     onOpenModal={setSelectedProduct}
+                    onOpenSmartSize={openSmartSize}
                   />
                 ))}
               </div>
