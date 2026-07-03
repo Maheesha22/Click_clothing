@@ -26,7 +26,7 @@ const selectedItemsRoutes = require('./routes/SelectedItemsRoutes');
 const userAddressRoutes = require('./routes/userAddressRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
-const notificationRoutes = require("./routes/notificationRoutes");
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const db = require('./models');
 
@@ -106,7 +106,8 @@ app.use('/api/selected-items', selectedItemsRoutes);
 app.use('/api/user-addresses', userAddressRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use('/api/notifications', notificationRoutes);
+
 app.get('/', (req, res) => {
   res.send('Click Clothing API is running.');
 });
