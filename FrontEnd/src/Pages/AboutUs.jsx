@@ -9,7 +9,7 @@ const AboutUs = () => {
   return (
     <>
       <Header />
-      <div className="about-container">
+      <div className="about-container"> 
         {/* Hero Banner */}
         <div className="about-hero">
           <img
