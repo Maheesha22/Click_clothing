@@ -467,7 +467,7 @@ export default function Products({ toast, initialData, clearInitialData }) {
                                     <th>Quantity</th>
                                   </tr>
                                 </thead>
-                                <tbody>
+                                <tbody> 
                                   {variants.map((v, i) => {
                                     const qty = v.quantity || 0;
                                     const qtyClass = qty === 0 ? 'out' : qty <= 5 ? 'low' : '';
