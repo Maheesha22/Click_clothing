@@ -179,7 +179,7 @@
   border-radius: 4px;
 }
 
-.dropdown-body::-webkit-scrollbar-thumb:hover {
+.dropdown-body::-webkit-scrollbar-thumb:hover { 
   background: #ccc;
 }
 
