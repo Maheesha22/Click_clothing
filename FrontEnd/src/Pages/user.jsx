@@ -63,7 +63,12 @@ const User = () => {
     </svg>
   );
 
-
+  const ComparisonIcon = () => (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M6 6h4v12H6zM14 6h4v6h-4zM14 16h4v2h-4z" />
+      <path d="M12 10h2" />
+    </svg>
+  );
 
   const LogoutIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -117,6 +122,12 @@ const User = () => {
               <span className="nav-icon"><OrderIcon /></span>
               <span className="nav-label">Order History</span>
             </NavLink>
+            
+            {/* My Comparisons */}
+            <NavLink to="/user/comparisons" className={navClass}>
+              <span className="nav-icon"><ComparisonIcon /></span>
+              <span className="nav-label">My Comparisons</span>
+            </NavLink>
 
             {/* Cart */}
             <button className="nav-item" onClick={() => navigate('/cart')}>
@@ -130,7 +141,11 @@ const User = () => {
               <span className="nav-label">My Reviews</span>
             </NavLink>
 
-
+            {/* Size History */}
+            <NavLink to="/user/size-history" className={navClass}>
+              <span className="nav-icon"><span style={{ display: 'inline-block', width: 18, height: 18, fontSize: 16 }}>📏</span></span>
+              <span className="nav-label">Size History</span>
+            </NavLink>
 
             {/* Logout or Login */}
             {isLoggedIn ? (

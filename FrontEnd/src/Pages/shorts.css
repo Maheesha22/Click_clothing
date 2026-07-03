@@ -26,7 +26,7 @@
 }
 
 body {
-  font-family: var(--st-font-body);
+   font-family: 'Jost', sans-serif;
   background-color: var(--st-white);
   color: var(--st-black);
 }
