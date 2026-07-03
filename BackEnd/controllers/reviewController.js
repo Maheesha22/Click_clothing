@@ -1,6 +1,7 @@
 'use strict';
 
 const { Review, Order, OrderItem, Product, ProductVariant, User } = require('../models');
+const { fn, col, where, Op } = require('sequelize');
 
 // ─── POST /api/reviews ───────────────────────────────────────────────────────
 // Submit a review for one product in a delivered order.
@@ -9,7 +10,6 @@ const submitReview = async (req, res) => {
   try {
     const userId = req.user.id;
     const { orderId, productId, color, rating, comment } = req.body;
-    const imageUrls = req.files && req.files.length > 0 ? req.files.map(file => file.path) : null;
 
     // Basic validation
     if (!orderId || !productId || !rating || !comment) {
@@ -61,6 +61,12 @@ const submitReview = async (req, res) => {
       });
     }
 
+    const imageUrls = req.files && req.files.length > 0
+      ? req.files
+          .map(file => file.path || file.location || file.url || file.secure_url)
+          .filter(Boolean)
+      : [];
+
     // Create the review
     const review = await Review.create({
       userId,
@@ -69,7 +75,7 @@ const submitReview = async (req, res) => {
       color: color || orderItem.color || null,
       rating: ratingInt,
       comment: comment.trim(),
-      imageUrls
+      imageUrls: imageUrls.length > 0 ? imageUrls : null
     });
 
     return res.status(201).json({ success: true, data: review });
@@ -122,19 +128,76 @@ const getDeliveredOrdersForReview = async (req, res) => {
       existingReviews.map(r => `${r.orderId}-${r.productId}`)
     );
 
-    const data = orders.map(order => {
-      const o = order.toJSON();
-      o.items = (o.items || []).map(item => ({
-        ...item,
-        alreadyReviewed: reviewedSet.has(`${o.id}-${item.productId}`)
-      }));
-      return o;
-    });
+    const data = orders
+      .map(order => {
+        const o = order.toJSON();
+        const items = (o.items || []).map(item => ({
+          ...item,
+          alreadyReviewed: reviewedSet.has(`${o.id}-${item.productId}`)
+        }));
+
+        const pendingItems = items.filter(item => !item.alreadyReviewed);
+        if (pendingItems.length === 0) return null;
+
+        return {
+          ...o,
+          items: pendingItems
+        };
+      })
+      .filter(Boolean);
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
     console.error('Error fetching eligible orders:', err);
     return res.status(500).json({ success: false, message: 'Failed to fetch orders.' });
+  }
+};
+
+// ─── GET /api/reviews/product/:productId ─────────────────────────────────────
+// Returns all reviews for a specific product and optionally for a selected color.
+const getProductReviews = async (req, res) => {
+  try {
+    const productId = parseInt(req.params.productId, 10);
+    if (!productId) {
+      return res.status(400).json({ success: false, message: 'Invalid product ID.' });
+    }
+
+    const color = req.query.color ? String(req.query.color).trim().toLowerCase() : null;
+    const whereClause = { productId };
+    if (color) {
+      whereClause.color = where(fn('lower', col('color')), color);
+    }
+
+    const reviews = await Review.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['first_name', 'last_name']
+        },
+        {
+          model: Order,
+          as: 'order',
+          attributes: ['order_number']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const data = reviews.map((review) => {
+      const json = review.toJSON();
+      const name = json.user ? `${json.user.first_name || ''} ${json.user.last_name || ''}`.trim() : '';
+      return {
+        ...json,
+        userName: name || 'Customer'
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching product reviews:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch product reviews.' });
   }
 };
 
@@ -178,5 +241,6 @@ const getUserReviews = async (req, res) => {
 module.exports = {
   submitReview,
   getDeliveredOrdersForReview,
+  getProductReviews,
   getUserReviews
 };

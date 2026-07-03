@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../Components/header";
 import Footer from "../Components/footer";
 import "./Trousers.css";
-import NavBar from "../Components/navsidebar"; 
+import NavBar from "../Components/navsidebar";
 import WhatsAppButton from "../Components/whatsappbtn";
 import {
   getWishlistDB,
@@ -970,11 +970,11 @@ const TrousersPage = () => {
       <WhatsAppButton context={
         selectedProduct
           ? {
-              page: "trousers",
-              productName: selectedProduct.name,
-              category: selectedProduct.category,
-              price: selectedProduct.price,
-            }
+            page: "trousers",
+            productName: selectedProduct.name,
+            category: selectedProduct.category,
+            price: selectedProduct.price,
+          }
           : { page: "trousers" }
       } />
 

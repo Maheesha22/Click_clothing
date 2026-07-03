@@ -18,7 +18,8 @@ import {
   addToRecentlyViewedDB,
   addToGuestRecentlyViewed,
 } from "../services/recentlyViewedService";
-import { apiUrl } from "../services/api";
+import API, { apiUrl } from "../services/api";
+import ProductReviews from "../Components/ProductReviews";
 import "./ProductPage.css";
 
 // ---------- Helper: Convert any color name to a consistent hex code ----------
@@ -31,14 +32,6 @@ const stringToHexColor = (str) => {
   // Get a full 6-digit hex value (e.g., #a1b2c3)
   let color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
   return "#" + "00000".substring(0, 6 - color.length) + color;
-};
-
-// ---------- Helper: Reviews mock (can be replaced with API call) ----------
-const getReviews = (productId) => {
-  return [
-    { id: 1, name: "Customer", rating: 4, text: "Good product.", date: "Mar 2025", verified: true },
-    { id: 2, name: "Buyer", rating: 5, text: "Excellent quality!", date: "Apr 2025", verified: true },
-  ];
 };
 
 // ---------- Star Rating Component ----------
@@ -78,12 +71,12 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
 );
 
 // ---------- Product Card Component ----------
-const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
+const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewMeta = {} }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "#ffffff");
   const images = product.colorImages?.[selectedColor] || [product.img];
   const currentImage = images[0];
-  const reviews = getReviews(product.id);
-  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+  const averageRating = reviewMeta.averageRating || 0;
+  const reviewCount = reviewMeta.count || 0;
 
   return (
     <div className="sh-product-card" onClick={() => onOpenModal(product)}>
@@ -101,8 +94,8 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
       <div className="sh-card-body">
         <h3 className="sh-product-name">{product.name}</h3>
         <div className="sh-card-rating">
-          <StarRating rating={Math.round(avgRating)} size={12} />
-          <span>({reviews.length})</span>
+          <StarRating rating={Math.round(averageRating)} size={12} />
+          <span>({reviewCount})</span>
         </div>
         <p className="sh-product-price">Rs {product.basePrice?.toLocaleString()}.00</p>
         <div className="sh-color-section">
@@ -127,54 +120,6 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
   );
 };
 
-// ---------- Reviews Modal ----------
-const ReviewsModal = ({ product, onClose }) => {
-  const reviews = getReviews(product.id);
-  const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "auto";
-    };
-  }, [onClose]);
-
-  return (
-    <div className="sh-reviews-modal-overlay" onClick={onClose}>
-      <div className="sh-reviews-modal-container" onClick={(e) => e.stopPropagation()}>
-        <button className="sh-reviews-modal-close" onClick={onClose}>✕</button>
-        <div className="sh-reviews-header">
-          <h2>Customer Reviews</h2>
-          <div className="sh-reviews-summary">
-            <StarRating rating={Math.round(avgRating)} size={20} />
-            <span className="sh-reviews-total">
-              {avgRating.toFixed(1)} out of 5 · {reviews.length} reviews
-            </span>
-          </div>
-        </div>
-        <div className="sh-reviews-list">
-          {reviews.map((review) => (
-            <div key={review.id} className="sh-review-item-full">
-              <div className="sh-review-header-full">
-                <strong>{review.name}</strong>
-                <StarRating rating={review.rating} size={14} />
-                {review.verified && (
-                  <span className="sh-verified-badge">✓ Verified Purchase</span>
-                )}
-              </div>
-              <p className="sh-review-text-full">{review.text}</p>
-              <span className="sh-review-date-full">{review.date}</span>
-            </div>
-          ))}
-        </div>
-        <button className="sh-write-review-btn">Write a Review</button>
-      </div>
-    </div>
-  );
-};
 
 // ---------- Product Modal (merged: SizeChart + simplified badges + escape behaviour) ----------
 const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
@@ -186,13 +131,12 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const [quantity, setQuantity]                 = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [sizeError, setSizeError]               = useState(false);
-  const [showReviews, setShowReviews]           = useState(false);
   const [showSizeChart, setShowSizeChart]       = useState(false);
+  const [reviews, setReviews]                   = useState([]);
+  const [reviewsLoading, setReviewsLoading]     = useState(true);
 
   const images       = product.colorImages?.[selectedColor] || [product.img];
   const currentImage = images[activeImageIndex] || images[0];
-  const reviews      = getReviews(product.id);
-  const avgRating    = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
   const colorName    = product.colorNames?.[selectedColor] || selectedColor;
 
   const colorHexToName = Object.entries(product.colorNames || {}).reduce((acc, [hex, name]) => {
@@ -205,7 +149,19 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
     product.variants?.filter((v) => v.color === selectedColorName) ||
     [];
 
-  // Escape key: close SizeChart first, then ProductModal
+  // Fetch reviews for this product
+  useEffect(() => {
+    setReviewsLoading(true);
+    API.get(`/reviews/product/${product.id}`)
+      .then(res => { if (res.data.success) setReviews(res.data.data || []); })
+      .catch(() => {})
+      .finally(() => setReviewsLoading(false));
+  }, [product.id]);
+
+  const avgRating = reviews.length > 0
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : 0;
+
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key !== "Escape") return;
@@ -362,15 +318,6 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 )}
               </div>
 
-              <div className="sh-modal-rating-row">
-                <div className="sh-rating-info">
-                  <StarRating rating={Math.round(avgRating)} size={16} />
-                  <span className="sh-modal-rating-count">{avgRating.toFixed(1)} out of 5</span>
-                </div>
-                <button className="sh-view-reviews-btn" onClick={() => setShowReviews(true)}>
-                  View Reviews ({reviews.length})
-                </button>
-              </div>
 
               {/* Size section with SizeChart button */}
               <div className="sh-modal-section">
@@ -501,15 +448,55 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                   {product.inStock ? "✓ In Stock" : "✕ Out of Stock"}
                 </span>
               </div>
+
+              {/* ── Inline Reviews ── */}
+              <div className="sh-inline-reviews">
+                <div className="sh-inline-reviews-header">
+                  <h4 className="sh-inline-reviews-title">Customer Reviews</h4>
+                  {reviews.length > 0 && (
+                    <div className="sh-inline-reviews-avg">
+                      <StarRating rating={Math.round(avgRating)} size={13} />
+                      <span>{avgRating.toFixed(1)} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="sh-inline-reviews-body">
+                  {reviewsLoading ? (
+                    <p className="sh-reviews-msg">Loading reviews…</p>
+                  ) : reviews.length === 0 ? (
+                    <p className="sh-reviews-msg">No reviews yet for this product.</p>
+                  ) : (
+                    reviews.map(rv => (
+                      <div key={rv.id} className="sh-inline-review-item">
+                        <div className="sh-inline-review-top">
+                          <div className="sh-inline-review-left">
+                            <span className="sh-inline-name">{rv.userName || 'Customer'}</span>
+                          </div>
+                          <div className="sh-inline-review-right">
+                            <StarRating rating={rv.rating} size={12} />
+                          </div>
+                        </div>
+                        <p className="sh-inline-comment">{rv.comment}</p>
+                        {rv.imageUrls && rv.imageUrls.length > 0 && (
+                          <div className="sh-inline-review-imgs">
+                            {rv.imageUrls.map((url, i) => (
+                              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                <img src={url} alt={`Review ${i + 1}`} className="sh-inline-review-img"
+                                  onError={e => { e.target.style.display = 'none'; }} />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
       </div>
-
-      {/* Reviews modal */}
-      {showReviews && (
-        <ReviewsModal product={product} onClose={() => setShowReviews(false)} />
-      )}
 
       {/* SizeChart panel */}
       <SizeChart open={showSizeChart} onClose={() => setShowSizeChart(false)} />
@@ -572,6 +559,7 @@ const ProductPage = () => {
   const [selectedProduct, setSelectedProduct]       = useState(null);
   const [visibleCount, setVisibleCount]             = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
+  const [productReviewsMeta, setProductReviewsMeta] = useState({});
 
   // Resolve current user from sessionStorage
   const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
@@ -797,6 +785,45 @@ const ProductPage = () => {
   const hasMore = visibleCount < filtered.length;
   const heroTitle = categoryName || "Products";
 
+  useEffect(() => {
+    const visibleProductIds = filtered.slice(0, visibleCount).map((product) => product.id);
+    const productIdsToLoad = visibleProductIds.filter((id) => !productReviewsMeta[id]);
+
+    if (productIdsToLoad.length === 0) return;
+
+    const fetchMetaForProducts = async () => {
+      try {
+        const results = await Promise.all(
+          productIdsToLoad.map(async (id) => {
+            try {
+              const response = await API.get(`/reviews/product/${id}`);
+              const reviews = response.data.success ? response.data.data || [] : [];
+              const averageRating = reviews.length > 0
+                ? reviews.reduce((sum, review) => sum + (review.rating || 0), 0) / reviews.length
+                : 0;
+              return { id, averageRating, count: reviews.length };
+            } catch (error) {
+              console.error(`Failed to fetch review metadata for product ${id}:`, error);
+              return { id, averageRating: 0, count: 0 };
+            }
+          })
+        );
+
+        setProductReviewsMeta((prev) => {
+          const next = { ...prev };
+          results.forEach(({ id, averageRating, count }) => {
+            next[id] = { averageRating, count };
+          });
+          return next;
+        });
+      } catch (error) {
+        console.error('Error loading product review metadata:', error);
+      }
+    };
+
+    fetchMetaForProducts();
+  }, [filtered, visibleCount, productReviewsMeta]);
+
   if (loading) {
     return (
       <div className="sh-page">
@@ -883,6 +910,7 @@ const ProductPage = () => {
                     isWished={wishlist.includes(product.id)}
                     onToggleWishlist={toggleWishlist}
                     onOpenModal={trackProductView}
+                    reviewMeta={productReviewsMeta[product.id] || { averageRating: 0, count: 0 }}
                   />
                 ))}
               </div>

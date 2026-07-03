@@ -139,19 +139,22 @@ app.get('/', (req, res) => {
 const listRoutes = () => {
   try {
     const routes = [];
-    app._router.stack.forEach((middleware) => {
-      if (middleware.route) {
-        // routes registered directly on the app
-        const methods = Object.keys(middleware.route.methods).map(m => m.toUpperCase()).join(',');
-        routes.push(`${methods} ${middleware.route.path}`);
-      } else if (middleware.name === 'router' && middleware.handle && middleware.handle.stack) {
-        // router middleware
-        middleware.handle.stack.forEach((handler) => {
-          if (handler.route) {
-            const methods = Object.keys(handler.route.methods).map(m => m.toUpperCase()).join(',');
-            routes.push(`${methods} ${handler.route.path}`);
-          }
-        });
+    const stack = app && app._router && Array.isArray(app._router.stack) ? app._router.stack : [];
+    stack.forEach((middleware) => {
+      try {
+        if (middleware && middleware.route) {
+          const methods = Object.keys(middleware.route.methods || {}).map(m => m.toUpperCase()).join(',');
+          routes.push(`${methods} ${middleware.route.path}`);
+        } else if (middleware && middleware.name === 'router' && middleware.handle && Array.isArray(middleware.handle.stack)) {
+          middleware.handle.stack.forEach((handler) => {
+            if (handler && handler.route) {
+              const methods = Object.keys(handler.route.methods || {}).map(m => m.toUpperCase()).join(',');
+              routes.push(`${methods} ${handler.route.path}`);
+            }
+          });
+        }
+      } catch (innerErr) {
+        // ignore malformed middleware entries
       }
     });
     console.log('Registered routes:\n' + routes.join('\n'));
@@ -191,6 +194,14 @@ app.use(async (req, res, next) => {
     }
   }
   next();
+});
+
+// Global error handler to ensure JSON responses for unexpected errors
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) return next(err);
+  const status = err && err.status ? err.status : 500;
+  res.status(status).json({ success: false, message: err?.message || 'Internal Server Error' });
 });
 
 const startServer = async () => {

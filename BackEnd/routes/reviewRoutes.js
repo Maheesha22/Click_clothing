@@ -13,6 +13,14 @@ router.get('/eligible-orders', authenticate, reviewController.getDeliveredOrders
 // GET all reviews submitted by the logged-in user
 router.get('/my-reviews', authenticate, reviewController.getUserReviews);
 
+// GET all reviews for a product (public)
+router.get('/product/:productId', reviewController.getProductReviews);
+
+// Dev ping route to verify router is reachable
+router.get('/ping', (req, res) => {
+  res.json({ success: true, message: 'reviews router pong' });
+});
+
 // POST submit a new review (with optional image upload)
 router.post(
   '/',
