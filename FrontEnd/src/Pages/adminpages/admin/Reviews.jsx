@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import API from '../../../services/api';
 import { assetUrl } from '../../../services/api';
-import { IcoSearch, Modal } from './shared';
+import { Modal } from './shared';
 
 /* ── Star renderer ───────────────────────────────────── */
 const Stars = ({ rating }) => (
@@ -15,13 +15,17 @@ const Stars = ({ rating }) => (
 export default function Reviews() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [previewImg, setPreviewImg] = useState(null);
+  const [displayLimit, setDisplayLimit] = useState(20);
 
   useEffect(() => {
     fetchReviews();
   }, []);
+
+  useEffect(() => {
+    setDisplayLimit(20);
+  }, [filter]);
 
   const fetchReviews = async () => {
     try {
@@ -44,18 +48,6 @@ export default function Reviews() {
       const f = parseInt(filter, 10);
       if (r.rating !== f) return false;
     }
-
-    // Search
-    if (search) {
-      const q = search.toLowerCase();
-      return [
-        r.userName,
-        r.productName,
-        r.orderNumber,
-        r.comment,
-        String(r.orderId),
-      ].some(v => v?.toLowerCase().includes(q));
-    }
     return true;
   });
 
@@ -65,7 +57,6 @@ export default function Reviews() {
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1)
     : '0.0';
   const fiveStar = reviews.filter(r => r.rating === 5).length;
-  const withImages = reviews.filter(r => r.imageUrls && r.imageUrls.length > 0).length;
 
   const resolveImgUrl = (url) => {
     if (!url) return '';
@@ -108,13 +99,6 @@ export default function Reviews() {
             <div className="rv-stat-lbl">5-Star Reviews</div>
           </div>
         </div>
-        <div className="rv-stat-card">
-          <div className="rv-stat-icon">📷</div>
-          <div>
-            <div className="rv-stat-val">{withImages}</div>
-            <div className="rv-stat-lbl">With Photos</div>
-          </div>
-        </div>
       </div>
 
       {/* Filter Pills */}
@@ -130,20 +114,6 @@ export default function Reviews() {
         ))}
       </div>
 
-      {/* Search Toolbar */}
-      <div className="toolbar">
-        <div className="tb-search">
-          <IcoSearch w={13} />
-          <input
-            className="tb-inp"
-            placeholder="Search by customer, product, order, or comment…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-        <span className="tb-count">{filtered.length} review{filtered.length !== 1 ? 's' : ''}</span>
-      </div>
-
       {/* Table */}
       <div className="admin-card" style={{ overflow: 'hidden' }}>
         {loading ? (
@@ -151,21 +121,22 @@ export default function Reviews() {
         ) : filtered.length === 0 ? (
           <div className="rv-empty">No reviews found</div>
         ) : (
-          <div className="tbl-wrap">
-            <table className="tbl" style={{ minWidth: 1000 }}>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Customer</th>
-                  <th>Order</th>
-                  <th>Rating</th>
-                  <th>Comment</th>
-                  <th>Photos</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(rv => (
+          <>
+            <div className="tbl-wrap">
+              <table className="tbl" style={{ minWidth: 1000 }}>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Order</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Photos</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.slice(0, displayLimit).map(rv => (
                   <tr key={rv.id}>
                     {/* Product — image + name */}
                     <td>
@@ -197,7 +168,10 @@ export default function Reviews() {
                     </td>
 
                     {/* Order */}
-                    <td className="cell-id">{rv.orderNumber}</td>
+                    <td className="cell-id">
+                      <div>ID: {rv.orderId}</div>
+                      <div className="cell-sub">{rv.orderNumber}</div>
+                    </td>
 
                     {/* Rating */}
                     <td>
@@ -239,8 +213,20 @@ export default function Reviews() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
+            {filtered.length > displayLimit && (
+              <div className="tbl-foot" style={{ justifyContent: 'center' }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setDisplayLimit(prev => prev + 20)}
+                  style={{ width: '100%', maxWidth: '200px', display: 'flex', justifyContent: 'center' }}
+                >
+                  See More
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

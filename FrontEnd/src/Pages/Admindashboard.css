@@ -1509,7 +1509,7 @@ input, select, textarea { font-family: inherit; }
 /* ── ADMIN REVIEWS PAGE ────────────────────────────── */
 .rv-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 22px;
 }
