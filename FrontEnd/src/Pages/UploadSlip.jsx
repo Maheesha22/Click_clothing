@@ -307,7 +307,7 @@ export default function UploadSlipPage() {
         {/* ── ALREADY CONFIRMED ── */}
         {step === 'confirmed' && (
           <div className="us-card us-card--success">
-            <div className="us-success-icon" style={{ color: '#22c55e' }}><CheckCircleIcon /></div>
+            <div className="us-success-icon"><CheckCircleIcon /></div>
             <h1 className="us-title">Payment Confirmed</h1>
             <p className="us-subtitle">
               Your payment for order <strong>{order?.order_number}</strong> has already been confirmed. No further action is needed.
