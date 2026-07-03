@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import Header from "../Components/header";
-import Footer from "../Components/footer";
-import NavBar from "../Components/navsidebar";
-import WhatsAppButton from "../Components/whatsappbtn";
-import SizeChart from "../Components/Sizechart";
-import cartService from "../services/cartservice";
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import NavBar from "../components/navsidebar";
+import WhatsAppButton from "../components/whatsappbtn";
+import SizeChart from "../components/SizeChart";
+import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
+import CompareButton from "../Components/CompareButton";
+import cartService from "../services/cartService";
 import {
   getWishlistDB,
   addToWishlistDB,
@@ -32,6 +34,46 @@ const stringToHexColor = (str) => {
   // Get a full 6-digit hex value (e.g., #a1b2c3)
   let color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
   return "#" + "00000".substring(0, 6 - color.length) + color;
+};
+
+// ---------- Helper: Reviews mock (can be replaced with API call) ----------
+const getReviews = (productId) => {
+  return [
+    { id: 1, name: "Customer", rating: 4, text: "Good product.", date: "Mar 2025", verified: true },
+    { id: 2, name: "Buyer", rating: 5, text: "Excellent quality!", date: "Apr 2025", verified: true },
+  ];
+};
+
+// Categories that use numeric (waist/inseam) sizing instead of S/M/L lettering.
+// Matched as a case-insensitive substring against the fetched category name,
+// so it still catches variants like "Cargo Pants", "Denim Jeans", "Formal Trousers", etc.
+const BOTTOMS_CATEGORY_KEYWORDS = ["pant", "trouser", "short", "denim", "jean"];
+
+const isBottomsCategory = (categoryName) => {
+  if (!categoryName) return false;
+  const lower = categoryName.toLowerCase();
+  return BOTTOMS_CATEGORY_KEYWORDS.some((keyword) => lower.includes(keyword));
+};
+
+// Capitalizes only the first letter of a string, leaving the rest as-is
+// e.g. "tshirts" -> "Tshirts", "men accessories" -> "Men accessories"
+const capitalizeFirst = (str) => {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+// Default letter sizes used for non-bottoms categories (shirts, tees, etc.)
+const DEFAULT_SIZE_OPTIONS = ["S", "M", "L", "XL", "XXL", "XXXL"];
+
+// Sorts a list of size strings numerically when possible (e.g. "28","30","32"),
+// falling back to alphabetical sort for anything non-numeric.
+const sortSizes = (sizes) => {
+  return [...sizes].sort((a, b) => {
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return String(a).localeCompare(String(b));
+  });
 };
 
 // ---------- Star Rating Component ----------
@@ -79,7 +121,12 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewM
   const reviewCount = reviewMeta.count || 0;
 
   return (
-    <div className="sh-product-card" onClick={() => onOpenModal(product)}>
+    <div
+      id={`product-card-${product.id}`}
+      className={`sh-product-card ${isHighlighted ? "highlighted" : ""}`}
+      onClick={() => onOpenModal(product)}
+      style={isHighlighted ? { border: "2px solid #c8982a", boxShadow: "0 0 0 2px rgba(200, 152, 42, 0.15)" } : undefined}
+    >
       <div className="sh-card-image">
         <img src={currentImage} alt={product.name} loading="lazy" />
         <button
@@ -114,14 +161,37 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewM
             <span className="sh-size-more">+{product.sizes.length - 4}</span>
           )}
         </div>
-        <button className="sh-add-to-cart" disabled={!product.inStock}>Add to Cart</button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="sh-add-to-cart" disabled={!product.inStock}>Add to Cart</button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenSmartSize(product);
+            }}
+            style={{
+              border: '1px solid #111',
+              background: '#fff',
+              color: '#111',
+              borderRadius: '12px',
+              padding: '0.7rem 0.9rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              minWidth: '110px',
+            }}
+          >
+            🧠 Smart Size
+          </button>
+          <CompareButton product={product} />
+        </div>
       </div>
     </div>
   );
 };
 
 
-// ---------- Product Modal (merged: SizeChart + simplified badges + escape behaviour) ----------
+// ---------- Product Modal (merged: SizeChart + Smart Size + Compare + simplified badges + escape behaviour) ----------
 const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -162,6 +232,17 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : 0;
 
+  // Derive this product's own size options from its variants, instead of a
+  // hardcoded letter list — so numeric bottoms sizes (28, 30, 32...) render
+  // correctly here too, not just in the sidebar filter.
+  const productSizeOptions = useMemo(() => {
+    const sizesFromVariants = [...new Set((product.variants || []).map((v) => v.size).filter(Boolean))];
+    if (sizesFromVariants.length === 0) return DEFAULT_SIZE_OPTIONS;
+    const allNumeric = sizesFromVariants.every((s) => !isNaN(parseFloat(s)));
+    return allNumeric ? sortSizes(sizesFromVariants) : sizesFromVariants;
+  }, [product]);
+
+  // Escape key: close SizeChart first, then ProductModal
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key !== "Escape") return;
@@ -253,8 +334,6 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
     });
   };
 
-  const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];
-
   return (
     <>
       {/* Product Modal */}
@@ -305,39 +384,50 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
             {/* Right Details */}
             <div className="sh-modal-details">
               <h2 className="sh-modal-title">{product.name}</h2>
-              <p className="sh-modal-sku">{product.sku}</p>
+              {/* <p className="sh-modal-sku">{product.sku}</p> */}
 
               <div className="sh-modal-price-block">
                 <span className="sh-modal-price">
                   Rs {product.basePrice?.toLocaleString()}.00 <small>LKR</small>
                 </span>
-                {product.basePrice >= 3000 && (
+                {/* {product.basePrice >= 3000 && (
                   <span className="sh-modal-installment">
                     or 3 × Rs {Math.round(product.basePrice / 3).toLocaleString()}.00 with <strong>Koko</strong>
                   </span>
-                )}
+                )} */}
               </div>
 
 
-              {/* Size section with SizeChart button */}
+              {/* Size section with SizeChart + Smart Size buttons */}
               <div className="sh-modal-section">
                 <div className="sh-modal-section-header">
                   <label className="sh-modal-label">
                     SIZE <span className="sh-selected-val">{selectedSize || "—"}</span>
                   </label>
-                  <button
-                    className="sh-size-chart-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowSizeChart(true);
-                    }}
-                  >
-                    📏 SIZE CHART
-                  </button>
+                  <div className="sh-size-chart-row">
+                    <button
+                      className="sh-size-chart-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowSizeChart(true);
+                      }}
+                    >
+                      📏 SIZE CHART
+                    </button>
+                    <button
+                      className="sh-size-recommend-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/smart-size/${product.id}`, { state: { product } });
+                      }}
+                    >
+                      🧠 SMART SIZE
+                    </button>
+                  </div>
                 </div>
 
                 <div className="sh-modal-size-grid">
-                  {ALL_SIZES.map((size) => {
+                  {productSizeOptions.map((size) => {
                     const variantInfo = variantDetails.find((v) => v.size === size);
                     const avail       = variantInfo && variantInfo.quantity > 0;
                     return (
@@ -417,6 +507,9 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 <button className="sh-modal-cart-btn" onClick={handleAddToCart} disabled={!product.inStock}>
                   ADD TO CART
                 </button>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <CompareButton product={product} />
+                </div>
               </div>
               <button className="sh-modal-buy-now-btn" onClick={handleBuyNow} disabled={!product.inStock}>
                 BUY IT NOW
@@ -546,9 +639,16 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   );
 };
 
-// ---------- MAIN PRODUCT PAGE COMPONENT (merged wishlist logic: DB + guest) ----------
+// ---------- MAIN PRODUCT PAGE COMPONENT ----------
+// Combines: DB+guest wishlist logic, category listing, single-product-by-ID fetch,
+// Smart Size / Compare integrations, highlight+scroll-to-product from search params,
+// and a size filter that switches between S/M/L letters and numeric bottoms sizes
+// (28, 30, 32...) depending on the category.
 const ProductPage = () => {
-  const { category } = useParams();
+  const { category, productId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts]                     = useState([]);
   const [categoryName, setCategoryName]             = useState("");
   const [loading, setLoading]                       = useState(true);
@@ -560,10 +660,41 @@ const ProductPage = () => {
   const [visibleCount, setVisibleCount]             = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
   const [productReviewsMeta, setProductReviewsMeta] = useState({});
+  const [highlightedProductId, setHighlightedProductId] = useState(null);
+  const pendingProductId = location.state?.selectedProductId || searchParams.get("productId");
 
   // Resolve current user from sessionStorage
   const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
   const isLoggedIn = !!(storedUser?.email);
+
+  // Whether this category uses numeric (admin-added) sizes instead of S/M/L.
+  const isBottoms = isBottomsCategory(categoryName);
+
+  // Size options offered in the sidebar filter: for pants/denims/shorts these
+  // are pulled live from the sizes admin has actually added to the DB for the
+  // products in this category; for everything else it's the fixed letter set.
+  const availableFilterSizes = useMemo(() => {
+    if (!isBottoms) return DEFAULT_SIZE_OPTIONS;
+    const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes || []))];
+    return sortSizes(uniqueSizes);
+  }, [products, isBottoms]);
+
+  // If the currently selected size filter no longer exists in the available
+  // set (e.g. after switching categories), clear it so it can't silently
+  // filter out every product behind a value that's no longer shown.
+  useEffect(() => {
+    if (selectedSizeFilter && !availableFilterSizes.includes(selectedSizeFilter)) {
+      setSelectedSizeFilter(null);
+    }
+  }, [availableFilterSizes]);
+
+  const openSmartSize = (product) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/smart-size/${product?.id || ''}`, { state: { product } });
+  };
 
   // Load wishlist (DB if logged in, else guest sessionStorage)
   useEffect(() => {
@@ -625,6 +756,7 @@ const ProductPage = () => {
       id:          apiProduct.id,
       name:        apiProduct.name,
       description: apiProduct.description,
+      categoryId:  apiProduct.categoryId ?? apiProduct.category?.id ?? null,
       img:         firstImage,
       basePrice:   parseFloat(apiProduct.price),
       price:       parseFloat(apiProduct.price),
@@ -651,9 +783,35 @@ const ProductPage = () => {
     };
   };
 
-  // Fetch products for this category by categoryId
+  // Fetch products for a category, or load a single product by ID
   useEffect(() => {
     setLoading(true);
+
+    if (productId) {
+      fetch(apiUrl(`/products/${productId}`))
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data) {
+            const singleProduct = transformProduct(data.data);
+            setProducts([singleProduct]);
+            setCategoryName(data.data.category?.name || "Product");
+            setSelectedProduct(singleProduct);
+          } else {
+            console.error("API error:", data.message);
+            setProducts([]);
+            setSelectedProduct(null);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching product:", err);
+          setLoading(false);
+          setProducts([]);
+          setSelectedProduct(null);
+        });
+      return;
+    }
+
     const categoryId = parseInt(category, 10);
     if (isNaN(categoryId)) {
       console.error("Invalid category ID");
@@ -678,7 +836,30 @@ const ProductPage = () => {
         setLoading(false);
         setProducts([]);
       });
-  }, [category]);
+  }, [category, productId]);
+
+  // Highlight + scroll to a product referenced via navigation state or ?productId=
+  useEffect(() => {
+    if (!products.length || !pendingProductId) return;
+
+    const targetProduct = products.find((product) => String(product.id) === String(pendingProductId));
+    if (targetProduct) {
+      setHighlightedProductId(String(pendingProductId));
+      const timer = window.setTimeout(() => {
+        const element = document.getElementById(`product-card-${pendingProductId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 250);
+
+      if (searchParams.get("productId")) {
+        searchParams.delete("productId");
+        setSearchParams(searchParams, { replace: true });
+      }
+
+      return () => window.clearTimeout(timer);
+    }
+  }, [products, pendingProductId, searchParams, setSearchParams]);
 
   // Toggle wishlist – uses DB for logged-in users, guest service for non-logged-in
   const toggleWishlist = async (productId) => {
@@ -730,22 +911,15 @@ const ProductPage = () => {
   const trackProductView = async (product) => {
     setSelectedProduct(product);
 
-    console.log('📌 TRACK VIEW - Product:', product.name, 'ID:', product.id);
-    console.log('📌 TRACK VIEW - User:', storedUser);
-    console.log('📌 TRACK VIEW - Is Logged In:', isLoggedIn);
-
     if (isLoggedIn && storedUser?.id) {
       try {
         const trackingData = {
           userId: storedUser.id,
           productId: String(product.id),
         };
-        console.log('📌 TRACK VIEW - Sending to API:', trackingData);
-        
-        const response = await addToRecentlyViewedDB(trackingData);
-        console.log('✅ TRACK VIEW - Response:', response);
+        await addToRecentlyViewedDB(trackingData);
       } catch (err) {
-        console.error('❌ TRACK VIEW - API Error:', err.response?.data || err.message);
+        console.error('Error tracking recently viewed (DB):', err.response?.data || err.message);
       }
     } else {
       // Guest: use sessionStorage
@@ -756,13 +930,11 @@ const ProductPage = () => {
           price: product.price,
           imageUrl: product.img,
           description: product.description,
+          categoryId: product.categoryId || product.category?.id || null,
         };
-        console.log('📌 TRACK VIEW - Guest Tracking:', guestData);
-        
         addToGuestRecentlyViewed(guestData);
-        console.log('✅ TRACK VIEW - Guest tracked successfully');
       } catch (err) {
-        console.error('❌ TRACK VIEW - Guest tracking error:', err);
+        console.error('Error tracking recently viewed (guest):', err);
       }
     }
   };
@@ -783,7 +955,8 @@ const ProductPage = () => {
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
-  const heroTitle = categoryName || "Products";
+  // Category name with only its first letter capitalized (e.g. "tshirts" -> "Tshirts")
+  const heroTitle = capitalizeFirst(categoryName) || "Products";
 
   useEffect(() => {
     const visibleProductIds = filtered.slice(0, visibleCount).map((product) => product.id);
@@ -846,7 +1019,7 @@ const ProductPage = () => {
       <div className="sh-container">
         <aside className="sh-filters">
           <h3>Filters</h3>
-          <div className="sh-filter-group">
+          {/* <div className="sh-filter-group">
             <label>Search</label>
             <input
               type="text"
@@ -855,7 +1028,7 @@ const ProductPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="sh-search-input"
             />
-          </div>
+          </div> */}
           <div className="sh-filter-group">
             <label>Max Price: Rs. {maxPrice.toLocaleString()}</label>
             <input
@@ -877,20 +1050,22 @@ const ProductPage = () => {
               <option value="high-low">Price: High to Low</option>
             </select>
           </div>
-          <div className="sh-filter-group">
-            <label>Size</label>
-            <div className="sh-size-filters">
-              {["S", "M", "L", "XL", "XXL", "XXXL"].map((size) => (
-                <button
-                  key={size}
-                  className={`sh-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
-                  onClick={() => setSelectedSizeFilter(selectedSizeFilter === size ? null : size)}
-                >
-                  {size}
-                </button>
-              ))}
+          {availableFilterSizes.length > 0 && (
+            <div className="sh-filter-group">
+              <label>Size</label>
+              <div className="sh-size-filters">
+                {availableFilterSizes.map((size) => (
+                  <button
+                    key={size}
+                    className={`sh-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
+                    onClick={() => setSelectedSizeFilter(selectedSizeFilter === size ? null : size)}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </aside>
 
         <main className="sh-products-main">
@@ -911,6 +1086,11 @@ const ProductPage = () => {
                     onToggleWishlist={toggleWishlist}
                     onOpenModal={trackProductView}
                     reviewMeta={productReviewsMeta[product.id] || { averageRating: 0, count: 0 }}
+                    isHighlighted={String(product.id) === highlightedProductId}
+                    onOpenSmartSize={(product) => {
+                      trackProductView(product);
+                      openSmartSize(product);
+                    }}
                   />
                 ))}
               </div>
@@ -941,13 +1121,13 @@ const ProductPage = () => {
       )}
 
       <WhatsAppButton
-  context={{
-    productName: selectedProduct?.name,
-    category: categoryName,
-    price: selectedProduct?.basePrice,
-    page: category || "product",
-  }}
-/>
+        context={{
+          productName: selectedProduct?.name,
+          category: categoryName,
+          price: selectedProduct?.basePrice,
+          page: category || "product",
+        }}
+      />
     </div>
   );
 };

@@ -21,8 +21,8 @@
   --ts-red: #dc3545;
   --ts-green: #28a745;
   --ts-orange: #e67e22;
-  --ts-font-body: 'Inter', sans-serif;
-  --ts-font-display: 'Playfair Display', serif;
+  --ts-font-body: 'Jost', sans-serif;
+  --ts-font-display: 'Cormorant Garamond', serif;
 }
 
 body {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 
 import HomePage from "./Pages/home";
 import Cart from "./Pages/cart";
@@ -22,12 +22,32 @@ import AboutUs from "./Pages/AboutUs";
 import ProductPage from './Pages/ProductPage';
 import OrderConfirmationPage from './Pages/OrderConfirmation';
 import UploadSlipPage from './Pages/UploadSlip';
+import ComparisonPage from './Pages/ComparisonPage';
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
+import Settings from "./Pages/userpages/Settings";
+import Reviews from "./Pages/userpages/Reviews";
+import RecentlyViewed from "./Pages/userpages/RecentlyViewed";
+import SizeHistory from "./Pages/userpages/SizeHistory";
+import SmartSizePage from "./Pages/SmartSizePage";
+import MyComparisons from "./Pages/userpages/MyComparisons";
 
-import Reviews from "./Pages/userpages/Reviews";  // ← ADD THIS
-import RecentlyViewed from "./Pages/userpages/RecentlyViewed";  // ← ADD THIS
+// Context & Components
+import { ComparisonProvider } from './context/ComparisonContext';
+import CompareBar from './Components/CompareBar';
+
+// Gate for routes that require a logged-in user
+const ProtectedRoute = ({ children }) => {
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = !!(storedUser?.email);
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 // Component to handle redirection after login (e.g., for Buy It Now)
 const RedirectHandler = () => {
@@ -37,7 +57,7 @@ const RedirectHandler = () => {
   React.useEffect(() => {
     const user = sessionStorage.getItem('user');
     const pendingBuyNow = sessionStorage.getItem('pendingBuyNow');
-    
+
     if (user && pendingBuyNow) {
       try {
         const data = JSON.parse(pendingBuyNow);
@@ -49,58 +69,71 @@ const RedirectHandler = () => {
       }
     }
   }, [navigate, location.pathname]);
-  
+
   return null;
 };
 
 function App() {
   const handleForgotSuccess = () => { };
 
-  return (
-    <BrowserRouter>
-      <RedirectHandler />
-      <Routes>
-        {/*MAIN PAGES */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/Category" element={<HomePage />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/order/confirmation" element={<OrderConfirmationPage />} />
-        <Route path="/upload-slip" element={<UploadSlipPage />} />
-        <Route path="/Contactus" element={<ContactUs />} />
-        <Route path="/feedback" element={<FeedbackForm />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/about" element={<AboutUs />} />
-
-        {/*Login pages */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-        {/*Admin */}
-        <Route path="/dashboard" element={<Dashboard />} />
-
-        {/* User — nested routes */}
-        <Route path="/user" element={<UserPage />}>
-          <Route index element={<OrderHistory />} />
-          <Route path="wishlist" element={<Wishlist />} />
-          <Route path="orders" element={<OrderHistory />} />
-
-          <Route path="reviews" element={<Reviews />} />  {/* ← ADD THIS */}
-          <Route path="recently-viewed" element={<RecentlyViewed />} />  {/* ← ADD THIS */}
-        </Route>
-
-        {/*PRODUCT PAGES */}
-        <Route path="/category/:category" element={<ProductPage />} />
-        <Route path="/trousers" element={<Trousers />} />
-        <Route path="/shirts" element={<Shirts />} />
-        <Route path="/formal-shirts" element={<FormalShirtsPage />} />
-        <Route path="/tshirts" element={<TShirtsPage />} />
-        <Route path="/shorts" element={<ShortsPage />} />
-      </Routes>
-    </BrowserRouter>
+  const RootLayout = () => (
+    <ComparisonProvider>
+      <>
+        <CompareBar />
+        <RedirectHandler />
+        <Outlet />
+      </>
+    </ComparisonProvider>
   );
+
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: <RootLayout />,
+      children: [
+        { path: '/', element: <HomePage /> },
+        { path: '/Category', element: <HomePage /> },
+        { path: '/cart', element: <Cart /> },
+        { path: '/checkout', element: <CheckoutPage /> },
+        { path: '/comparison', element: <ProtectedRoute><ComparisonPage /></ProtectedRoute> },
+        { path: '/order/confirmation', element: <OrderConfirmationPage /> },
+        { path: '/upload-slip', element: <UploadSlipPage /> },
+        { path: '/Contactus', element: <ContactUs /> },
+        { path: '/feedback', element: <FeedbackForm /> },
+        { path: '/faq', element: <FAQPage /> },
+        { path: '/about', element: <AboutUs /> },
+        { path: '/login', element: <LoginPage /> },
+        { path: '/register', element: <RegisterPage /> },
+        { path: '/forgot', element: <ForgotPage onSuccess={handleForgotSuccess} /> },
+        { path: '/reset-password', element: <ResetPasswordPage /> },
+        { path: '/dashboard', element: <Dashboard /> },
+        { path: '/smart-size/:productId?', element: <SmartSizePage /> },
+        { path: '/product/:productId', element: <ProductPage /> },
+        {
+          path: '/user',
+          element: <UserPage />,
+          children: [
+            { index: true, element: <Navigate to="/user/orders" replace /> },
+            { path: 'wishlist', element: <Wishlist /> },
+            { path: 'orders', element: <OrderHistory /> },
+            { path: 'comparisons', element: <ProtectedRoute><MyComparisons /></ProtectedRoute> },
+            { path: 'settings', element: <Settings /> },
+            { path: 'reviews', element: <Reviews /> },
+            { path: 'recently-viewed', element: <ProtectedRoute><RecentlyViewed /></ProtectedRoute> },
+            { path: 'size-history', element: <SizeHistory /> }
+          ]
+        },
+        { path: '/category/:category', element: <ProductPage /> },
+        { path: '/trousers', element: <Trousers /> },
+        { path: '/shirts', element: <Shirts /> },
+        { path: '/formal-shirts', element: <FormalShirtsPage /> },
+        { path: '/tshirts', element: <TShirtsPage /> },
+        { path: '/shorts', element: <ShortsPage /> }
+      ]
+    }
+  ], { future: { v7_startTransition: true, v7_relativeSplatPath: true } });
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;

@@ -1,6 +1,6 @@
 const { Order, OrderItem, Cart, Customer, SelectedItems, OrderDetail, Product, ProductVariant } = require('../models');
 const { generateBarcode } = require('../utils/barcodeGenerator');
-const { sendOrderConfirmationEmail } = require('../services/emailService');
+const { sendOrderConfirmationEmail, sendStoreOrderNotification } = require('../services/emailService');
 const { notifyNewOrder, notifyLowStock, notifyPaymentFailure } = require('../services/notificationService');
 
 // Generate unique order number
@@ -139,6 +139,7 @@ const createOrder = async (req, res) => {
     const order = await Order.create({
       order_number: orderNumber,
       userId: uId,
+      customerId: customer.id,
       status: 'pending',
       payment_method: paymentMethod,
       payment_status: 'PENDING',
@@ -267,6 +268,7 @@ const createOrder = async (req, res) => {
       customerName: `${firstName} ${lastName}`,
       orderNumber: order.order_number,
       orderId: order.id,
+      phone,
       items: enrichedItems.length > 0 ? enrichedItems : itemsToProcess,
       subtotal: parseFloat(subtotal),
       shipping: parseFloat(shippingCost || 400),
@@ -282,15 +284,30 @@ const createOrder = async (req, res) => {
 
     const fs = require('fs');
     const path = require('path');
+
+    // 1. Notify the customer
     sendOrderConfirmationEmail(emailData).catch(err => {
-      console.error('Email send failed (non-critical):', err);
+      console.error('Customer email send failed (non-critical):', err);
       try {
         fs.appendFileSync(
           path.join(__dirname, '../email_errors.log'),
-          `[${new Date().toISOString()}] Catch Error: ${err.message}\n${err.stack}\n\n`
+          `[${new Date().toISOString()}] Customer Email Error: ${err.message}\n${err.stack}\n\n`
         );
       } catch (fsErr) {
-        console.error('Failed to log email send catch error:', fsErr);
+        console.error('Failed to log customer email error:', fsErr);
+      }
+    });
+
+    // 2. Notify the store owner
+    sendStoreOrderNotification(emailData).catch(err => {
+      console.error('Store notification email failed (non-critical):', err);
+      try {
+        fs.appendFileSync(
+          path.join(__dirname, '../email_errors.log'),
+          `[${new Date().toISOString()}] Store Email Error: ${err.message}\n${err.stack}\n\n`
+        );
+      } catch (fsErr) {
+        console.error('Failed to log store email error:', fsErr);
       }
     });
 

@@ -8,6 +8,7 @@ import {
   IcoDash, IcoBox, IcoTag, IcoCart, IcoUsers,
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
 } from './adminpages/admin/shared';
+import NotificationBell from '../Components/NotificationBell';
 
 /* Star icon for Reviews nav */
 const IcoStar = () => <svg className="ni" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
@@ -30,7 +31,7 @@ const NAV = [
   { id: 'dash', label: 'Dashboard', Icon: IcoDash, group: 'Main' },
   { id: 'products', label: 'Products', Icon: IcoBox, group: 'Main' },
   { id: 'categories', label: 'Categories', Icon: IcoTag, group: 'Main' },
-  { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
+  { id: 'orders', label: 'Orders', Icon: IcoCart, group: 'Commerce' },
   { id: 'bank-slips', label: 'Bank Slips', Icon: IcoCard, group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
   { id: 'reviews', label: 'Reviews', Icon: IcoStar, group: 'Commerce' },
@@ -79,7 +80,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ── */}
       <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
-          <div className="s-mark"><img src="" alt="" /></div>
+          <div className="s-mark">CC</div>
           <div className="s-text">
             <span className="s-name">Click Clothing</span>
             <span className="s-sub">Store Admin</span>
@@ -120,7 +121,7 @@ export default function AdminDashboard() {
             <input className="h-inp" type="text" placeholder="Search products, orders, customers…" />
           </div>
           <div className="h-right">
-            <div className="icon-btn"><IcoBell /><span className="notif-dot" /></div>
+            <NotificationBell />
             <div className="admin-pill">
               <div className="a-av">AD</div>
               <div><div className="a-name">Admin</div><div className="a-role">Super Admin</div></div>

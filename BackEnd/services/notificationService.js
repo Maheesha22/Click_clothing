@@ -210,7 +210,7 @@ const notifyLowStock = async (variant, product) => {
 };
 
 module.exports = {
-  resolveAdminUserId,
+  resolveAdminUserId, 
   getOrCreateSettings,
   createSystemNotification,
   notifyNewOrder,

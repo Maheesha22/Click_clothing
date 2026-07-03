@@ -1,0 +1,474 @@
+.comparison-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 40px 20px;
+  padding-bottom: 120px;
+}
+
+.comparison-header {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 20px 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-header h1 {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+}
+
+.btn-back {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: #5568d3;
+  transform: translateX(-3px);
+}
+
+.comparison-empty {
+  text-align: center;
+  background: white;
+  padding: 60px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-empty h2 {
+  color: #333;
+  font-size: 24px;
+  margin: 0 0 10px;
+}
+
+.comparison-empty p {
+  color: #999;
+  font-size: 16px;
+}
+
+/* Comparison Table */
+.comparison-container {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.comparison-table-wrapper {
+  overflow-x: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.comparison-row {
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+}
+
+.comparison-row:hover {
+  background-color: #f9f9f9;
+}
+
+.attribute-label {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  padding: 15px 20px;
+  min-width: 120px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.product-cell {
+  padding: 20px;
+  text-align: center;
+  border-right: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.product-cell:last-child {
+  border-right: none;
+}
+
+.product-cell h3 {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.product-cell p {
+  margin: 10px 0 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.product-comparison-image {
+  max-width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #27ae60;
+}
+
+.available {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.unavailable {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+/* Save Comparison Section */
+.save-comparison-section {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.save-comparison-section h3 {
+  margin: 0 0 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+.save-comparison-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.comparison-name-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.comparison-name-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.btn-save-comparison {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save-comparison:hover:not(:disabled) {
+  background: #229954;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+.btn-save-comparison:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Saved Comparisons Section */
+.saved-comparisons-section {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.saved-comparisons-section h3 {
+  margin: 0 0 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+.saved-comparisons-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.saved-comparison-item {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.saved-comparison-item:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.saved-comparison-info h4 {
+  margin: 0 0 8px;
+  color: #333;
+  font-size: 16px;
+}
+
+.saved-comparison-info p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 13px;
+}
+
+.saved-date {
+  color: #999;
+  font-size: 12px;
+}
+
+.saved-comparison-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-load,
+.btn-delete {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.btn-load {
+  background: #667eea;
+  color: white;
+}
+
+.btn-load:hover {
+  background: #5568d3;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #c0392b;
+}
+
+/* Recommendations Section */
+.recommendations-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.recommendations-section h3 {
+  margin: 0 0 10px;
+  color: #333;
+  font-size: 22px;
+}
+
+.recommendations-subtitle {
+  margin: 0 0 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.recommendation-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.recommendation-content {
+  padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.recommendation-content h4 {
+  margin: 0 0 8px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.recommendation-price {
+  margin: 0;
+  color: #27ae60;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.recommendation-score {
+  margin: 12px 0;
+  flex: 1;
+}
+
+.score-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.score-text {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+.btn-view-product {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-view-product:hover {
+  background: #5568d3;
+  transform: scale(1.02);
+}
+
+/* Loading Section */
+.loading-section {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .comparison-page {
+    padding: 20px 10px;
+    padding-bottom: 120px;
+  }
+
+  .comparison-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .comparison-header h1 {
+    font-size: 22px;
+  }
+
+  .comparison-container,
+  .save-comparison-section,
+  .saved-comparisons-section,
+  .recommendations-section {
+    padding: 20px;
+    margin: 0 auto 30px;
+  }
+
+  .attribute-label {
+    min-width: 100px;
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .product-cell {
+    padding: 12px 10px;
+    font-size: 12px;
+  }
+
+  .product-comparison-image {
+    height: 100px;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .recommendation-image {
+    height: 150px;
+  }
+
+  .save-comparison-form {
+    flex-direction: column;
+  }
+
+  .comparison-name-input {
+    min-width: 100%;
+  }
+}

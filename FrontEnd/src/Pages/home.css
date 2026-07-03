@@ -7,8 +7,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-  --home-font-display: 'Playfair Display', serif;
-  --home-font-body: 'DM Sans', sans-serif;
+  --home-font-display: 'Cormorant Garamond', serif;
+  --home-font-body: 'Jost', sans-serif;
   --home-bg: #ffffff;
   --home-card: #f8f8f8;
   --home-surface: #f2f2f2;

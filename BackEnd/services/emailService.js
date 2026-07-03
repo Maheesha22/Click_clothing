@@ -4,7 +4,7 @@ require('dotenv').config();
 // Create email transporter
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
+  port: parseInt(process.env.EMAIL_PORT, 10) || 587,
   secure: process.env.EMAIL_SECURE === 'true',
   auth: {
     user: process.env.EMAIL_USER,
@@ -416,4 +416,184 @@ const sendPasswordResetEmail = async (toEmail, otp) => {
   }
 };
 
-module.exports = { sendStoreNotification, sendCustomerAutoReply, sendOrderConfirmationEmail, sendPasswordResetEmail };
+// Send new-order alert to the store owner
+const sendStoreOrderNotification = async (orderData) => {
+  const {
+    email,
+    customerName,
+    orderNumber,
+    phone,
+    items = [],
+    subtotal,
+    shipping,
+    total,
+    paymentMethod,
+    address,
+    city,
+    district,
+    province,
+    paidDate
+  } = orderData;
+
+  const itemRows = items.map(item => `
+    <tr>
+      <td style="padding:10px 8px;border-bottom:1px solid #eee;font-size:14px;color:#1a1a1a;">${item.name || 'Product'}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #eee;font-size:14px;color:#555;text-align:center;">${item.sizeLabel || item.size || '-'}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #eee;font-size:14px;color:#555;text-align:center;">${item.color || '-'}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #eee;font-size:14px;color:#555;text-align:center;">${item.qty || item.quantity || 1}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid #eee;font-size:14px;color:#1a1a1a;text-align:right;font-weight:600;">Rs. ${((item.price || 0) * (item.qty || item.quantity || 1)).toLocaleString()}.00</td>
+    </tr>
+  `).join('');
+
+  const storeMailOptions = {
+    from: `"Click Clothing" <${process.env.EMAIL_USER}>`,
+    to: process.env.STORE_EMAIL,
+    subject: `🛒 New Order Received – #${orderNumber}`,
+    html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>New Order Alert</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f0f0f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f0f0;padding:40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10);">
+
+                <!-- Header -->
+                <tr>
+                  <td style="background:#1a1a1a;padding:28px 40px;text-align:center;">
+                    <div style="font-size:24px;font-weight:700;color:#c9a882;letter-spacing:2px;">CLICK CLOTHING</div>
+                    <div style="font-size:13px;color:#9a9a9a;margin-top:4px;letter-spacing:1px;">Admin Order Notification</div>
+                  </td>
+                </tr>
+
+                <!-- Alert Banner -->
+                <tr>
+                  <td style="background:linear-gradient(135deg,#1a6b2a 0%,#27a844 100%);padding:22px 40px;text-align:center;">
+                    <div style="font-size:32px;margin-bottom:6px;">🛒</div>
+                    <div style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:4px;">New Order Received!</div>
+                    <div style="font-size:13px;color:#d4f5dc;">A customer just placed an order. Please process it promptly.</div>
+                  </td>
+                </tr>
+
+                <!-- Order Meta -->
+                <tr>
+                  <td style="padding:24px 40px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;border-radius:10px;padding:18px 20px;">
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#555;"><strong>Order #</strong></td>
+                        <td style="padding:6px 0;font-size:13px;color:#1a1a1a;text-align:right;font-weight:700;letter-spacing:0.8px;">${orderNumber}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#555;"><strong>Date</strong></td>
+                        <td style="padding:6px 0;font-size:13px;color:#1a1a1a;text-align:right;">${paidDate || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;font-size:13px;color:#555;"><strong>Payment Method</strong></td>
+                        <td style="padding:6px 0;font-size:13px;color:#1a1a1a;text-align:right;font-weight:600;">${paymentMethod || 'N/A'}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Customer Details -->
+                <tr>
+                  <td style="padding:20px 40px 0;">
+                    <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #1a1a1a;">👤 Customer Details</div>
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f8f8;border-radius:10px;padding:16px 20px;">
+                      <tr>
+                        <td style="padding:5px 0;font-size:13px;color:#555;"><strong>Name</strong></td>
+                        <td style="padding:5px 0;font-size:13px;color:#1a1a1a;text-align:right;">${customerName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 0;font-size:13px;color:#555;"><strong>Email</strong></td>
+                        <td style="padding:5px 0;font-size:13px;text-align:right;"><a href="mailto:${email}" style="color:#1a6b2a;text-decoration:none;">${email}</a></td>
+                      </tr>
+                      ${phone ? `<tr><td style="padding:5px 0;font-size:13px;color:#555;"><strong>Phone</strong></td><td style="padding:5px 0;font-size:13px;color:#1a1a1a;text-align:right;">${phone}</td></tr>` : ''}
+                      <tr>
+                        <td style="padding:5px 0;font-size:13px;color:#555;"><strong>Delivery Address</strong></td>
+                        <td style="padding:5px 0;font-size:13px;color:#1a1a1a;text-align:right;">${address || ''}, ${city || ''}, ${district || ''}, ${province || ''}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Items Table -->
+                <tr>
+                  <td style="padding:20px 40px 0;">
+                    <div style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #1a1a1a;">🛍️ Items Ordered</div>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <thead>
+                        <tr style="background:#f0f0f0;">
+                          <th style="padding:10px 8px;font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.8px;text-align:left;font-weight:600;">Product</th>
+                          <th style="padding:10px 8px;font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.8px;text-align:center;font-weight:600;">Size</th>
+                          <th style="padding:10px 8px;font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.8px;text-align:center;font-weight:600;">Color</th>
+                          <th style="padding:10px 8px;font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.8px;text-align:center;font-weight:600;">Qty</th>
+                          <th style="padding:10px 8px;font-size:12px;color:#777;text-transform:uppercase;letter-spacing:0.8px;text-align:right;font-weight:600;">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${itemRows}
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Totals -->
+                <tr>
+                  <td style="padding:18px 40px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding:5px 0;font-size:14px;color:#666;">Subtotal</td>
+                        <td style="padding:5px 0;font-size:14px;color:#1a1a1a;text-align:right;">Rs. ${(subtotal || 0).toLocaleString()}.00</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:5px 0;font-size:14px;color:#666;">Shipping</td>
+                        <td style="padding:5px 0;font-size:14px;color:#1a1a1a;text-align:right;">Rs. ${(shipping || 0).toLocaleString()}.00</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px 0;font-size:17px;font-weight:700;color:#1a1a1a;border-top:2px solid #1a1a1a;">Total</td>
+                        <td style="padding:10px 0;font-size:17px;font-weight:700;color:#1a6b2a;text-align:right;border-top:2px solid #1a1a1a;">Rs. ${(total || 0).toLocaleString()}.00</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="padding:30px 40px;text-align:center;border-top:1px solid #eee;margin-top:20px;">
+                    <div style="font-size:12px;color:#aaa;">© ${new Date().getFullYear()} Click Clothing — Internal Order Alert</div>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(storeMailOptions);
+    console.log('Store order notification sent to:', process.env.STORE_EMAIL);
+    return true;
+  } catch (error) {
+    console.error('Error sending store order notification:', error);
+    return false;
+  }
+};
+
+module.exports = { 
+  sendStoreNotification, 
+  sendCustomerAutoReply, 
+  sendOrderConfirmationEmail, 
+  sendPasswordResetEmail, 
+  sendStoreOrderNotification 
+};
+
