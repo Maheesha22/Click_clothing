@@ -1,4 +1,4 @@
-const { Contact } = require('../models'); // Adjust path based on your structure
+const { Contact } = require('../models');
 const { sendStoreNotification, sendCustomerAutoReply } = require('../services/emailService');
 
 // Submit contact form

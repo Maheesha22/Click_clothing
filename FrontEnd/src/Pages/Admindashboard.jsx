@@ -27,7 +27,7 @@ const NAV = [
   { id: 'dash', label: 'Dashboard', Icon: IcoDash, group: 'Main' },
   { id: 'products', label: 'Products', Icon: IcoBox, group: 'Main' },
   { id: 'categories', label: 'Categories', Icon: IcoTag, group: 'Main' },
-  { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
+  { id: 'orders', label: 'Orders', Icon: IcoCart, group: 'Commerce' },
   { id: 'bank-slips', label: 'Bank Slips', Icon: IcoCard, group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
