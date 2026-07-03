@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -41,6 +41,38 @@ const getReviews = (productId) => {
     { id: 1, name: "Customer", rating: 4, text: "Good product.", date: "Mar 2025", verified: true },
     { id: 2, name: "Buyer", rating: 5, text: "Excellent quality!", date: "Apr 2025", verified: true },
   ];
+};
+
+// Categories that use numeric (waist/inseam) sizing instead of S/M/L lettering.
+// Matched as a case-insensitive substring against the fetched category name,
+// so it still catches variants like "Cargo Pants", "Denim Jeans", "Formal Trousers", etc.
+const BOTTOMS_CATEGORY_KEYWORDS = ["pant", "trouser", "short", "denim", "jean"];
+
+const isBottomsCategory = (categoryName) => {
+  if (!categoryName) return false;
+  const lower = categoryName.toLowerCase();
+  return BOTTOMS_CATEGORY_KEYWORDS.some((keyword) => lower.includes(keyword));
+};
+
+// Capitalizes only the first letter of a string, leaving the rest as-is
+// e.g. "tshirts" -> "Tshirts", "men accessories" -> "Men accessories"
+const capitalizeFirst = (str) => {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+// Default letter sizes used for non-bottoms categories (shirts, tees, etc.)
+const DEFAULT_SIZE_OPTIONS = ["S", "M", "L", "XL", "XXL", "XXXL"];
+
+// Sorts a list of size strings numerically when possible (e.g. "28","30","32"),
+// falling back to alphabetical sort for anything non-numeric.
+const sortSizes = (sizes) => {
+  return [...sizes].sort((a, b) => {
+    const numA = parseFloat(a);
+    const numB = parseFloat(b);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return String(a).localeCompare(String(b));
+  });
 };
 
 // ---------- Star Rating Component ----------
@@ -235,6 +267,16 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
     product.variants?.filter((v) => v.color === selectedColorName) ||
     [];
 
+  // Derive this product's own size options from its variants, instead of a
+  // hardcoded letter list — so numeric bottoms sizes (28, 30, 32...) render
+  // correctly here too, not just in the sidebar filter.
+  const productSizeOptions = useMemo(() => {
+    const sizesFromVariants = [...new Set((product.variants || []).map((v) => v.size).filter(Boolean))];
+    if (sizesFromVariants.length === 0) return DEFAULT_SIZE_OPTIONS;
+    const allNumeric = sizesFromVariants.every((s) => !isNaN(parseFloat(s)));
+    return allNumeric ? sortSizes(sizesFromVariants) : sizesFromVariants;
+  }, [product]);
+
   // Escape key: close SizeChart first, then ProductModal
   useEffect(() => {
     const handleKey = (e) => {
@@ -326,8 +368,6 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
       state: { selectedItems: [buyNowItem], subtotal: buyNowItem.price * quantity },
     });
   };
-
-  const ALL_SIZES = ["S", "M", "L", "XL", "XXL", "XXXL"];
 
   return (
     <>
@@ -431,7 +471,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                 </div>
 
                 <div className="sh-modal-size-grid">
-                  {ALL_SIZES.map((size) => {
+                  {productSizeOptions.map((size) => {
                     const variantInfo = variantDetails.find((v) => v.size === size);
                     const avail       = variantInfo && variantInfo.quantity > 0;
                     return (
@@ -605,7 +645,9 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 
 // ---------- MAIN PRODUCT PAGE COMPONENT ----------
 // Combines: DB+guest wishlist logic, category listing, single-product-by-ID fetch,
-// Smart Size / Compare integrations, and highlight+scroll-to-product from search params.
+// Smart Size / Compare integrations, highlight+scroll-to-product from search params,
+// and a size filter that switches between S/M/L letters and numeric bottoms sizes
+// (28, 30, 32...) depending on the category.
 const ProductPage = () => {
   const { category, productId } = useParams();
   const navigate = useNavigate();
@@ -627,6 +669,27 @@ const ProductPage = () => {
   // Resolve current user from sessionStorage
   const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
   const isLoggedIn = !!(storedUser?.email);
+
+  // Whether this category uses numeric (admin-added) sizes instead of S/M/L.
+  const isBottoms = isBottomsCategory(categoryName);
+
+  // Size options offered in the sidebar filter: for pants/denims/shorts these
+  // are pulled live from the sizes admin has actually added to the DB for the
+  // products in this category; for everything else it's the fixed letter set.
+  const availableFilterSizes = useMemo(() => {
+    if (!isBottoms) return DEFAULT_SIZE_OPTIONS;
+    const uniqueSizes = [...new Set(products.flatMap((p) => p.sizes || []))];
+    return sortSizes(uniqueSizes);
+  }, [products, isBottoms]);
+
+  // If the currently selected size filter no longer exists in the available
+  // set (e.g. after switching categories), clear it so it can't silently
+  // filter out every product behind a value that's no longer shown.
+  useEffect(() => {
+    if (selectedSizeFilter && !availableFilterSizes.includes(selectedSizeFilter)) {
+      setSelectedSizeFilter(null);
+    }
+  }, [availableFilterSizes]);
 
   const openSmartSize = (product) => {
     if (!isLoggedIn) {
@@ -895,7 +958,8 @@ const ProductPage = () => {
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
-  const heroTitle = categoryName || "Products";
+  // Category name with only its first letter capitalized (e.g. "tshirts" -> "Tshirts")
+  const heroTitle = capitalizeFirst(categoryName) || "Products";
 
   if (loading) {
     return (
@@ -919,7 +983,7 @@ const ProductPage = () => {
       <div className="sh-container">
         <aside className="sh-filters">
           <h3>Filters</h3>
-          <div className="sh-filter-group">
+          {/* <div className="sh-filter-group">
             <label>Search</label>
             <input
               type="text"
@@ -928,7 +992,7 @@ const ProductPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="sh-search-input"
             />
-          </div>
+          </div> */}
           <div className="sh-filter-group">
             <label>Max Price: Rs. {maxPrice.toLocaleString()}</label>
             <input
@@ -950,20 +1014,22 @@ const ProductPage = () => {
               <option value="high-low">Price: High to Low</option>
             </select>
           </div>
-          <div className="sh-filter-group">
-            <label>Size</label>
-            <div className="sh-size-filters">
-              {["S", "M", "L", "XL", "XXL", "XXXL"].map((size) => (
-                <button
-                  key={size}
-                  className={`sh-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
-                  onClick={() => setSelectedSizeFilter(selectedSizeFilter === size ? null : size)}
-                >
-                  {size}
-                </button>
-              ))}
+          {availableFilterSizes.length > 0 && (
+            <div className="sh-filter-group">
+              <label>Size</label>
+              <div className="sh-size-filters">
+                {availableFilterSizes.map((size) => (
+                  <button
+                    key={size}
+                    className={`sh-size-filter-btn ${selectedSizeFilter === size ? "active" : ""}`}
+                    onClick={() => setSelectedSizeFilter(selectedSizeFilter === size ? null : size)}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </aside>
 
         <main className="sh-products-main">

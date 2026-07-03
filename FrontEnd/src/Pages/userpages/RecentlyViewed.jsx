@@ -133,7 +133,7 @@ const RecentlyViewed = () => {
 
       {loading && (
         <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-          <p>Loading recently viewed products...</p>
+          <p>Loading recently viewed products</p>
         </div>
       )}
 
@@ -183,11 +183,11 @@ const RecentlyViewed = () => {
                 </h3>
                 
                 {item.description && (
-                  <p className="rv-description">{item.description.substring(0, 50)}...</p>
+                  <p className="rv-description">{item.description.substring(0, 50)}</p>
                 )}
                 
                 <div className="rv-price-row">
-                  <span className="rv-price">₹ {parseFloat(item.price).toFixed(2)}</span>
+                  <span className="rv-price">Rs {parseFloat(item.price).toFixed(2)}</span>
                   <span className="rv-viewed-time">
                     {new Date(item.viewedAt).toLocaleDateString('en-IN')}
                   </span>
