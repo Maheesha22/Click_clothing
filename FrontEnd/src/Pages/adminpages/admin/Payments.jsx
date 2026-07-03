@@ -509,7 +509,7 @@ export default function Payments() {
         }
         
         .modal {
-          background: white !important;
+          background: white !important; 
           border-radius: 16px !important;
           width: 100% !important;
           max-width: 550px !important;
