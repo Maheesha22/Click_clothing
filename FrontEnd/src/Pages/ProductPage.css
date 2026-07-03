@@ -20,12 +20,12 @@
   --sh-red: #dc3545;
   --sh-green: #28a745;
   --sh-orange: #e67e22;
-  --sh-font-body: 'Inter', sans-serif;
-  --sh-font-display: 'Playfair Display', serif;
+  --sh-font-body: 'Jost', sans-serif;
+  --sh-font-display: 'Cormorant Garamond', serif;
 }
 
 body {
-  font-family: var(--sh-font-body);
+   font-family: 'Jost', sans-serif;
   background-color: var(--sh-white);
   color: var(--sh-black);
 }

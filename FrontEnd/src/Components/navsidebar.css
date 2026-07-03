@@ -1,5 +1,9 @@
+/* components/NavBar.css - updated with recent searches styles + new typography
+   Typeface roles:
+   - 'Cormorant Garamond', serif  -> main nav tabs (acts like section titles, so sized up for legibility)
+   - 'Jost', sans-serif           -> all other interactive/utility text (dropdowns, search, suggestions)
+*/
 
-/* components/NavBar.css - updated with recent searches styles */
 .navbar-container {
   display: flex;
   align-items: center;
@@ -30,14 +34,16 @@
   position: relative;
 }
 
+/* Main nav tabs - Cormorant Garamond is a delicate serif, so it's sized up
+   from the original 0.72rem to stay confidently legible at uppercase + tracking */
 .navbar-tab-btn {
   background: none;
   border: none;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   color: #888888;
   padding: 14px 0;
   cursor: pointer;
@@ -52,11 +58,11 @@
 .navbar-tab-btn.active {
   background: #111111;
   color: #ffffff;
-  padding: 14px 18px;
-  margin: -14px -18px;
+  padding: 14px 20px;
+  margin: -14px -20px;
 }
 
-/* Dropdown menu (unchanged) */
+/* Dropdown menu (unchanged layout, new type) */
 .navbar-dropdown {
   position: absolute;
   top: 100%;
@@ -80,7 +86,8 @@
 .navbar-dropdown-item {
   position: relative;
   padding: 13px 18px;
-  font-size: 0.82rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: default;
   border-bottom: 1px solid #eee;
@@ -107,7 +114,7 @@
   color: #999;
 }
 
-/* Sub‑dropdown (unchanged) */
+/* Sub‑dropdown (unchanged layout, new type) */
 .navbar-sub-dropdown {
   position: absolute;
   top: 0;
@@ -130,7 +137,8 @@
 
 .navbar-sub-item {
   padding: 13px 18px;
-  font-size: 0.82rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
   cursor: pointer;
   border-bottom: 1px solid #eee;
   color: #111;
@@ -167,8 +175,8 @@
   border: none;
   background: transparent;
   padding: 8px 0;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
+  font-family: 'Jost', sans-serif;
+  font-size: 14px;
   outline: none;
   width: 180px;
 }
@@ -214,7 +222,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  font-size: 0.7rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -231,7 +240,8 @@
 .navbar-clear-recent {
   background: none;
   border: none;
-  font-size: 0.7rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
   color: #c8a97e;
   cursor: pointer;
   padding: 0;
@@ -254,7 +264,8 @@
   display: flex;
   align-items: center;
   padding: 10px 16px;
-  font-size: 0.85rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s;
   color: #111;
@@ -312,21 +323,22 @@
   }
   .navbar-tab-btn {
     padding: 10px 0;
-    font-size: 0.68rem;
+    font-size: 0.85rem;
   }
   .navbar-tab-btn.active {
-    padding: 10px 14px;
-    margin: -10px -14px;
+    padding: 10px 16px;
+    margin: -10px -16px;
   }
   .navbar-search-input {
     width: 160px;
+    font-size: 13px;
   }
   .navbar-suggestions-header {
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     padding: 6px 12px;
   }
   .navbar-suggestion-item {
     padding: 8px 12px;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
 }

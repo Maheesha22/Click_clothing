@@ -7,6 +7,18 @@ const MAX_RECENT_SEARCHES = 7;
 const STORAGE_KEY = "navbar_recent_searches";
 const SEARCH_API_URL = apiUrl('/search');
 
+// Capitalizes just the first character of a display string — used for
+// category names coming from the DB, which may be stored in any casing
+// (e.g. "pants", "PANTS", "pants " ). This only affects what's shown to
+// the user; all matching/search logic below still compares against the
+// raw, unmodified name.
+const capitalizeFirstLetter = (str) => {
+  if (!str) return str;
+  const trimmed = String(str).trim();
+  if (!trimmed) return trimmed;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+};
+
 function NavBar({ activeTab, setActiveTab }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,7 +66,7 @@ function NavBar({ activeTab, setActiveTab }) {
       label: "Men",
       menu: categories.map(cat => {
         return {
-          label: cat.name,
+          label: capitalizeFirstLetter(cat.name), // display only — capitalized for consistency regardless of DB casing
           page: `category/${cat.id}`,   //  navigates with categoryId: /category/1, /category/2, etc.
           categoryId: cat.id
         };
@@ -92,7 +104,8 @@ function NavBar({ activeTab, setActiveTab }) {
       // Build category suggestions with their category IDs
       const categorySuggestions = filteredCats.map(catLabel => {
         // Find the matching category from the categories list to get the ID
-        const matchedCategory = categories.find(c => c.name === catLabel);
+        // (allCategories labels are already capitalized for display, so match case-insensitively against the raw DB name)
+        const matchedCategory = categories.find(c => c.name.toLowerCase() === catLabel.toLowerCase());
         return {
           type: 'category',
           label: catLabel,
@@ -111,7 +124,7 @@ function NavBar({ activeTab, setActiveTab }) {
               type: 'product',
               label: product.productName,
               categoryId: product.categoryId,
-              categoryName: product.categoryName,
+              categoryName: capitalizeFirstLetter(product.categoryName), // display only
               productId: product.productId,
               price: product.price,
               imageUrl: product.variants?.[0]?.imageUrl
@@ -215,7 +228,7 @@ function NavBar({ activeTab, setActiveTab }) {
       // Check if it matches a category directly from the database
       const matchedCategory = categories.find(c => c.name.toLowerCase() === query.toLowerCase());
       if (matchedCategory) {
-        addToRecentSearches(matchedCategory.name);
+        addToRecentSearches(capitalizeFirstLetter(matchedCategory.name));
         navigate(`/category/${matchedCategory.id}`);
         setSearchQuery("");
         setShowDropdown(false);
@@ -290,7 +303,7 @@ function NavBar({ activeTab, setActiveTab }) {
     // Check if recent search is a category from database
     const matchedCategory = categories.find(c => c.name.toLowerCase() === recentQuery.toLowerCase());
     if (matchedCategory) {
-      addToRecentSearches(matchedCategory.name);
+      addToRecentSearches(capitalizeFirstLetter(matchedCategory.name));
       navigate(`/category/${matchedCategory.id}`);
       setSearchQuery("");
       setShowDropdown(false);

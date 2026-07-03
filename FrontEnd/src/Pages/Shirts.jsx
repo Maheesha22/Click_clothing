@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import Header from "../Components/header";
-import Footer from "../Components/footer";
-import NavBar from "../Components/navsidebar"; 
-import WhatsAppButton from "../Components/whatsappbtn";
+import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import NavBar from "../components/navsidebar"; 
+import WhatsAppButton from "../components/whatsappbtn";
+import CompareButton from "../Components/CompareButton";
 import "./Shirts.css";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
@@ -283,7 +285,7 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
 );
 
 // ── Product Card ───────────────────────────────────────────────────────────────
-const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
+const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, onOpenSmartSize }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const images = product.colorImages?.[selectedColor] || [product.img];
   const currentImage = images[0];
@@ -320,9 +322,23 @@ const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal }) => {
           ))}
           {product.sizes.length > 4 && <span className="sh-size-more">+{product.sizes.length - 4}</span>}
         </div>
-        <button className="sh-add-to-cart" disabled={!product.inStock}>
-          {product.inStock ? "Add to Cart" : "Unavailable"}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="sh-add-to-cart" disabled={!product.inStock}>
+            {product.inStock ? "Add to Cart" : "Unavailable"}
+          </button>
+          <button
+            className="sh-smart-size-btn"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOpenSmartSize(product);
+            }}
+            style={{ border: '1px solid #111', background: '#fff', color: '#111', borderRadius: '12px', padding: '0.7rem 0.9rem', cursor: 'pointer', fontWeight: 600, minWidth: '110px' }}
+          >
+            🧠 Smart Size
+          </button>
+          <CompareButton product={product} />
+        </div>
       </div>
     </div>
   );
@@ -612,6 +628,17 @@ const ShirtsPage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [selectedSizeFilter, setSelectedSizeFilter] = useState(null);
+  const navigate = useNavigate();
+
+  const openSmartSize = (product) => {
+    const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+    const isLoggedIn = !!(storedUser?.email);
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/smart-size/${product.id}`, { state: { product } });
+  };
 
   useEffect(() => {
     const savedWishlist = JSON.parse(localStorage.getItem("shirt_wishlist")) || [];
@@ -722,6 +749,7 @@ const ShirtsPage = () => {
                     isWished={wishlist.includes(product.id)}
                     onToggleWishlist={toggleWishlist}
                     onOpenModal={setSelectedProduct}
+                    onOpenSmartSize={openSmartSize}
                   />
                 ))}
               </div>

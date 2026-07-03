@@ -16,7 +16,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -66,9 +66,9 @@
 /* Modal */
 .sc-modal {
   position: fixed;
-  top: 50%;
+  top: 0;
   right: 0;
-  transform: translateY(-50%) translateX(100%);
+  transform: translateX(100%);
   width: min(480px, 95vw);
   height: 100vh;
   background: var(--off-white);
@@ -84,7 +84,7 @@
 }
 
 @keyframes slideIn {
-  to { transform: translateY(-50%) translateX(0); }
+  to { transform: translateX(0); }
 }
 
 /* Header */
