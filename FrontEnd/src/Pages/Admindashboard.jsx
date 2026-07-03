@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
-import './AdminDashboard.css';
+import './Admindashboard.css';
 
 import {
   useToast,
-  IcoMenu, IcoSearch, IcoChevron,
+  IcoMenu, IcoSearch, IcoBell, IcoChevron,
   IcoDash, IcoBox, IcoTag, IcoCart, IcoUsers,
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
 } from './adminpages/admin/shared';
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ── */}
       <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
-          <div className="s-mark"><img src="" alt="" /></div>
+          <div className="s-mark">CC</div>
           <div className="s-text">
             <span className="s-name">Click Clothing</span>
             <span className="s-sub">Store Admin</span>
