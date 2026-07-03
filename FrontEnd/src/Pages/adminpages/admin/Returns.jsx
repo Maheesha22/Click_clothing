@@ -643,7 +643,7 @@ export default function Returns() {
             <button
               onClick={(e) => {
                 console.log("Create Return button clicked - Event:", e);
-                e.preventDefault();
+                e.preventDefault(); 
                 handleSubmit();
               }}
               disabled={loading}
