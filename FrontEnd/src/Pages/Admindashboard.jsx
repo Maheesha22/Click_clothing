@@ -9,11 +9,15 @@ import {
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
 } from './adminpages/admin/shared';
 
+/* Star icon for Reviews nav */
+const IcoStar = () => <svg className="ni" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+
 import Dashboard from './adminpages/admin/Dashboard';
 import Products from './adminpages/admin/Products';
 import Categories from './adminpages/admin/Categories';
 import Orders from './adminpages/admin/Orders';
 import Returns from './adminpages/admin/Returns';
+import Reviews from './adminpages/admin/Reviews';
 import Customers from './adminpages/admin/Customers';
 import Payments from './adminpages/admin/Payments';
 import Reports from './adminpages/admin/Reports';
@@ -29,6 +33,7 @@ const NAV = [
   { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
   { id: 'bank-slips', label: 'Bank Slips', Icon: IcoCard, group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
+  { id: 'reviews', label: 'Reviews', Icon: IcoStar, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
   { id: 'payments', label: 'Payments', Icon: IcoCard, group: 'Finance' },
   { id: 'reports', label: 'Reports', Icon: IcoChartBar, group: 'Finance' },
@@ -59,6 +64,7 @@ export default function AdminDashboard() {
       case 'orders': return <Orders />;
       case 'bank-slips': return <BankSlips />;
       case 'returns': return <Returns />;
+      case 'reviews': return <Reviews />;
       case 'customers': return <Customers />;
       case 'payments': return <Payments />;
       case 'reports': return <Reports toast={show} />;

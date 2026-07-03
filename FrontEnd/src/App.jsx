@@ -8,6 +8,7 @@ import ContactUs from "./Pages/Contactus";
 import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
+import ResetPasswordPage from "./Pages/ResetPassword";
 import Dashboard from "./Pages/Admindashboard";
 import UserPage from "./Pages/user";
 import Trousers from './Pages/Trousers';
@@ -75,6 +76,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/*Admin */}
         <Route path="/dashboard" element={<Dashboard />} />

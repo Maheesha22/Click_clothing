@@ -160,7 +160,7 @@ exports.googleLogin = async (req, res) => {
 // FORGOT PASSWORD
 exports.forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, clientOrigin } = req.body;
 
     const user = await User.findOne({ where: { email } });
 
@@ -170,18 +170,25 @@ exports.forgotPassword = async (req, res) => {
       });
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.reset_token = resetToken;
-    user.reset_expires = new Date(Date.now() + 3600000);
+    user.reset_token = otp;
+    user.reset_expires = new Date(Date.now() + 3600000); // 1 hour
     await user.save();
 
-    console.log("Reset token for:", email, "→", resetToken);
+    console.log("OTP for:", email, "→", otp);
 
-    res.json({ 
-      message: "Password reset link sent to your email",
-      resetToken: resetToken
-    });
+    // Send email
+    const { sendPasswordResetEmail } = require('../services/emailService');
+    try {
+      await sendPasswordResetEmail(email, otp);
+      res.json({ 
+        message: "Password reset OTP sent to your email"
+      });
+    } catch (emailError) {
+      console.error("Failed to send reset email:", emailError);
+      res.status(500).json({ message: "Failed to send reset email. Please try again later." });
+    }
 
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -191,18 +198,19 @@ exports.forgotPassword = async (req, res) => {
 // RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
+    const { email, otp, newPassword } = req.body;
 
     const user = await User.findOne({ 
       where: { 
-        reset_token: token,
+        email: email,
+        reset_token: otp,
         reset_expires: { [Op.gt]: new Date() }
       } 
     });
 
     if (!user) {
       return res.status(400).json({ 
-        message: "Invalid or expired reset token" 
+        message: "Invalid or expired OTP" 
       });
     }
 

@@ -13,6 +13,9 @@ router.get('/eligible-orders', authenticate, reviewController.getDeliveredOrders
 // GET all reviews submitted by the logged-in user
 router.get('/my-reviews', authenticate, reviewController.getUserReviews);
 
+// GET all reviews (admin dashboard)
+router.get('/all', authenticate, reviewController.getAllReviews);
+
 // GET all reviews for a product (public)
 router.get('/product/:productId', reviewController.getProductReviews);
 
