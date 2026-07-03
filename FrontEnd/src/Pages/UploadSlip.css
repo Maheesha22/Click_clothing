@@ -1,9 +1,9 @@
-/* ── UploadSlip Page ── */
+/* ── UploadSlip Page (Balanced Black & White Theme - Light Design) ── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 .us-page {
   min-height: 100vh;
-  background: #0f0f0f;
+  background: #fcfcfc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,23 +13,23 @@
   padding: 40px 20px;
 }
 
-/* Decorative blobs */
+/* Decorative blobs - neutral subtle light gray gradients */
 .us-blob {
   position: fixed;
   border-radius: 50%;
   filter: blur(80px);
-  opacity: 0.18;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
 }
 .us-blob--1 {
   width: 500px; height: 500px;
-  background: radial-gradient(circle, #c9a882, #7d5500);
+  background: radial-gradient(circle, #000000, #888888);
   top: -100px; left: -100px;
 }
 .us-blob--2 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, #a07840, #3d2a00);
+  background: radial-gradient(circle, #555555, #f0f0f0);
   bottom: -80px; right: -80px;
 }
 
@@ -55,12 +55,12 @@
 .us-brand-name {
   font-size: 26px;
   font-weight: 800;
-  color: #c9a882;
+  color: #000000;
   letter-spacing: 4px;
 }
 .us-brand-sub {
   font-size: 10px;
-  color: #6b6560;
+  color: #666666;
   letter-spacing: 3px;
   font-weight: 600;
 }
@@ -68,13 +68,11 @@
 /* Card */
 .us-card {
   width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(201, 168, 130, 0.18);
+  background: #ffffff;
+  border: 1px solid #e6e6e6;
   border-radius: 20px;
   padding: 36px 32px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -104,13 +102,13 @@
 .us-title {
   font-size: 22px;
   font-weight: 800;
-  color: #ffffff;
+  color: #000000;
   margin: 0;
   letter-spacing: -0.5px;
 }
 .us-subtitle {
   font-size: 13px;
-  color: #9a958d;
+  color: #666666;
   margin: 0;
   line-height: 1.6;
 }
@@ -125,13 +123,13 @@
 }
 .us-spinner {
   width: 36px; height: 36px;
-  border: 3px solid rgba(201, 168, 130, 0.2);
-  border-top-color: #c9a882;
+  border: 3px solid rgba(0, 0, 0, 0.05);
+  border-top-color: #000000;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.us-spinner-text { color: #9a958d; font-size: 13px; }
+.us-spinner-text { color: #666666; font-size: 13px; }
 
 /* Form */
 .us-form { display: flex; flex-direction: column; gap: 16px; }
@@ -139,32 +137,32 @@
 .us-label {
   font-size: 11px;
   font-weight: 700;
-  color: #9a958d;
+  color: #666666;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
 .us-input {
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(201,168,130,0.2);
+  background: #ffffff;
+  border: 1.5px solid #dcdcdc;
   border-radius: 10px;
   padding: 12px 14px;
   font-size: 14px;
-  color: #fff;
+  color: #000000;
   font-family: 'Inter', sans-serif;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.us-input::placeholder { color: #4a4540; }
+.us-input::placeholder { color: #999999; }
 .us-input:focus {
-  border-color: #c9a882;
-  box-shadow: 0 0 0 3px rgba(201,168,130,0.12);
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
 }
 
 /* Error */
 .us-error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: #fff5f5;
+  border: 1px solid #ffcccc;
+  color: #cc0000;
   border-radius: 10px;
   padding: 10px 14px;
   font-size: 13px;
@@ -175,8 +173,8 @@
 .us-btn-primary {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #c9a882, #a07840);
-  color: #fff;
+  background: #000000;
+  color: #ffffff;
   border: none;
   border-radius: 12px;
   font-size: 14px;
@@ -184,32 +182,32 @@
   font-family: 'Inter', sans-serif;
   cursor: pointer;
   letter-spacing: 0.3px;
-  transition: opacity 0.2s, transform 0.15s;
-  box-shadow: 0 4px 20px rgba(201,168,130,0.3);
+  transition: background-color 0.2s, transform 0.15s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.us-btn-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-.us-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.us-btn-primary:hover:not(:disabled) { background: #222222; transform: translateY(-1px); }
+.us-btn-primary:disabled { background: #cccccc; color: #888888; cursor: not-allowed; box-shadow: none; }
 .us-btn-ghost {
   width: 100%;
   padding: 12px;
   background: transparent;
-  color: #9a958d;
-  border: 1.5px solid rgba(201,168,130,0.2);
+  color: #000000;
+  border: 1.5px solid #000000;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
-.us-btn-ghost:hover { border-color: #c9a882; color: #c9a882; }
+.us-btn-ghost:hover { border-color: #222222; background: rgba(0, 0, 0, 0.03); }
 .us-btn-loading {
   display: flex; align-items: center; justify-content: center; gap: 10px;
 }
 .us-btn-spinner {
   width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
@@ -220,22 +218,22 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: rgba(201, 168, 130, 0.08);
-  border: 1px solid rgba(201, 168, 130, 0.2);
+  background: #f7f7f7;
+  border: 1px solid #eaeaea;
   border-radius: 12px;
   padding: 14px 16px;
 }
 .us-order-strip-icon {
-  color: #c9a882;
+  color: #000000;
   flex-shrink: 0;
 }
 .us-order-strip-body { flex: 1; }
-.us-order-num { font-size: 15px; font-weight: 700; color: #fff; }
-.us-order-total { font-size: 12px; color: #9a958d; margin-top: 2px; }
+.us-order-num { font-size: 15px; font-weight: 700; color: #000000; }
+.us-order-total { font-size: 12px; color: #666666; margin-top: 2px; }
 .us-payment-badge {
-  background: rgba(201,168,130,0.15);
-  color: #c9a882;
-  border: 1px solid rgba(201,168,130,0.25);
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #dcdcdc;
   border-radius: 20px;
   padding: 4px 12px;
   font-size: 11px;
@@ -245,20 +243,20 @@
 
 /* Warning */
 .us-warning-card {
-  background: linear-gradient(135deg, rgba(255,248,230,0.08), rgba(255,243,208,0.05));
-  border: 1.5px solid rgba(240, 180, 41, 0.3);
+  background: #fafafa;
+  border: 1.5px solid #eaeaea;
   border-radius: 12px;
   padding: 16px 18px;
 }
 .us-warning-title {
   font-size: 13px;
   font-weight: 700;
-  color: #f0b429;
+  color: #000000;
   margin-bottom: 8px;
 }
 .us-warning-text {
   font-size: 12px;
-  color: #c9a050;
+  color: #555555;
   line-height: 1.7;
   margin: 0;
 }
@@ -268,14 +266,14 @@
 .us-upload-label {
   font-size: 11px;
   font-weight: 700;
-  color: #9a958d;
+  color: #666666;
   text-transform: uppercase;
   letter-spacing: 0.8px;
 }
 
 /* Drop zone */
 .us-drop-zone {
-  border: 2px dashed rgba(201,168,130,0.3);
+  border: 2px dashed #dcdcdc;
   border-radius: 16px;
   min-height: 160px;
   display: flex;
@@ -286,25 +284,25 @@
   padding: 24px;
 }
 .us-drop-zone:hover, .us-drop-zone:focus {
-  border-color: #c9a882;
-  background: rgba(201,168,130,0.04);
+  border-color: #000000;
+  background: #fcfcfc;
   outline: none;
 }
 .us-drop-zone.drag-over {
-  border-color: #c9a882;
-  background: rgba(201,168,130,0.1);
+  border-color: #000000;
+  background: #f5f5f5;
   transform: scale(1.01);
 }
-.us-drop-zone.has-file { border-style: solid; border-color: rgba(34,197,94,0.5); }
+.us-drop-zone.has-file { border-style: solid; border-color: #000000; }
 
 .us-drop-content { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.us-drop-icon { color: #c9a882; opacity: 0.7; }
-.us-drop-text { font-size: 14px; font-weight: 600; color: #e0d8ce; }
-.us-drop-sub { font-size: 12px; color: #6b6560; }
+.us-drop-icon { color: #000000; opacity: 0.7; }
+.us-drop-text { font-size: 14px; font-weight: 600; color: #000000; }
+.us-drop-sub { font-size: 12px; color: #666666; }
 .us-drop-hint {
   font-size: 11px;
-  color: #4a4540;
-  background: rgba(201,168,130,0.08);
+  color: #666666;
+  background: #f0f0f0;
   border-radius: 20px;
   padding: 3px 12px;
   margin-top: 4px;
@@ -317,43 +315,43 @@
   max-height: 120px;
   border-radius: 8px;
   object-fit: cover;
-  border: 1px solid rgba(201,168,130,0.3);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  border: 1px solid #dcdcdc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
-.us-pdf-icon { font-size: 42px; }
-.us-file-name { font-size: 13px; font-weight: 600; color: #e0d8ce; text-align: center; }
-.us-file-size { font-size: 11px; color: #6b6560; }
+.us-pdf-icon { font-size: 42px; color: #000000; }
+.us-file-name { font-size: 13px; font-weight: 600; color: #000000; text-align: center; }
+.us-file-size { font-size: 11px; color: #666666; }
 .us-change-file {
   background: transparent;
-  border: 1px solid rgba(201,168,130,0.3);
-  color: #c9a882;
+  border: 1px solid #000000;
+  color: #000000;
   font-size: 11px;
   padding: 4px 14px;
   border-radius: 20px;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  transition: background 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
-.us-change-file:hover { background: rgba(201,168,130,0.1); }
+.us-change-file:hover { background: #000000; color: #ffffff; }
 
 /* Success */
-.us-success-icon { font-size: 0; color: #22c55e; }
+.us-success-icon { font-size: 0; color: #000000; }
 .us-success-order {
   font-size: 18px;
   font-weight: 700;
-  color: #c9a882;
+  color: #000000;
   letter-spacing: 1px;
-  background: rgba(201,168,130,0.1);
-  border: 1px solid rgba(201,168,130,0.2);
+  background: #f5f5f5;
+  border: 1px solid #eaeaea;
   border-radius: 30px;
   padding: 6px 24px;
 }
-.us-error-icon { font-size: 44px; }
+.us-error-icon { font-size: 44px; color: #000000; }
 
 /* Footer */
 .us-footer-text {
   font-size: 11px;
-  color: #3a3630;
+  color: #888888;
   text-align: center;
 }
 

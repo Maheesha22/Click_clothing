@@ -27,6 +27,8 @@ const userAddressRoutes = require('./routes/userAddressRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const notificationRoutes = require("./routes/notificationRoutes");
+
 const db = require('./models');
 
 const parseCorsOrigin = (originEnv) => {
@@ -131,6 +133,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/reviews', reviewRoutes);
 console.log('reviewRoutes paths:', reviewRoutes.stack.map(s => (s.route ? s.route.path : '<non-route>')));
 
+app.use("/api/notifications", notificationRoutes);
 app.get('/', (req, res) => {
   res.send('Click Clothing API is running.');
 });

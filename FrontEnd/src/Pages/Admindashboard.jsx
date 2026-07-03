@@ -8,6 +8,7 @@ import {
   IcoDash, IcoBox, IcoTag, IcoCart, IcoUsers,
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
 } from './adminpages/admin/shared';
+import NotificationBell from '../Components/NotificationBell';
 
 import Dashboard from './adminpages/admin/Dashboard';
 import Products from './adminpages/admin/Products';
@@ -73,7 +74,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ── */}
       <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
-          <div className="s-mark"><img src="" alt="" /></div>
+          <div className="s-mark">CC</div>
           <div className="s-text">
             <span className="s-name">Click Clothing</span>
             <span className="s-sub">Store Admin</span>
@@ -114,7 +115,7 @@ export default function AdminDashboard() {
             <input className="h-inp" type="text" placeholder="Search products, orders, customers…" />
           </div>
           <div className="h-right">
-            <div className="icon-btn"><IcoBell /><span className="notif-dot" /></div>
+            <NotificationBell />
             <div className="admin-pill">
               <div className="a-av">AD</div>
               <div><div className="a-name">Admin</div><div className="a-role">Super Admin</div></div>
