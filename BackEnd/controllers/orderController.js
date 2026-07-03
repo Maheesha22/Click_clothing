@@ -139,6 +139,7 @@ const createOrder = async (req, res) => {
     const order = await Order.create({
       order_number: orderNumber,
       userId: uId,
+      customerId: customer.id,
       status: 'pending',
       payment_method: paymentMethod,
       payment_status: 'PENDING',
