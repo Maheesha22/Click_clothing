@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 
 import HomePage from "./Pages/home";
 import Cart from "./Pages/cart";
@@ -55,50 +55,54 @@ const RedirectHandler = () => {
 function App() {
   const handleForgotSuccess = () => { };
 
-  return (
-    <BrowserRouter>
+  const RootLayout = () => (
+    <>
       <RedirectHandler />
-      <Routes>
-        {/*MAIN PAGES */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/Category" element={<HomePage />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/order/confirmation" element={<OrderConfirmationPage />} />
-        <Route path="/upload-slip" element={<UploadSlipPage />} />
-        <Route path="/Contactus" element={<ContactUs />} />
-        <Route path="/feedback" element={<FeedbackForm />} />
-        <Route path="/faq" element={<FAQPage />} />
-        <Route path="/about" element={<AboutUs />} />
-
-        {/*Login pages */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot" element={<ForgotPage onSuccess={handleForgotSuccess} />} />
-
-        {/*Admin */}
-        <Route path="/dashboard" element={<Dashboard />} />
-
-        {/* User — nested routes */}
-        <Route path="/user" element={<UserPage />}>
-          <Route index element={<OrderHistory />} />
-          <Route path="wishlist" element={<Wishlist />} />
-          <Route path="orders" element={<OrderHistory />} />
-
-          <Route path="reviews" element={<Reviews />} />  {/* ← ADD THIS */}
-          <Route path="recently-viewed" element={<RecentlyViewed />} />  {/* ← ADD THIS */}
-        </Route>
-
-        {/*PRODUCT PAGES */}
-        <Route path="/category/:category" element={<ProductPage />} />
-        <Route path="/trousers" element={<Trousers />} />
-        <Route path="/shirts" element={<Shirts />} />
-        <Route path="/formal-shirts" element={<FormalShirtsPage />} />
-        <Route path="/tshirts" element={<TShirtsPage />} />
-        <Route path="/shorts" element={<ShortsPage />} />
-      </Routes>
-    </BrowserRouter>
+      <Outlet />
+    </>
   );
+
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: <RootLayout />,
+      children: [
+        { path: '/', element: <HomePage /> },
+        { path: '/Category', element: <HomePage /> },
+        { path: '/cart', element: <Cart /> },
+        { path: '/checkout', element: <CheckoutPage /> },
+        { path: '/order/confirmation', element: <OrderConfirmationPage /> },
+        { path: '/upload-slip', element: <UploadSlipPage /> },
+        { path: '/Contactus', element: <ContactUs /> },
+        { path: '/feedback', element: <FeedbackForm /> },
+        { path: '/faq', element: <FAQPage /> },
+        { path: '/about', element: <AboutUs /> },
+        { path: '/login', element: <LoginPage /> },
+        { path: '/register', element: <RegisterPage /> },
+        { path: '/forgot', element: <ForgotPage onSuccess={handleForgotSuccess} /> },
+        { path: '/dashboard', element: <Dashboard /> },
+        {
+          path: '/user',
+          element: <UserPage />,
+          children: [
+            { index: true, element: <OrderHistory /> },
+            { path: 'wishlist', element: <Wishlist /> },
+            { path: 'orders', element: <OrderHistory /> },
+            { path: 'reviews', element: <Reviews /> },
+            { path: 'recently-viewed', element: <RecentlyViewed /> }
+          ]
+        },
+        { path: '/category/:category', element: <ProductPage /> },
+        { path: '/trousers', element: <Trousers /> },
+        { path: '/shirts', element: <Shirts /> },
+        { path: '/formal-shirts', element: <FormalShirtsPage /> },
+        { path: '/tshirts', element: <TShirtsPage /> },
+        { path: '/shorts', element: <ShortsPage /> }
+      ]
+    }
+  ], { future: { v7_startTransition: true, v7_relativeSplatPath: true } });
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;
