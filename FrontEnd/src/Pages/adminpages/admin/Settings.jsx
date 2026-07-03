@@ -280,7 +280,7 @@ export default function Settings({ toast }) {
           width: 20px;
           left: 3px;
           bottom: 3px;
-          background: white;
+          background: white ;
           border-radius: 50%;
           transition: 0.3s;
         }
