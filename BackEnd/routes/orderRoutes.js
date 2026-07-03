@@ -57,6 +57,8 @@ router.get('/test-email', authenticate, requireAdmin, async (req, res) => {
   }
 });
 router.get('/', authenticate, requireAdmin, orderController.getAllOrders);
+// GET /api/orders/revenue-by-status
+router.get('/revenue-by-status', authenticate, requireAdmin, orderController.getRevenueByStatus);
 router.get('/:id', authenticate, requireAdmin, orderController.getOrderDetails);
 router.put('/:id/status', authenticate, requireAdmin, orderController.updateOrderStatus);
 router.put('/:id/payment', authenticate, requireAdmin, orderController.updatePaymentStatus);

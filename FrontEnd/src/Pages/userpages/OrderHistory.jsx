@@ -12,7 +12,7 @@ const OrderHistory = () => {
   const [showTrackModal, setShowTrackModal] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState({});
   const [viewingImage, setViewingImage] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
     const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
@@ -428,7 +428,7 @@ const OrderHistory = () => {
   }
 
   const filteredOrders = orders.filter(order => {
-    // if (activeTab === 'all') return true;
+    if (activeTab === 'all') return true;
     return order.status?.toLowerCase() === activeTab.toLowerCase();
   });
 
@@ -442,8 +442,6 @@ const OrderHistory = () => {
       <h2 className="section-title">Order History</h2>
 
       <div className="order-tabs-container">
-        {/* Commented out "All Orders" tab as requested */}
-        {/* 
         <button
           className={`order-tab ${activeTab === 'all' ? 'active' : ''}`}
           onClick={() => setActiveTab('all')}
@@ -451,7 +449,6 @@ const OrderHistory = () => {
           All Orders
           <span className="tab-count">{getTabCount('all')}</span>
         </button>
-        */}
         {['pending', 'confirmed', 'shipped', 'delivered'].map(tab => (
           <button
             key={tab}
