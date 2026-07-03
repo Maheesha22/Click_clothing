@@ -127,6 +127,24 @@
   cursor: not-allowed;
 }
 
+.btn-compare-saved {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.btn-compare-saved:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
 .btn-compare-clear {
   background: rgba(255, 255, 255, 0.2);
   color: white;

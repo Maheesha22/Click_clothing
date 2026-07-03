@@ -41,19 +41,26 @@ exports.saveComparison = async (req, res) => {
     }
 
     // Prepare product details for cache
-    const productDetails = products.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      description: p.description,
-      categoryId: p.categoryId,
-      brand: p.brand || 'N/A',
-      material: p.material || 'N/A',
-      color: p.color || 'N/A',
-      availability: p.availability || 0,
-      sizes: p.sizes || [],
-      imageUrl: p.variants?.[0]?.imageUrl || null
-    }));
+    const productDetails = products.map(p => {
+      // Extract unique sizes from variants
+      const uniqueSizes = p.variants && Array.isArray(p.variants)
+        ? [...new Set(p.variants.map(v => v.size).filter(s => s))]
+        : [];
+
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        description: p.description,
+        categoryId: p.categoryId,
+        brand: p.brand || 'N/A',
+        material: p.material || 'N/A',
+        color: p.color || 'N/A',
+        availability: p.availability || 0,
+        sizes: uniqueSizes,
+        imageUrl: p.variants?.[0]?.imageUrl || null
+      };
+    });
 
     const name = comparisonName || `Comparison - ${new Date().toLocaleDateString()}`;
 
@@ -174,19 +181,26 @@ exports.updateComparison = async (req, res) => {
         }]
       });
 
-      updatedDetails = products.map(p => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        description: p.description,
-        categoryId: p.categoryId,
-        brand: p.brand || 'N/A',
-        material: p.material || 'N/A',
-        color: p.color || 'N/A',
-        availability: p.availability || 0,
-        sizes: p.sizes || [],
-        imageUrl: p.variants?.[0]?.imageUrl || null
-      }));
+      updatedDetails = products.map(p => {
+        // Extract unique sizes from variants
+        const uniqueSizes = p.variants && Array.isArray(p.variants)
+          ? [...new Set(p.variants.map(v => v.size).filter(s => s))]
+          : [];
+
+        return {
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          description: p.description,
+          categoryId: p.categoryId,
+          brand: p.brand || 'N/A',
+          material: p.material || 'N/A',
+          color: p.color || 'N/A',
+          availability: p.availability || 0,
+          sizes: uniqueSizes,
+          imageUrl: p.variants?.[0]?.imageUrl || null
+        };
+      });
     }
 
     await comparison.update({
@@ -278,31 +292,41 @@ exports.getRecommendations = async (req, res) => {
     });
 
     // Enrich products with additional attributes
-    const enrichedComparison = comparisonProducts.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      categoryId: p.categoryId,
-      brand: p.brand || 'N/A',
-      material: p.material || 'N/A',
-      color: p.color || 'N/A',
-      availability: p.availability || 0,
-      sizes: p.sizes || []
-    }));
+    const enrichedComparison = comparisonProducts.map(p => {
+      const uniqueSizes = p.variants && Array.isArray(p.variants)
+        ? [...new Set(p.variants.map(v => v.size).filter(s => s))]
+        : [];
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        categoryId: p.categoryId,
+        brand: p.brand || 'N/A',
+        material: p.material || 'N/A',
+        color: p.color || 'N/A',
+        availability: p.availability || 0,
+        sizes: uniqueSizes
+      };
+    });
 
-    const enrichedAll = allProducts.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      categoryId: p.categoryId,
-      brand: p.brand || 'N/A',
-      material: p.material || 'N/A',
-      color: p.color || 'N/A',
-      availability: p.availability || 0,
-      sizes: p.sizes || [],
-      description: p.description,
-      imageUrl: p.variants?.[0]?.imageUrl || null
-    }));
+    const enrichedAll = allProducts.map(p => {
+      const uniqueSizes = p.variants && Array.isArray(p.variants)
+        ? [...new Set(p.variants.map(v => v.size).filter(s => s))]
+        : [];
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        categoryId: p.categoryId,
+        brand: p.brand || 'N/A',
+        material: p.material || 'N/A',
+        color: p.color || 'N/A',
+        availability: p.availability || 0,
+        sizes: uniqueSizes,
+        description: p.description,
+        imageUrl: p.variants?.[0]?.imageUrl || null
+      };
+    });
 
     // Get recommendations (in-memory calculation)
     const recommendations = recommendationEngine.getRecommendations(
@@ -362,34 +386,44 @@ exports.getComparisonWithRecommendations = async (req, res) => {
     });
 
     // Enrich data
-    const enrichedProducts = products.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      description: p.description,
-      categoryId: p.categoryId,
-      brand: p.brand || 'N/A',
-      material: p.material || 'N/A',
-      color: p.color || 'N/A',
-      availability: p.availability || 0,
-      sizes: p.sizes || [],
-      imageUrl: p.variants?.[0]?.imageUrl || null,
-      variants: p.variants
-    }));
+    const enrichedProducts = products.map(p => {
+      const uniqueSizes = p.variants && Array.isArray(p.variants)
+        ? [...new Set(p.variants.map(v => v.size).filter(s => s))]
+        : [];
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        description: p.description,
+        categoryId: p.categoryId,
+        brand: p.brand || 'N/A',
+        material: p.material || 'N/A',
+        color: p.color || 'N/A',
+        availability: p.availability || 0,
+        sizes: uniqueSizes,
+        imageUrl: p.variants?.[0]?.imageUrl || null,
+        variants: p.variants
+      };
+    });
 
-    const enrichedAll = allProducts.map(p => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      description: p.description,
-      categoryId: p.categoryId,
-      brand: p.brand || 'N/A',
-      material: p.material || 'N/A',
-      color: p.color || 'N/A',
-      availability: p.availability || 0,
-      sizes: p.sizes || [],
-      imageUrl: p.variants?.[0]?.imageUrl || null
-    }));
+    const enrichedAll = allProducts.map(p => {
+      const uniqueSizes = p.variants && Array.isArray(p.variants)
+        ? [...new Set(p.variants.map(v => v.size).filter(s => s))]
+        : [];
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        description: p.description,
+        categoryId: p.categoryId,
+        brand: p.brand || 'N/A',
+        material: p.material || 'N/A',
+        color: p.color || 'N/A',
+        availability: p.availability || 0,
+        sizes: uniqueSizes,
+        imageUrl: p.variants?.[0]?.imageUrl || null
+      };
+    });
 
     // Get recommendations
     const recommendations = recommendationEngine.getRecommendations(

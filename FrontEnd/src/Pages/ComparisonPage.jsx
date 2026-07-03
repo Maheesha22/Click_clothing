@@ -157,7 +157,7 @@ const ComparisonPage = () => {
 
   const formatPrice = (price) => {
     const value = parsePriceValue(price);
-    return `₹${value.toFixed(2)}`;
+    return `Rs.${value.toFixed(2)}`;
   };
 
   const handleSaveComparison = async () => {

@@ -17,6 +17,10 @@ const CompareBar = () => {
     navigate('/comparison', { state: { products: comparisonCart } });
   };
 
+  const handleViewSavedComparisons = () => {
+    navigate('/user/comparisons');
+  };
+
   const handleClose = () => {
     setShowCompareBar(false);
   };
@@ -56,6 +60,13 @@ const CompareBar = () => {
             title={comparisonCart.length < 2 ? 'Add at least 2 products to compare' : 'View comparison details'}
           >
             {isLoading ? 'Loading...' : `🔍 Compare Now (${comparisonCart.length})`}
+          </button>
+          <button 
+            className="btn-compare-saved"
+            onClick={handleViewSavedComparisons}
+            title="View your saved comparisons"
+          >
+            📋 My Comparisons
           </button>
           <button 
             className="btn-compare-clear"
