@@ -238,9 +238,75 @@ const getUserReviews = async (req, res) => {
   }
 };
 
+// ─── GET /api/reviews/all ────────────────────────────────────────────────────
+// Admin: Returns ALL reviews with user, product (+ first variant image), and order info.
+const getAllReviews = async (req, res) => {
+  try {
+    const reviews = await Review.findAll({
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'first_name', 'last_name']
+        },
+        {
+          model: Product,
+          as: 'product',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: ProductVariant,
+              as: 'variants',
+              attributes: ['color', 'imageUrl'],
+              limit: 1
+            }
+          ]
+        },
+        {
+          model: Order,
+          as: 'order',
+          attributes: ['id', 'order_number']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const data = reviews.map((review) => {
+      const json = review.toJSON();
+      const userName = json.user
+        ? `${json.user.first_name || ''} ${json.user.last_name || ''}`.trim()
+        : 'Unknown';
+      const productName = json.product?.name || `Product #${json.productId}`;
+      const productImage = json.product?.variants?.[0]?.imageUrl || null;
+      const orderNumber = json.order?.order_number || `#${json.orderId}`;
+
+      return {
+        id: json.id,
+        userName,
+        productName,
+        productImage,
+        productId: json.productId,
+        orderId: json.orderId,
+        orderNumber,
+        rating: json.rating,
+        comment: json.comment,
+        color: json.color,
+        imageUrls: json.imageUrls,
+        createdAt: json.createdAt
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching all reviews:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch reviews.' });
+  }
+};
+
 module.exports = {
   submitReview,
   getDeliveredOrdersForReview,
   getProductReviews,
-  getUserReviews
+  getUserReviews,
+  getAllReviews
 };

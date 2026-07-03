@@ -8,6 +8,7 @@ import ContactUs from "./Pages/Contactus";
 import LoginPage from "./Pages/login";
 import RegisterPage from "./Pages/register";
 import ForgotPage from "./Pages/forgot";
+import ResetPasswordPage from "./Pages/ResetPassword";
 import Dashboard from "./Pages/Admindashboard";
 import UserPage from "./Pages/user";
 import Trousers from './Pages/Trousers';
@@ -104,6 +105,7 @@ function App() {
         { path: '/login', element: <LoginPage /> },
         { path: '/register', element: <RegisterPage /> },
         { path: '/forgot', element: <ForgotPage onSuccess={handleForgotSuccess} /> },
+        { path: '/reset-password', element: <ResetPasswordPage /> },
         { path: '/dashboard', element: <Dashboard /> },
         { path: '/smart-size/:productId?', element: <SmartSizePage /> },
         { path: '/product/:productId', element: <ProductPage /> },

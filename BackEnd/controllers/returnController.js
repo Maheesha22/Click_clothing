@@ -2,6 +2,27 @@ const { Return, User, Order, Product, OrderItem } = require('../models');
 const { Op } = require('sequelize');
 const { notifyNewReturn } = require('../services/notificationService');
 
+const enrichReturnsWithProductDetails = async (returns) => {
+  return Promise.all(returns.map(async (ret) => {
+    const productsWithDetails = await Promise.all(
+      (ret.products || []).map(async (product) => {
+        const productData = await Product.findByPk(product.productId, {
+          attributes: ['id', 'name', 'price']
+        });
+        return {
+          ...product,
+          productDetails: productData
+        };
+      })
+    );
+
+    return {
+      ...ret.dataValues,
+      products: productsWithDetails
+    };
+  }));
+};
+
 //used
 const getAllReturns = async (req, res) => {
   try {
@@ -13,25 +34,7 @@ const getAllReturns = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-   
-    const enrichedReturns = await Promise.all(returns.map(async (ret) => {
-      const productsWithDetails = await Promise.all(
-        (ret.products || []).map(async (product) => {
-          const productData = await Product.findByPk(product.productId, {
-            attributes: ['id', 'name', 'price']
-          });
-          return {
-            ...product,
-            productDetails: productData
-          };
-        })
-      );
-
-      return {
-        ...ret.dataValues,
-        products: productsWithDetails
-      };
-    }));
+    const enrichedReturns = await enrichReturnsWithProductDetails(returns);
 
     res.status(200).json({
       success: true,
@@ -55,16 +58,17 @@ const getUserReturns = async (req, res) => {
     const returns = await Return.findAll({
       where: { userId },
       include: [
-        { model: Order, attributes: ['id', 'order_number', 'createdAt'] },
-        { model: Product, attributes: ['id', 'name', 'price'] }
+        { model: Order, attributes: ['id', 'order_number', 'createdAt'] }
       ],
       order: [['createdAt', 'DESC']]
     });
 
+    const enrichedReturns = await enrichReturnsWithProductDetails(returns);
+
     res.status(200).json({
       success: true,
-      data: returns,
-      total: returns.length
+      data: enrichedReturns,
+      total: enrichedReturns.length
     });
   } catch (error) {
     console.error('Error fetching user returns:', error);
@@ -91,16 +95,17 @@ const getReturnsByDateRange = async (req, res) => {
       },
       include: [
         { model: User, attributes: ['id', 'first_name', 'last_name', 'email'] },
-        { model: Order, attributes: ['id', 'order_number'] },
-        { model: Product, attributes: ['id', 'name'] }
+        { model: Order, attributes: ['id', 'order_number'] }
       ],
       order: [['createdAt', 'DESC']]
     });
 
+    const enrichedReturns = await enrichReturnsWithProductDetails(returns);
+
     res.status(200).json({
       success: true,
-      data: returns,
-      total: returns.length
+      data: enrichedReturns,
+      total: enrichedReturns.length
     });
   } catch (error) {
     console.error('Error fetching returns by date:', error);
