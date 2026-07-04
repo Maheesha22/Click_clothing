@@ -1,24 +1,26 @@
 {
-"name": "click_clothing",
-"version": "1.0.0",
-"description": "web application for clothing store",
-"homepage": "https://github.com/Maheesha22/Click_clothing#readme",
-"bugs": {
-"url": "https://github.com/Maheesha22/Click_clothing/issues"
-},
-"repository": {
-"type": "git",
-"url": "git+https://github.com/Maheesha22/Click_clothing.git"
-},
-"license": "ISC",
-"author": "",
-"type": "commonjs",
-"main": "index.js",
-"scripts": {
-"test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "start": "node api/index.js",
-    "dev": "node --watch --no-warnings api/index.js",
-"vercel-build": "npm install"
-},
-"engines": {
+    "name": "click_clothing",
+    "version": "1.0.0",
+    "description": "web application for clothing store",
+    "homepage": "https://github.com/Maheesha22/Click_clothing#readme",
+    "bugs": {
+        "url": "https://github.com/Maheesha22/Click_clothing/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Maheesha22/Click_clothing.git"
+    },
+    "license": "ISC",
+    "author": "",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node api/index.js",
+        "dev": "node --watch --no-warnings api/index.js",
+        "vercel-build": "npm install"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
