@@ -1,4 +1,3 @@
-
 const { Product, Category, ProductVariant } = require('../models');
 
 /*  POST /api/products/upload-image*/
@@ -34,7 +33,6 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Valid price is required' });
     }
 
-   
     const product = await Product.create({
       name: name.trim(),
       description: (description || req.body.product_description || '').trim(),
@@ -42,7 +40,6 @@ exports.createProduct = async (req, res) => {
       categoryId: catId,
     });
 
-  
     if (variants && Array.isArray(variants) && variants.length > 0) {
       const validVariants = variants.filter(v =>
         v.color && v.color.trim() &&
@@ -70,7 +67,7 @@ exports.createProduct = async (req, res) => {
     return res.status(201).json({ success: true, data: { id: product.id }, message: 'Product created successfully' });
   } catch (error) {
     console.error('Create product error:', error);
-    
+
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ success: false, message: 'Duplicate variant: same color + size combination already exists for this product' });
     }
@@ -91,7 +88,6 @@ exports.getAllProducts = async (req, res) => {
       if (cat) {
         whereClause.categoryId = cat.id;
       } else {
-        // Category name not found, return empty list
         return res.json({ success: true, data: [] });
       }
     }
@@ -186,7 +182,11 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-/*  PUT /api/products/:id*/
+/*  PUT /api/products/:id
+    Updates core product fields AND, if a `variants` array is included
+    (e.g. from the restock form), restocks matching variants by ADDING
+    the submitted quantity to the existing quantity. New color/size
+    combos are created fresh. */
 exports.updateProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -199,13 +199,50 @@ exports.updateProduct = async (req, res) => {
     if (req.body.categoryId !== undefined) updates.categoryId = req.body.categoryId;
 
     await product.update(updates);
-    res.json({ success: true, data: product, message: 'Product updated' });
+
+    // Handle variant restock/updates if variants were submitted
+    const { variants } = req.body;
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      for (const v of variants) {
+        if (!v.color || !v.size) continue;
+        const qty = parseInt(v.quantity, 10);
+        if (isNaN(qty) || qty < 0) continue;
+
+        const [variant, created] = await ProductVariant.findOrCreate({
+          where: {
+            productId: product.id,
+            color: v.color.trim(),
+            size: v.size.trim(),
+          },
+          defaults: {
+            quantity: qty,
+            imageUrl: v.image_url || null,
+          },
+        });
+
+        if (!created) {
+          // existing variant -> restock by adding, not overwriting
+          variant.quantity = variant.quantity + qty;
+          if (v.image_url) variant.imageUrl = v.image_url;
+          await variant.save();
+        }
+      }
+    }
+
+    const updatedVariants = await ProductVariant.findAll({ where: { productId: product.id } });
+
+    res.json({
+      success: true,
+      data: { ...product.toJSON(), variants: updatedVariants },
+      message: 'Product updated',
+    });
   } catch (error) {
+    console.error('Update product error:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-/* ─── DELETE /api/products/:id ───────────────────────────── */
+/*  DELETE /api/products/:id  */
 exports.deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByPk(req.params.id);
@@ -218,15 +255,52 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-/* ─ PATCH /api/products/:id/availability */
+/*  PATCH /api/products/:id/availability */
 exports.updateAvailability = async (req, res) => {
   // This endpoint is kept for compatibility – availability is now computed from variants
   res.status(200).json({ success: true, message: 'Availability is auto-calculated from variant quantities' });
 };
 
-/*  PATCH /api/products/:id/quantity */
+/*  PATCH /api/products/:id/quantity
+    Body: { variantId, quantity, mode }
+    mode: 'increment' (default, for restocking) or 'set' (overwrite) */
 exports.updateQuantity = async (req, res) => {
-  res.status(501).json({ success: false, message: 'Update variant quantities directly' });
+  try {
+    const { variantId, quantity, mode } = req.body;
+
+    if (!variantId) {
+      return res.status(400).json({ success: false, message: 'variantId is required' });
+    }
+    const qty = parseInt(quantity, 10);
+    if (isNaN(qty)) {
+      return res.status(400).json({ success: false, message: 'Valid quantity is required' });
+    }
+
+    const variant = await ProductVariant.findOne({
+      where: { id: variantId, productId: req.params.id },
+    });
+    if (!variant) {
+      return res.status(404).json({ success: false, message: 'Variant not found for this product' });
+    }
+
+    if (mode === 'set') {
+      variant.quantity = qty;
+    } else {
+      // default: restock by adding to existing quantity
+      variant.quantity = variant.quantity + qty;
+    }
+
+    if (variant.quantity < 0) {
+      return res.status(400).json({ success: false, message: 'Quantity cannot go below 0' });
+    }
+
+    await variant.save();
+
+    res.json({ success: true, data: variant, message: 'Quantity updated successfully' });
+  } catch (error) {
+    console.error('Update quantity error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 /*  POST /api/products/bulk  */
@@ -252,13 +326,11 @@ exports.getProductsByCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid category ID' });
     }
 
-    // Check if category exists
     const category = await Category.findByPk(categoryId);
     if (!category) {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
 
-    // Fetch products with their variants
     const products = await Product.findAll({
       where: { categoryId: categoryId },
       include: [
