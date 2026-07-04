@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../services/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useComparison } from '../context/ComparisonContext';
 import Header from '../Components/header';
@@ -115,8 +115,8 @@ const ComparisonPage = () => {
       const productIds = prods.map(p => p.id);
 
       // Send request to backend
-      const response = await axios.post(
-        'http://localhost:3000/api/comparisons/recommendations/get',
+      const response = await API.post(
+        '/comparisons/recommendations/get',
         { productIds, limit: 4 }
       );
 
@@ -133,8 +133,8 @@ const ComparisonPage = () => {
 
   const fetchSavedComparisons = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:3000/api/comparisons/user/${userId}`
+      const response = await API.get(
+        `/comparisons/user/${userId}`
       );
       if (response.data.success) {
         setSavedComparisons(response.data.data || []);
@@ -179,8 +179,8 @@ const ComparisonPage = () => {
     try {
       setIsSaving(true);
       const productIds = products.map(p => p.id);
-      const response = await axios.post(
-        'http://localhost:3000/api/comparisons',
+      const response = await API.post(
+        '/comparisons',
         {
           userId: parseInt(userId),
           productIds,
@@ -207,8 +207,8 @@ const ComparisonPage = () => {
     }
 
     try {
-      const response = await axios.delete(
-        `http://localhost:3000/api/comparisons/${comparisonId}`
+      const response = await API.delete(
+        `/comparisons/${comparisonId}`
       );
       if (response.data.success) {
         fetchSavedComparisons();

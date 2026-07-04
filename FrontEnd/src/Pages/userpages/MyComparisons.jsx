@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../Components/header';
 import Footer from '../../Components/footer';
@@ -101,8 +101,8 @@ const MyComparisons = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await axios.get(
-        `http://localhost:3000/api/comparisons/user/${userId}`
+      const response = await API.get(
+        `/comparisons/user/${userId}`
       );
       if (response.data.success) {
         setSavedComparisons(response.data.data || []);
@@ -135,8 +135,8 @@ const MyComparisons = () => {
     }
 
     try {
-      const response = await axios.delete(
-        `http://localhost:3000/api/comparisons/${comparisonId}`
+      const response = await API.delete(
+        `/comparisons/${comparisonId}`
       );
       if (response.data.success) {
         setSavedComparisons(prev => prev.filter(c => c.id !== comparisonId));

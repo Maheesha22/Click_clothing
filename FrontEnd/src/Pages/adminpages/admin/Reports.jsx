@@ -7,8 +7,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { MiniStats } from './shared';
+import { API_BASE_URL } from '../../../services/api';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = API_BASE_URL;
 
 /* ─── Currency formatter ─── */
 const fmt = (n) => {

@@ -4,6 +4,7 @@ import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
 import Header from "../Components/header";
 import Footer from "../Components/footer";
 import NavBar from "../Components/navsidebar";
+import { apiUrl } from "../services/api";
 
 const SmartSizePage = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const SmartSizePage = () => {
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:3000/api/products/${productId}`);
+        const response = await fetch(apiUrl(`/products/${productId}`));
         const data = await response.json();
         if (data.success) {
           setProduct(data.data);
