@@ -94,14 +94,22 @@ input, select, textarea { font-family: inherit; }
   flex-shrink: 0;
 }
 .s-mark {
-  width: 36px; height: 36px;
+  width: 34px; height: 34px;
   flex-shrink: 0;
-  background: #1a1a1a;
-  border-radius: 9px;
+  background: transparent; /* subtle outline around logo */
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  padding: 2px; /* small padding so border doesn't touch image */
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.s-mark-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
 }
 .s-text  { overflow: hidden; white-space: nowrap; }
 .s-name  { display: block; color: #1a1a1a; font-weight: 800; font-size: 14px; letter-spacing: -.2px; }
