@@ -1,7 +1,7 @@
 // SizeChart.jsx
 
 import { useState, useEffect } from "react";
-import "./SizeChart.css";
+import "./Sizechart.css";
 
 // Gents shirt size chart — all base values stored in inches (decimal).
 // collar / shoulder / height are flat garment measurements.

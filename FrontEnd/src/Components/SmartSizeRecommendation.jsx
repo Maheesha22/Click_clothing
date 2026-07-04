@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Pose } from '@mediapipe/pose';
-import { getRecommendedSizeByChest } from './SizeChart';
+import { getRecommendedSizeByChest } from './Sizechart';
 import { createSizeRecommendation } from '../services/sizeRecommendationService';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
