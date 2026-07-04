@@ -8,7 +8,11 @@ const envBase = import.meta.env.VITE_API_BASE_URL;
 const defaultDevBase = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
     ? 'http://localhost:3000/api'
     : '/api';
-export const API_BASE_URL = (envBase || defaultDevBase).replace(/\/+$/, '');
+const rawBase = envBase || defaultDevBase;
+const baseWithoutSlash = rawBase.replace(/\/+$/, '');
+export const API_BASE_URL = (baseWithoutSlash.endsWith('/api') || baseWithoutSlash.endsWith('/api/'))
+    ? baseWithoutSlash
+    : `${baseWithoutSlash}/api`;
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 export const apiUrl = (path = '') => {
