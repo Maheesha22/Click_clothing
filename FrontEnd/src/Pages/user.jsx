@@ -111,22 +111,10 @@ const User = () => {
               <span className="nav-label">wishlist</span>
             </NavLink>
 
-            {/* Recently Viewed */}
-            <NavLink to="/user/recently-viewed" className={navClass}>
-              <span className="nav-icon"><RecentlyViewedIcon /></span>
-              <span className="nav-label">Recently Viewed</span>
-            </NavLink>
-
             {/* Order History */}
             <NavLink to="/user/orders" className={navClass}>
               <span className="nav-icon"><OrderIcon /></span>
               <span className="nav-label">Order History</span>
-            </NavLink>
-            
-            {/* My Comparisons */}
-            <NavLink to="/user/comparisons" className={navClass}>
-              <span className="nav-icon"><ComparisonIcon /></span>
-              <span className="nav-label">My Comparisons</span>
             </NavLink>
 
             {/* Cart */}
@@ -141,11 +129,7 @@ const User = () => {
               <span className="nav-label">My Reviews</span>
             </NavLink>
 
-            {/* Size History */}
-            <NavLink to="/user/size-history" className={navClass}>
-              <span className="nav-icon"><span style={{ display: 'inline-block', width: 18, height: 18, fontSize: 16 }}>📏</span></span>
-              <span className="nav-label">Size History</span>
-            </NavLink>
+
 
             {/* Logout or Login */}
             {isLoggedIn ? (

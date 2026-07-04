@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import Header from '../../Components/header';
+import Footer from '../../Components/footer';
 import {
   getRecentlyViewedDB,
   removeFromRecentlyViewedDB,
@@ -12,7 +14,8 @@ import cartService from '../../services/cartservice';
 import './RecentlyViewed.css';
 
 const RecentlyViewed = () => {
-  const { storedUser, isLoggedIn } = useOutletContext();
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = !!(storedUser?.email);
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +108,22 @@ const RecentlyViewed = () => {
   };
 
   return (
-    <div className="recently-viewed-section">
+    <>
+      <Header />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', minHeight: '60vh' }}>
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: "'Jost', sans-serif", fontSize: '14px', 
+            fontWeight: '500', color: '#888', padding: '0',
+            marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px',
+            textTransform: 'uppercase', letterSpacing: '0.5px'
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>←</span> Back
+        </button>
+        <div className="recently-viewed-section">
       <div className="recently-viewed-header">
         <h2 className="section-title">Recently Viewed Products</h2>
         {items.length > 0 && (
@@ -220,12 +238,17 @@ const RecentlyViewed = () => {
         </div>
       )}
 
+
+
       {toast.show && (
         <div className={`toast ${toast.type}`}>
           {toast.message}
         </div>
       )}
     </div>
+    </div>
+    <Footer />
+    </>
   );
 };
 

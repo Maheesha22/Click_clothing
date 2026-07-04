@@ -475,6 +475,50 @@ function NavBar({ activeTab, setActiveTab }) {
           </div>
         )}
       </div>
+
+      {/* Quick-access icon links: Comparisons, Recently Viewed, Size History */}
+      <div className="navbar-quick-links">
+        <button
+          className="navbar-quick-btn"
+          title="My Comparisons"
+          onClick={() => navigate('/user/comparisons')}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <rect x="3" y="3" width="7" height="18" rx="1"/>
+            <rect x="14" y="3" width="7" height="11" rx="1"/>
+            <rect x="14" y="17" width="7" height="4" rx="1"/>
+          </svg>
+          <span className="navbar-quick-label">Compare</span>
+        </button>
+
+        <button
+          className="navbar-quick-btn"
+          title="Recently Viewed"
+          onClick={() => navigate('/user/recently-viewed')}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span className="navbar-quick-label">Recent</span>
+        </button>
+
+        <button
+          className="navbar-quick-btn"
+          title="Size History"
+          onClick={() => navigate('/user/size-history')}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M2 20h20" />
+            <path d="M4 20v-4" />
+            <path d="M8 20v-8" />
+            <path d="M12 20v-6" />
+            <path d="M16 20v-3" />
+            <path d="M20 20V8" />
+          </svg>
+          <span className="navbar-quick-label">Sizes</span>
+        </button>
+      </div>
     </div>
   );
 }
