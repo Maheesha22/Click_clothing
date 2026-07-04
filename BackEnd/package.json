@@ -1,57 +1,24 @@
 {
-  "name": "click_clothing",
-  "version": "1.0.0",
-  "description": "web application for clothing store",
-  "homepage": "https://github.com/Maheesha22/Click_clothing#readme",
-  "bugs": {
-    "url": "https://github.com/Maheesha22/Click_clothing/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Maheesha22/Click_clothing.git"
-  },
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+"name": "click_clothing",
+"version": "1.0.0",
+"description": "web application for clothing store",
+"homepage": "https://github.com/Maheesha22/Click_clothing#readme",
+"bugs": {
+"url": "https://github.com/Maheesha22/Click_clothing/issues"
+},
+"repository": {
+"type": "git",
+"url": "git+https://github.com/Maheesha22/Click_clothing.git"
+},
+"license": "ISC",
+"author": "",
+"type": "commonjs",
+"main": "index.js",
+"scripts": {
+"test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "vercel-build": "npm install"
-  },
-  "engines": {
-    "node": ">=20.x"
-  },
-  "vercel": {
-    "functions": {
-      "api/index.js": {
-        "memory": 1024,
-        "maxDuration": 30
-      }
-    },
-    "externalPackages": [
-      "mysql2",
-      "sequelize",
-      "bcryptjs",
-      "nodemailer",
-      "cloudinary"
-    ]
-  },
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "body-parser": "^2.2.2",
-    "cloudinary": "^1.41.3",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "multer": "^1.4.5-lts.2",
-    "multer-storage-cloudinary": "^4.0.0",
-    "mysql2": "^3.22.0",
-    "nodemailer": "^8.0.11",
-    "sequelize": "^6.37.8"
-  },
-  "devDependencies": {
-    "sequelize-cli": "^6.6.5"
-  }
-}
+    "start": "node api/index.js",
+    "dev": "node --watch --no-warnings api/index.js",
+"vercel-build": "npm install"
+},
+"engines": {
