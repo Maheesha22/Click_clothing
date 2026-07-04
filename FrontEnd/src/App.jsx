@@ -23,6 +23,7 @@ import ProductPage from './Pages/ProductPage';
 import OrderConfirmationPage from './Pages/OrderConfirmation';
 import UploadSlipPage from './Pages/UploadSlip';
 import ComparisonPage from './Pages/ComparisonPage';
+import ChatbotPage from './Pages/Chatbot';
 // User sub-pages
 import Wishlist from "./Pages/userpages/Wishlist";
 import OrderHistory from "./Pages/userpages/OrderHistory";
@@ -36,6 +37,7 @@ import MyComparisons from "./Pages/userpages/MyComparisons";
 // Context & Components
 import { ComparisonProvider } from './context/ComparisonContext';
 import CompareBar from './Components/CompareBar';
+import ChatLauncher from './Components/ChatLauncher';
 
 // Gate for routes that require a logged-in user
 const ProtectedRoute = ({ children }) => {
@@ -82,6 +84,7 @@ function App() {
         <CompareBar />
         <RedirectHandler />
         <Outlet />
+        <ChatLauncher floating />
       </>
     </ComparisonProvider>
   );
@@ -102,6 +105,7 @@ function App() {
         { path: '/feedback', element: <FeedbackForm /> },
         { path: '/faq', element: <FAQPage /> },
         { path: '/about', element: <AboutUs /> },
+        { path: '/chat', element: <ChatbotPage /> },
         { path: '/login', element: <LoginPage /> },
         { path: '/register', element: <RegisterPage /> },
         { path: '/forgot', element: <ForgotPage onSuccess={handleForgotSuccess} /> },

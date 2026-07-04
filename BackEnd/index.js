@@ -32,6 +32,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const db = require('./models');
 const sizeRecommendationRoutes = require('./routes/sizeRecommendationRoutes');
 const comparisonRoutes = require('./routes/comparisonRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const parseCorsOrigin = (originEnv) => {
   if (!originEnv) return '*'; // fallback to allow all if not configured
@@ -133,6 +134,9 @@ app.use('/api/selected-items', selectedItemsRoutes);
 app.use('/api/user-addresses', userAddressRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/size-recommendations', sizeRecommendationRoutes);
+app.use('/api/comparisons', comparisonRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/feedbacks', feedbackRoutes);
 console.log('reviewRoutes paths:', reviewRoutes.stack.map(s => (s.route ? s.route.path : '<non-route>')));
@@ -182,6 +186,10 @@ const initializeDatabase = async () => {
     console.log('✅ Database connected successfully.');
     dbInitialized = true;
 
+    const shouldSync = process.env.DB_SYNC === 'true' ||
+      (process.env.NODE_ENV !== 'production' && process.env.DB_SYNC !== 'false');
+
+    if (shouldSync) {
     if (process.env.DB_SYNC === 'true') {
       // sync() only creates missing tables — never drops or alters existing ones
       await db.sequelize.sync();
