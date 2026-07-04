@@ -2,6 +2,7 @@
 
 const { Review, Order, OrderItem, Product, ProductVariant, User } = require('../models');
 const { fn, col, where, Op } = require('sequelize');
+const { notifyNewReview } = require('../services/notificationService');
 
 // ─── POST /api/reviews ───────────────────────────────────────────────────────
 // Submit a review for one product in a delivered order.
@@ -37,6 +38,17 @@ const submitReview = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'You can only review products from delivered orders.'
+      });
+    }
+
+    // 30-day review limit check
+    const deliveryDate = new Date(order.updatedAt);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    if (deliveryDate < thirtyDaysAgo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reviews can only be submitted within 30 days of delivery.'
       });
     }
 
@@ -77,6 +89,15 @@ const submitReview = async (req, res) => {
       comment: comment.trim(),
       imageUrls: imageUrls.length > 0 ? imageUrls : null
     });
+
+    // Notify admin
+    try {
+      const product = await Product.findByPk(productId);
+      const user = await User.findByPk(userId);
+      await notifyNewReview(review, product, user);
+    } catch (notifErr) {
+      console.error('Failed to notify admin of new review:', notifErr);
+    }
 
     return res.status(201).json({ success: true, data: review });
   } catch (err) {
@@ -128,7 +149,11 @@ const getDeliveredOrdersForReview = async (req, res) => {
       existingReviews.map(r => `${r.orderId}-${r.productId}`)
     );
 
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const data = orders
+      .filter(order => new Date(order.updatedAt) >= thirtyDaysAgo)
       .map(order => {
         const o = order.toJSON();
         const items = (o.items || []).map(item => ({
@@ -292,6 +317,7 @@ const getAllReviews = async (req, res) => {
         comment: json.comment,
         color: json.color,
         imageUrls: json.imageUrls,
+        isHidden: json.isHidden,
         createdAt: json.createdAt
       };
     });

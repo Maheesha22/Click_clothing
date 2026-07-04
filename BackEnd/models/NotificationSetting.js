@@ -47,6 +47,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    new_reviews_feedbacks: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW

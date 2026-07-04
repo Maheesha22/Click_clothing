@@ -183,9 +183,28 @@ const initializeDatabase = async () => {
     dbInitialized = true;
 
     if (process.env.DB_SYNC === 'true') {
-      // sync() with no options only CREATES missing tables — never drops or alters existing ones
+      // sync() only creates missing tables — never drops or alters existing ones
       await db.sequelize.sync();
       console.log('✅ Database sync completed.');
+
+      // Manually add new columns if they don't already exist
+      const qi = db.sequelize.getQueryInterface();
+      const { DataTypes } = require('sequelize');
+
+      const addColumnIfMissing = async (table, column, definition) => {
+        try {
+          const tableDesc = await qi.describeTable(table);
+          if (!tableDesc[column]) {
+            await qi.addColumn(table, column, definition);
+            console.log(`✅ Added column '${column}' to '${table}'.`);
+          }
+        } catch (e) {
+          console.warn(`⚠️  Could not add column '${column}' to '${table}':`, e.message);
+        }
+      };
+
+      await addColumnIfMissing('reviews', 'isHidden', { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: true });
+      await addColumnIfMissing('notification_settings', 'new_reviews_feedbacks', { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: true });
     }
   } catch (err) {
     console.error('❌ Unable to connect to database:', err);
