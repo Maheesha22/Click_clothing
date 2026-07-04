@@ -113,7 +113,7 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
 );
 
 // ---------- Product Card Component ----------
-const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewMeta = {} }) => {
+const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewMeta = {}, isHighlighted, onOpenSmartSize }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "#ffffff");
   const images = product.colorImages?.[selectedColor] || [product.img];
   const currentImage = images[0];
@@ -202,6 +202,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [sizeError, setSizeError]               = useState(false);
   const [showSmartSize, setShowSmartSize]       = useState(false);
+  const [showSizeChart, setShowSizeChart]       = useState(false);
   const [reviewSort, setReviewSort]             = useState('newest');
   const [reviews, setReviews]                   = useState([]);
   const [reviewsLoading, setReviewsLoading]     = useState(true);
