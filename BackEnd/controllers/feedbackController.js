@@ -1,4 +1,5 @@
 const { Feedback } = require('../models');
+const { notifyNewFeedback } = require('../services/notificationService');
 
 // Create new feedback
 exports.createFeedback = async (req, res) => {
@@ -14,6 +15,13 @@ exports.createFeedback = async (req, res) => {
       email,
       message
     });
+
+    // Notify admin
+    try {
+      await notifyNewFeedback(feedback);
+    } catch (notifErr) {
+      console.error('Failed to notify admin of new feedback:', notifErr);
+    }
 
     res.status(201).json({ success: true, data: feedback });
   } catch (error) {

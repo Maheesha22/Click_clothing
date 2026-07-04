@@ -28,7 +28,9 @@ const TYPE_TO_SETTING = {
   order: 'new_order_alerts',
   stock: 'low_stock_alerts',
   payment: 'payment_failures',
-  signup: 'customer_signups'
+  signup: 'customer_signups',
+  review: 'new_reviews_feedbacks',
+  feedback: 'new_reviews_feedbacks'
 };
 
 let cachedAdminId = null;
@@ -74,7 +76,8 @@ const getOrCreateSettings = async () => {
       low_stock_alerts: true,
       payment_failures: true,
       weekly_reports: true,
-      customer_signups: false
+      customer_signups: false,
+      new_reviews_feedbacks: true
     }
   });
 
@@ -209,6 +212,28 @@ const notifyLowStock = async (variant, product) => {
   }
 };
 
+// New product review submitted
+const notifyNewReview = async (review, product, user) => {
+  const userName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Customer' : 'Customer';
+  const productName = product ? product.name : 'a product';
+  return createSystemNotification({
+    type: 'review',
+    title: '⭐ New Product Review',
+    message: `${userName} left a ${review.rating}-star review for ${productName}`,
+    data: { reviewId: review.id, productId: review.productId, rating: review.rating }
+  });
+};
+
+// New customer feedback submitted
+const notifyNewFeedback = async (feedback) => {
+  return createSystemNotification({
+    type: 'feedback',
+    title: '💬 New Customer Feedback',
+    message: `${feedback.name} submitted new feedback`,
+    data: { feedbackId: feedback.id, email: feedback.email }
+  });
+};
+
 module.exports = {
   resolveAdminUserId, 
   getOrCreateSettings,
@@ -218,5 +243,7 @@ module.exports = {
   notifyNewCustomerSignup,
   notifyNewReturn,
   notifyLowStock,
+  notifyNewReview,
+  notifyNewFeedback,
   LOW_STOCK_THRESHOLD
 };

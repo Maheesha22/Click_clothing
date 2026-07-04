@@ -200,7 +200,8 @@ const getSettings = async (req, res) => {
         low_stock_alerts: settings.low_stock_alerts,
         payment_failures: settings.payment_failures,
         weekly_reports: settings.weekly_reports,
-        customer_signups: settings.customer_signups
+        customer_signups: settings.customer_signups,
+        new_reviews_feedbacks: settings.new_reviews_feedbacks
       }
     });
 
@@ -232,7 +233,8 @@ const updateSettings = async (req, res) => {
       low_stock_alerts,
       payment_failures,
       weekly_reports,
-      customer_signups
+      customer_signups,
+      new_reviews_feedbacks
     } = req.body;
 
     const [settings] = await NotificationSetting.findOrCreate({
@@ -243,7 +245,8 @@ const updateSettings = async (req, res) => {
         low_stock_alerts: true,
         payment_failures: true,
         weekly_reports: true,
-        customer_signups: false
+        customer_signups: false,
+        new_reviews_feedbacks: true
       }
     });
 
@@ -252,7 +255,8 @@ const updateSettings = async (req, res) => {
       low_stock_alerts,
       payment_failures,
       weekly_reports,
-      customer_signups
+      customer_signups,
+      new_reviews_feedbacks
     });
 
     res.json({
@@ -263,7 +267,8 @@ const updateSettings = async (req, res) => {
         low_stock_alerts: settings.low_stock_alerts,
         payment_failures: settings.payment_failures,
         weekly_reports: settings.weekly_reports,
-        customer_signups: settings.customer_signups
+        customer_signups: settings.customer_signups,
+        new_reviews_feedbacks: settings.new_reviews_feedbacks
       }
     });
 
