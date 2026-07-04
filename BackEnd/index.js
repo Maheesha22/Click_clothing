@@ -213,6 +213,8 @@ const initializeDatabase = async () => {
 
       await addColumnIfMissing('reviews', 'isHidden', { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: true });
       await addColumnIfMissing('notification_settings', 'new_reviews_feedbacks', { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: true });
+      await addColumnIfMissing('users', 'reset_token', { type: DataTypes.STRING, allowNull: true });
+      await addColumnIfMissing('users', 'reset_expires', { type: DataTypes.DATE, allowNull: true });
     }
   } catch (err) {
     console.error('❌ Unable to connect to database:', err);

@@ -17,7 +17,9 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password: DataTypes.STRING,
     googleId: DataTypes.STRING,
-    isAdmin: DataTypes.BOOLEAN
+    isAdmin: DataTypes.BOOLEAN,
+    reset_token: { type: DataTypes.STRING, allowNull: true },
+    reset_expires: { type: DataTypes.DATE, allowNull: true }
   }, {
     sequelize,
     modelName: 'User',
