@@ -2,7 +2,7 @@
  * shared.jsx
  * ─────────────────────────────────────────────────────────────
  * All static data, lookup maps, SVG icons, small reusable
- * components, the useToast hook, and the Modal component.
+ * Components, the useToast hook, and the Modal component.
  * Every page file imports exactly what it needs from here.
  * ─────────────────────────────────────────────────────────────
  */
@@ -117,7 +117,7 @@ export const IcoGear     = () => <svg className="ni" fill="none" stroke="current
 export const IcoLogout   = () => <svg className="ni" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 
 /* ═══════════════════════════════════════════════════════════
-   REUSABLE SMALL COMPONENTS
+   REUSABLE SMALL Components
 ═══════════════════════════════════════════════════════════ */
 export const Badge = ({ label, cls }) => <span className={`badge ${cls}`}>{label}</span>;
 

@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers how to deploy the Click Clothing application with separate frontend, backend, and database components.
+This guide covers how to deploy the Click Clothing application with separate frontend, backend, and database Components.
 
 ## Architecture Overview
 

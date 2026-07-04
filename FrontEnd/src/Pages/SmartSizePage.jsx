@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import NavBar from "../components/navsidebar";
+import Header from "../Components/Header";
+import Footer from "../Components/Footer";
+import NavBar from "../Components/navsidebar";
 
 const SmartSizePage = () => {
   const navigate = useNavigate();

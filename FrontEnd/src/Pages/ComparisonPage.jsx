@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useComparison } from '../context/ComparisonContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import NavBar from '../components/navsidebar';
+import Header from '../Components/Header';
+import Footer from '../Components/Footer';
+import NavBar from '../Components/navsidebar';
 import '../styles/ComparisonPage.css';
 
 // Each entry becomes: one full-width header bar with the attribute name,

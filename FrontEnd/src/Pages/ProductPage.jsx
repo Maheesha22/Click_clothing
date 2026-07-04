@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import NavBar from "../components/navsidebar";
-import WhatsAppButton from "../components/whatsappbtn";
-import SizeChart from "../components/SizeChart";
+import Header from "../Components/Header";
+import Footer from "../Components/Footer";
+import NavBar from "../Components/navsidebar";
+import WhatsAppButton from "../Components/whatsappbtn";
+import SizeChart from "../Components/SizeChart";
 import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
 import CompareButton from "../Components/CompareButton";
 import cartService from "../services/cartService";

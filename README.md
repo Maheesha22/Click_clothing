@@ -1,6 +1,6 @@
 # Click Clothing
 
-A full-stack e-commerce clothing store application with separate frontend, backend, and database components.
+A full-stack e-commerce clothing store application with separate frontend, backend, and database Components.
 
 ## Tech Stack
 
@@ -37,8 +37,8 @@ Click_clothing-Testing/
 │   └── index.js           # Entry point
 ├── Frontend/              # React application
 │   ├── src/
-│   │   ├── Components/    # Reusable components
-│   │   ├── Pages/         # Page components
+│   │   ├── Components/    # Reusable Components
+│   │   ├── Pages/         # Page Components
 │   │   └── services/      # API service layer
 │   ├── public/            # Static assets
 │   ├── .env.example       # Environment variables template
