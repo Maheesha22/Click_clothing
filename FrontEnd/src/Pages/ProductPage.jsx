@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import Header from "../Components/Header";
-import Footer from "../Components/Footer";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
 import NavBar from "../Components/navsidebar";
 import WhatsAppButton from "../Components/whatsappbtn";
 import SizeChart from "../Components/SizeChart";

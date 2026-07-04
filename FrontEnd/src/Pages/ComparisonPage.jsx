@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useComparison } from '../context/ComparisonContext';
-import Header from '../Components/Header';
-import Footer from '../Components/Footer';
+import Header from '../Components/header';
+import Footer from '../Components/footer';
 import NavBar from '../Components/navsidebar';
 import '../styles/ComparisonPage.css';
 
