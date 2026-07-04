@@ -19,6 +19,7 @@ import Categories from './adminpages/admin/Categories';
 import Orders from './adminpages/admin/Orders';
 import Returns from './adminpages/admin/Returns';
 import Reviews from './adminpages/admin/Reviews';
+import Feedbacks from './adminpages/admin/Feedbacks';
 import Customers from './adminpages/admin/Customers';
 import Payments from './adminpages/admin/Payments';
 import Reports from './adminpages/admin/Reports';
@@ -34,8 +35,9 @@ const NAV = [
   { id: 'orders', label: 'Orders', Icon: IcoCart, group: 'Commerce' },
   { id: 'bank-slips', label: 'Bank Slips', Icon: IcoCard, group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
-  { id: 'reviews', label: 'Reviews', Icon: IcoStar, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
+  { id: 'reviews', label: 'Reviews', Icon: IcoStar, group: 'Feedback & Reviews' },
+  { id: 'feedbacks', label: 'Feedbacks', Icon: IcoStar, group: 'Feedback & Reviews' },
   { id: 'payments', label: 'Payments', Icon: IcoCard, group: 'Finance' },
   { id: 'reports', label: 'Reports', Icon: IcoChartBar, group: 'Finance' },
   { id: 'settings', label: 'Settings', Icon: IcoGear, group: null },
@@ -66,6 +68,7 @@ export default function AdminDashboard() {
       case 'bank-slips': return <BankSlips />;
       case 'returns': return <Returns />;
       case 'reviews': return <Reviews />;
+      case 'feedbacks': return <Feedbacks />;
       case 'customers': return <Customers />;
       case 'payments': return <Payments />;
       case 'reports': return <Reports toast={show} />;

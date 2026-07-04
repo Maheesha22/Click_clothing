@@ -27,6 +27,29 @@ export default function Reviews() {
     setDisplayLimit(20);
   }, [filter]);
 
+  const handleToggleHide = async (id) => {
+    try {
+      const res = await API.put(`/reviews/${id}/hide`);
+      if (res.data.success) {
+        setReviews(reviews.map(r => r.id === id ? { ...r, isHidden: !r.isHidden } : r));
+      }
+    } catch (error) {
+      console.error('Error toggling hide review:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+    try {
+      const res = await API.delete(`/reviews/${id}`);
+      if (res.data.success) {
+        setReviews(reviews.filter(r => r.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+    }
+  };
+
   const fetchReviews = async () => {
     try {
       setLoading(true);
@@ -133,6 +156,7 @@ export default function Reviews() {
                     <th>Comment</th>
                     <th>Photos</th>
                     <th>Date</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -209,6 +233,33 @@ export default function Reviews() {
                     {/* Date */}
                     <td className="cell-dim">
                       {new Date(rv.createdAt).toLocaleDateString()}
+                    </td>
+                    
+                    {/* Actions */}
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                          onClick={() => handleToggleHide(rv.id)}
+                          style={{
+                            padding: '4px 8px', fontSize: '11px', fontWeight: 600,
+                            borderRadius: '4px', cursor: 'pointer', border: '1px solid #ccc',
+                            background: rv.isHidden ? '#f1f5f9' : '#fff',
+                            color: rv.isHidden ? '#64748b' : '#333'
+                          }}
+                        >
+                          {rv.isHidden ? 'Unhide' : 'Hide'}
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(rv.id)}
+                          style={{
+                            padding: '4px 8px', fontSize: '11px', fontWeight: 600,
+                            borderRadius: '4px', cursor: 'pointer', border: 'none',
+                            background: '#fee2e2', color: '#ef4444'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

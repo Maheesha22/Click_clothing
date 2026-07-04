@@ -163,7 +163,7 @@ const getProductReviews = async (req, res) => {
     }
 
     const color = req.query.color ? String(req.query.color).trim().toLowerCase() : null;
-    const whereClause = { productId };
+    const whereClause = { productId, isHidden: false };
     if (color) {
       whereClause.color = where(fn('lower', col('color')), color);
     }
@@ -303,10 +303,47 @@ const getAllReviews = async (req, res) => {
   }
 };
 
+// ─── PUT /api/reviews/:id/hide ──────────────────────────────────────────────────
+// Admin: Toggles the isHidden status of a review
+const hideReview = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const review = await Review.findByPk(reviewId);
+    if (!review) return res.status(404).json({ success: false, message: 'Review not found.' });
+
+    review.isHidden = !review.isHidden;
+    await review.save();
+
+    return res.status(200).json({ success: true, message: 'Review visibility toggled.', data: review });
+  } catch (err) {
+    console.error('Error hiding review:', err);
+    return res.status(500).json({ success: false, message: 'Failed to hide review.' });
+  }
+};
+
+// ─── DELETE /api/reviews/:id ──────────────────────────────────────────────────
+// Admin: Deletes a review
+const deleteReview = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const review = await Review.findByPk(reviewId);
+    if (!review) return res.status(404).json({ success: false, message: 'Review not found.' });
+
+    await review.destroy();
+
+    return res.status(200).json({ success: true, message: 'Review deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting review:', err);
+    return res.status(500).json({ success: false, message: 'Failed to delete review.' });
+  }
+};
+
 module.exports = {
   submitReview,
   getDeliveredOrdersForReview,
   getProductReviews,
   getUserReviews,
-  getAllReviews
+  getAllReviews,
+  hideReview,
+  deleteReview
 };

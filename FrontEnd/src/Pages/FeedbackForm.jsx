@@ -152,7 +152,7 @@ const FeedbackForm = () => {
                   <p>Be the first to share!</p>
                 </div>
               ) : (
-                feedbacks.slice(0, 10).map((fb) => (
+                feedbacks.slice(0, 5).map((fb) => (
                   <div key={fb.id} className="feedback-review-card">
                     <div className="feedback-review-header">
                       <div className="feedback-review-avatar">
