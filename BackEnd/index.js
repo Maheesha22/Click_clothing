@@ -31,6 +31,7 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const db = require('./models');
 const sizeRecommendationRoutes = require('./routes/sizeRecommendationRoutes');
 const comparisonRoutes = require('./routes/comparisonRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const parseCorsOrigin = (originEnv) => {
   if (!originEnv) return '*'; // fallback to allow all if not configured
@@ -111,6 +112,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/size-recommendations', sizeRecommendationRoutes);
 app.use('/api/comparisons', comparisonRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 app.use("/api/notifications", notificationRoutes);
 app.get('/', (req, res) => {
@@ -126,7 +128,10 @@ const initializeDatabase = async () => {
     console.log('✅ Database connected successfully.');
     dbInitialized = true;
 
-    if (process.env.DB_SYNC === 'true' && process.env.NODE_ENV !== 'production') {
+    const shouldSync = process.env.DB_SYNC === 'true' ||
+      (process.env.NODE_ENV !== 'production' && process.env.DB_SYNC !== 'false');
+
+    if (shouldSync) {
       await db.sequelize.sync();
       console.log('✅ Database sync completed.');
     }
