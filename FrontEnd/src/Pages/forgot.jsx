@@ -4,22 +4,33 @@ import "./forgot.css";
 import logo from "../assets/Logo.jpg";
 import Header from "../Components/header";
 import Footer from "../Components/footer";
+import API from "../services/api";
 
 export default function ForgotPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleRecover = (e) => {
+  const handleRecover = async (e) => {
     e.preventDefault();
     if (!email) {
       setError("Please enter your email.");
       return;
     }
     setError("");
-    navigate("/login", {
-      state: { recoveryMsg: "We've sent you an email with a link to update your password." }
-    });
+    setIsLoading(true);
+
+    try {
+      await API.post("/users/forgot-password", { email });
+      navigate("/reset-password", {
+        state: { email: email, recoveryMsg: "We've sent a 6-digit OTP to your email." }
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to process request. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,7 +52,9 @@ export default function ForgotPage() {
 
           {error && <p className="forgot-error">{error}</p>}
 
-          <button className="forgot-btn" onClick={handleRecover}>Recover</button>
+          <button className="forgot-btn" onClick={handleRecover} disabled={isLoading}>
+            {isLoading ? "Sending..." : "Recover"}
+          </button>
 
           <p className="forgot-back">
             <Link to="/login">← Back to Login</Link>

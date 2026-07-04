@@ -9,12 +9,18 @@ import {
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
 } from './adminpages/admin/shared';
 import NotificationBell from '../Components/NotificationBell';
+import logo from '../assets/Logo.jpg';
+
+/* Star icon for Reviews nav */
+const IcoStar = () => <svg className="ni" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
 
 import Dashboard from './adminpages/admin/Dashboard';
 import Products from './adminpages/admin/Products';
 import Categories from './adminpages/admin/Categories';
 import Orders from './adminpages/admin/Orders';
 import Returns from './adminpages/admin/Returns';
+import Reviews from './adminpages/admin/Reviews';
+import Feedbacks from './adminpages/admin/Feedbacks';
 import Customers from './adminpages/admin/Customers';
 import Payments from './adminpages/admin/Payments';
 import Reports from './adminpages/admin/Reports';
@@ -27,10 +33,12 @@ const NAV = [
   { id: 'dash', label: 'Dashboard', Icon: IcoDash, group: 'Main' },
   { id: 'products', label: 'Products', Icon: IcoBox, group: 'Main' },
   { id: 'categories', label: 'Categories', Icon: IcoTag, group: 'Main' },
-  { id: 'orders', label: 'Orders', Icon: IcoCart, badge: '12', group: 'Commerce' },
+  { id: 'orders', label: 'Orders', Icon: IcoCart, group: 'Commerce' },
   { id: 'bank-slips', label: 'Bank Slips', Icon: IcoCard, group: 'Commerce' },
   { id: 'returns', label: 'Returns', Icon: IcoArchive, group: 'Commerce' },
   { id: 'customers', label: 'Customers', Icon: IcoUsers, group: 'Commerce' },
+  { id: 'reviews', label: 'Reviews', Icon: IcoStar, group: 'Feedback & Reviews' },
+  { id: 'feedbacks', label: 'Feedbacks', Icon: IcoStar, group: 'Feedback & Reviews' },
   { id: 'payments', label: 'Payments', Icon: IcoCard, group: 'Finance' },
   { id: 'reports', label: 'Reports', Icon: IcoChartBar, group: 'Finance' },
   { id: 'settings', label: 'Settings', Icon: IcoGear, group: null },
@@ -60,6 +68,8 @@ export default function AdminDashboard() {
       case 'orders': return <Orders />;
       case 'bank-slips': return <BankSlips />;
       case 'returns': return <Returns />;
+      case 'reviews': return <Reviews />;
+      case 'feedbacks': return <Feedbacks />;
       case 'customers': return <Customers />;
       case 'payments': return <Payments />;
       case 'reports': return <Reports toast={show} />;
@@ -74,7 +84,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ── */}
       <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
-          <div className="s-mark">CC</div>
+          <div className="s-mark"><img src={logo} className="s-mark-img" alt="Click Clothing"/></div>
           <div className="s-text">
             <span className="s-name">Click Clothing</span>
             <span className="s-sub">Store Admin</span>

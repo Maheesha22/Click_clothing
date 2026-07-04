@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
+// Default to the configured VITE_API_BASE_URL, or when running in
+// development on localhost, point to the backend at port 3000 so
+// calls like `API.get('/orders/revenue-by-status')` reach the
+// Express server without requiring a Vite proxy.
+const envBase = import.meta.env.VITE_API_BASE_URL;
+const defaultDevBase = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+    ? 'http://localhost:3000/api'
+    : '/api';
+export const API_BASE_URL = (envBase || defaultDevBase).replace(/\/+$/, '');
 export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 export const apiUrl = (path = '') => {

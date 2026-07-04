@@ -53,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
     imageUrls: {
       type: DataTypes.JSON,
       allowNull: true
+    },
+    isHidden: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     sequelize,

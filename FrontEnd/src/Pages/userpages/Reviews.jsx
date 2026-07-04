@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate, useOutletContext, useLocation } from 'react-router-dom';
 import API from '../../services/api';
 import './Reviews.css';
 
@@ -38,8 +38,8 @@ const getProductImage = (item) => {
 };
 
 /* ──────────────────────────── ProductReviewCard ─────────────────────────── */
-const ProductReviewCard = ({ item, orderId, orderNumber, onReviewed }) => {
-  const [open, setOpen] = useState(false);
+const ProductReviewCard = ({ item, orderId, orderNumber, onReviewed, initiallyOpen = false }) => {
+  const [open, setOpen] = useState(initiallyOpen);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [imageFiles, setImageFiles] = useState([]);
@@ -236,8 +236,8 @@ const ProductReviewCard = ({ item, orderId, orderNumber, onReviewed }) => {
 };
 
 /* ──────────────────────────── OrderReviewBlock ──────────────────────────── */
-const OrderReviewBlock = ({ order, onReviewed }) => {
-  const [expanded, setExpanded] = useState(false);
+const OrderReviewBlock = ({ order, onReviewed, initiallyExpanded = false }) => {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   const allReviewed = order.items?.every(i => i.alreadyReviewed);
 
   return (
@@ -266,6 +266,7 @@ const OrderReviewBlock = ({ order, onReviewed }) => {
               orderId={order.id}
               orderNumber={order.order_number}
               onReviewed={onReviewed}
+              initiallyOpen={initiallyExpanded}
             />
           ))}
         </div>
@@ -313,7 +314,10 @@ const SubmittedReview = ({ review }) => {
 /* ──────────────────────────── Main Component ────────────────────────────── */
 const Reviews = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { storedUser, isLoggedIn } = useOutletContext();
+  
+  const focusedOrderId = location.state?.orderId;
 
   const [activeTab, setActiveTab] = useState('write');
   const [orders, setOrders] = useState([]);
@@ -325,16 +329,46 @@ const Reviews = () => {
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    fetchOrders();
-    fetchMyReviews();
+    const loadReviewsAndOrders = async () => {
+      const reviews = await fetchMyReviews();
+      await fetchOrders(reviews);
+    };
+    loadReviewsAndOrders();
   }, [isLoggedIn]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (currentReviews = []) => {
     setLoadingOrders(true);
     setOrdersError('');
     try {
       const res = await API.get('/reviews/eligible-orders');
-      if (res.data.success) setOrders(res.data.data);
+      if (res.data.success) {
+        const reviewsToUse = currentReviews.length > 0 ? currentReviews : myReviews;
+        const reviewedSet = new Set(
+          (reviewsToUse || []).map(r => `${r.orderId}-${r.productId}`)
+        );
+
+        let fetchedOrders = (res.data.data || [])
+          .map(order => ({
+            ...order,
+            items: (order.items || [])
+              .filter(item => !item.alreadyReviewed)
+              .filter(item => {
+                const key = `${order.id}-${item.productId}`;
+                return !reviewedSet.has(key);
+              })
+          }))
+          .filter(order => order.items.length > 0);
+
+        if (focusedOrderId) {
+          // Sort to put the focused order at the top
+          fetchedOrders.sort((a, b) => {
+            if (a.id === focusedOrderId) return -1;
+            if (b.id === focusedOrderId) return 1;
+            return 0;
+          });
+        }
+        setOrders(fetchedOrders);
+      }
     } catch (err) {
       setOrdersError('Failed to load orders. Please try again.');
     } finally {
@@ -355,19 +389,22 @@ const Reviews = () => {
     }
   };
 
-  // Optimistically mark a product as reviewed in the orders list
-  const handleReviewed = (orderId, productId) => {
-    setOrders(prev => prev.map(order => {
-      if (order.id !== orderId) return order;
-      return {
-        ...order,
-        items: order.items.map(item =>
-          item.productId === productId ? { ...item, alreadyReviewed: true } : item
-        )
-      };
-    }));
-    // Refresh submitted reviews tab
+  // Remove reviewed items from the write review list and refresh tabs
+  const handleReviewed = async (orderId, productId) => {
+    setOrders(prev => prev
+      .map(order => {
+        if (order.id !== orderId) return order;
+        const items = order.items.filter(item => item.productId !== productId);
+        return { ...order, items };
+      })
+      .filter(order => order.items.length > 0)
+    );
+
+    setActiveTab('submitted');
+
+    // Refresh backend state for submitted reviews and pending orders
     fetchMyReviews();
+    fetchOrders();
   };
 
   if (!isLoggedIn) {
@@ -426,13 +463,39 @@ const Reviews = () => {
             </div>
           ) : (
             <div className="rv-orders-list">
-              {orders.map(order => (
-                <OrderReviewBlock
-                  key={order.id}
-                  order={order}
-                  onReviewed={handleReviewed}
-                />
-              ))}
+              {focusedOrderId && orders.some(o => o.id === focusedOrderId) ? (
+                <>
+                  <OrderReviewBlock
+                    key={focusedOrderId}
+                    order={orders.find(o => o.id === focusedOrderId)}
+                    onReviewed={handleReviewed}
+                    initiallyExpanded={true}
+                  />
+                  
+                  {orders.length > 1 && (
+                    <div className="rv-to-be-reviewed-section">
+                      <h3 className="rv-section-heading">To be reviewed</h3>
+                      {orders.filter(o => o.id !== focusedOrderId).map(order => (
+                        <OrderReviewBlock
+                          key={order.id}
+                          order={order}
+                          onReviewed={handleReviewed}
+                          initiallyExpanded={false}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                orders.map(order => (
+                  <OrderReviewBlock
+                    key={order.id}
+                    order={order}
+                    onReviewed={handleReviewed}
+                    initiallyExpanded={false}
+                  />
+                ))
+              )}
             </div>
           )}
         </div>

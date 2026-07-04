@@ -1,6 +1,8 @@
 'use strict';
 
 const { Review, Order, OrderItem, Product, ProductVariant, User } = require('../models');
+const { fn, col, where, Op } = require('sequelize');
+const { notifyNewReview } = require('../services/notificationService');
 
 // ─── POST /api/reviews ───────────────────────────────────────────────────────
 // Submit a review for one product in a delivered order.
@@ -9,7 +11,6 @@ const submitReview = async (req, res) => {
   try {
     const userId = req.user.id;
     const { orderId, productId, color, rating, comment } = req.body;
-    const imageUrls = req.files && req.files.length > 0 ? req.files.map(file => file.path) : null;
 
     // Basic validation
     if (!orderId || !productId || !rating || !comment) {
@@ -40,6 +41,17 @@ const submitReview = async (req, res) => {
       });
     }
 
+    // 30-day review limit check
+    const deliveryDate = new Date(order.updatedAt);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    if (deliveryDate < thirtyDaysAgo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reviews can only be submitted within 30 days of delivery.'
+      });
+    }
+
     // Verify the product is actually in this order
     const orderItem = await OrderItem.findOne({
       where: { orderId, productId }
@@ -61,6 +73,12 @@ const submitReview = async (req, res) => {
       });
     }
 
+    const imageUrls = req.files && req.files.length > 0
+      ? req.files
+          .map(file => file.path || file.location || file.url || file.secure_url)
+          .filter(Boolean)
+      : [];
+
     // Create the review
     const review = await Review.create({
       userId,
@@ -69,8 +87,17 @@ const submitReview = async (req, res) => {
       color: color || orderItem.color || null,
       rating: ratingInt,
       comment: comment.trim(),
-      imageUrls
+      imageUrls: imageUrls.length > 0 ? imageUrls : null
     });
+
+    // Notify admin
+    try {
+      const product = await Product.findByPk(productId);
+      const user = await User.findByPk(userId);
+      await notifyNewReview(review, product, user);
+    } catch (notifErr) {
+      console.error('Failed to notify admin of new review:', notifErr);
+    }
 
     return res.status(201).json({ success: true, data: review });
   } catch (err) {
@@ -122,19 +149,80 @@ const getDeliveredOrdersForReview = async (req, res) => {
       existingReviews.map(r => `${r.orderId}-${r.productId}`)
     );
 
-    const data = orders.map(order => {
-      const o = order.toJSON();
-      o.items = (o.items || []).map(item => ({
-        ...item,
-        alreadyReviewed: reviewedSet.has(`${o.id}-${item.productId}`)
-      }));
-      return o;
-    });
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const data = orders
+      .filter(order => new Date(order.updatedAt) >= thirtyDaysAgo)
+      .map(order => {
+        const o = order.toJSON();
+        const items = (o.items || []).map(item => ({
+          ...item,
+          alreadyReviewed: reviewedSet.has(`${o.id}-${item.productId}`)
+        }));
+
+        const pendingItems = items.filter(item => !item.alreadyReviewed);
+        if (pendingItems.length === 0) return null;
+
+        return {
+          ...o,
+          items: pendingItems
+        };
+      })
+      .filter(Boolean);
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
     console.error('Error fetching eligible orders:', err);
     return res.status(500).json({ success: false, message: 'Failed to fetch orders.' });
+  }
+};
+
+// ─── GET /api/reviews/product/:productId ─────────────────────────────────────
+// Returns all reviews for a specific product and optionally for a selected color.
+const getProductReviews = async (req, res) => {
+  try {
+    const productId = parseInt(req.params.productId, 10);
+    if (!productId) {
+      return res.status(400).json({ success: false, message: 'Invalid product ID.' });
+    }
+
+    const color = req.query.color ? String(req.query.color).trim().toLowerCase() : null;
+    const whereClause = { productId, isHidden: false };
+    if (color) {
+      whereClause.color = where(fn('lower', col('color')), color);
+    }
+
+    const reviews = await Review.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['first_name', 'last_name']
+        },
+        {
+          model: Order,
+          as: 'order',
+          attributes: ['order_number']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const data = reviews.map((review) => {
+      const json = review.toJSON();
+      const name = json.user ? `${json.user.first_name || ''} ${json.user.last_name || ''}`.trim() : '';
+      return {
+        ...json,
+        userName: name || 'Customer'
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching product reviews:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch product reviews.' });
   }
 };
 
@@ -175,8 +263,113 @@ const getUserReviews = async (req, res) => {
   }
 };
 
+// ─── GET /api/reviews/all ────────────────────────────────────────────────────
+// Admin: Returns ALL reviews with user, product (+ first variant image), and order info.
+const getAllReviews = async (req, res) => {
+  try {
+    const reviews = await Review.findAll({
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'first_name', 'last_name']
+        },
+        {
+          model: Product,
+          as: 'product',
+          attributes: ['id', 'name'],
+          include: [
+            {
+              model: ProductVariant,
+              as: 'variants',
+              attributes: ['color', 'imageUrl'],
+              limit: 1
+            }
+          ]
+        },
+        {
+          model: Order,
+          as: 'order',
+          attributes: ['id', 'order_number']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const data = reviews.map((review) => {
+      const json = review.toJSON();
+      const userName = json.user
+        ? `${json.user.first_name || ''} ${json.user.last_name || ''}`.trim()
+        : 'Unknown';
+      const productName = json.product?.name || `Product #${json.productId}`;
+      const productImage = json.product?.variants?.[0]?.imageUrl || null;
+      const orderNumber = json.order?.order_number || `#${json.orderId}`;
+
+      return {
+        id: json.id,
+        userName,
+        productName,
+        productImage,
+        productId: json.productId,
+        orderId: json.orderId,
+        orderNumber,
+        rating: json.rating,
+        comment: json.comment,
+        color: json.color,
+        imageUrls: json.imageUrls,
+        isHidden: json.isHidden,
+        createdAt: json.createdAt
+      };
+    });
+
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching all reviews:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch reviews.' });
+  }
+};
+
+// ─── PUT /api/reviews/:id/hide ──────────────────────────────────────────────────
+// Admin: Toggles the isHidden status of a review
+const hideReview = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const review = await Review.findByPk(reviewId);
+    if (!review) return res.status(404).json({ success: false, message: 'Review not found.' });
+
+    review.isHidden = !review.isHidden;
+    await review.save();
+
+    return res.status(200).json({ success: true, message: 'Review visibility toggled.', data: review });
+  } catch (err) {
+    console.error('Error hiding review:', err);
+    return res.status(500).json({ success: false, message: 'Failed to hide review.' });
+  }
+};
+
+// ─── DELETE /api/reviews/:id ──────────────────────────────────────────────────
+// Admin: Deletes a review
+const deleteReview = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const review = await Review.findByPk(reviewId);
+    if (!review) return res.status(404).json({ success: false, message: 'Review not found.' });
+
+    await review.destroy();
+
+    return res.status(200).json({ success: true, message: 'Review deleted successfully.' });
+  } catch (err) {
+    console.error('Error deleting review:', err);
+    return res.status(500).json({ success: false, message: 'Failed to delete review.' });
+  }
+};
+
 module.exports = {
   submitReview,
   getDeliveredOrdersForReview,
-  getUserReviews
+  getProductReviews,
+  getUserReviews,
+  getAllReviews,
+  hideReview,
+  deleteReview
 };

@@ -14,7 +14,8 @@ export default function Settings({ toast }) {
     low_stock_alerts: true,
     payment_failures: true,
     weekly_reports: true,
-    customer_signups: false
+    customer_signups: false,
+    new_reviews_feedbacks: true
   });
 
   useEffect(() => {
@@ -106,6 +107,7 @@ export default function Settings({ toast }) {
                 { key: 'payment_failures', label: 'Payment Failures', desc: 'Alert on failed transactions' },
                 { key: 'weekly_reports', label: 'Weekly Reports', desc: 'Auto email every Monday' },
                 { key: 'customer_signups', label: 'Customer Sign-ups', desc: 'Notify on new registrations' },
+                { key: 'new_reviews_feedbacks', label: 'Reviews & Feedback', desc: 'Alert when submitted by customers' },
               ].map(({ key, label, desc }) => (
                 <div key={key} className="notification-item">
                   <div>

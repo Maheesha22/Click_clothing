@@ -7,7 +7,13 @@ import {
 } from './shared';
 
 const API = apiUrl('/products');
-const ALL_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40'];
+
+// Size option sets
+const NUMERIC_SIZES = ['28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38'];
+const LETTER_SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+
+// Category names (lowercased, substring match) that should use numeric sizing
+const NUMERIC_SIZE_CATEGORIES = ['denim', 'pant', 'pants', 'short', 'shorts'];
 
 export default function Products({ toast, initialData, clearInitialData }) {
   const [products, setProducts] = useState([]);
@@ -27,9 +33,9 @@ export default function Products({ toast, initialData, clearInitialData }) {
   useEffect(() => {
     if (initialData) {
       setRestockInfo({ productId: initialData.productId, variantId: initialData.variantId });
-      
+
       const existingProduct = products.find(p => p.id === initialData.productId);
-      
+
       setFormData({
         product_name: initialData.productName || (existingProduct ? existingProduct.product_name : ''),
         categoryId: initialData.categoryId || (existingProduct ? existingProduct.categoryId : ''),
@@ -42,10 +48,10 @@ export default function Products({ toast, initialData, clearInitialData }) {
           id: Date.now(),
           name: initialData.color || '',
           image_url: initialData.imageUrl || '',
-          sizes: [{ size: initialData.size || '', quantity: 0 }] 
+          sizes: [{ size: initialData.size || '', quantity: 0 }]
         }
       ]);
-      
+
       setModal(true);
       clearInitialData();
     }
@@ -89,6 +95,15 @@ export default function Products({ toast, initialData, clearInitialData }) {
 
   // Dynamic colors: each = { id, name, image_url, sizes: [{ size, quantity }] }
   const [colors, setColors] = useState([]);
+
+  // ----- Size options helper (based on selected category) -----
+  const getSizeOptions = (categoryId) => {
+    const cat = categories.find(c => String(c.id) === String(categoryId));
+    if (!cat) return LETTER_SIZES; // default until a category is chosen
+    const name = (cat.name || '').toLowerCase();
+    const isNumeric = NUMERIC_SIZE_CATEGORIES.some(keyword => name.includes(keyword));
+    return isNumeric ? NUMERIC_SIZES : LETTER_SIZES;
+  };
 
   // ----- Color helpers -----
   const addColor = () => {
@@ -191,8 +206,12 @@ export default function Products({ toast, initialData, clearInitialData }) {
 
   // ----- Save product: builds variants array and sends to backend -----
   const saveProduct = async () => {
-    if (!formData.product_name || !formData.categoryId || !formData.price) {
-      toast('⚠️', 'Fill product name, category, and price');
+    if (!formData.product_name || !formData.categoryId) {
+      toast('⚠️', 'Fill product name and category');
+      return;
+    }
+    if (!restockInfo && !formData.price) {
+      toast('⚠️', 'Fill in a valid price');
       return;
     }
 
@@ -212,7 +231,6 @@ export default function Products({ toast, initialData, clearInitialData }) {
           body: JSON.stringify({
             variantId: restockInfo.variantId,
             quantity: restockQty,
-            price: parseFloat(formData.price)
           }),
         });
         const data = await res.json();
@@ -539,12 +557,36 @@ export default function Products({ toast, initialData, clearInitialData }) {
             </div>
             <div>
               <label className="f-lbl">Category {restockInfo && '(Read-only)'} *</label>
-              <select className="f-sel" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} disabled={!!restockInfo}>
+              <select
+                className="f-sel"
+                value={formData.categoryId}
+                onChange={e => {
+                  const newCategoryId = e.target.value;
+                  setFormData({ ...formData, categoryId: newCategoryId });
+                  // Clear any selected sizes that don't belong to the new category's size set
+                  const validSizes = getSizeOptions(newCategoryId);
+                  setColors(prev => prev.map(c => ({
+                    ...c,
+                    sizes: c.sizes.map(s => validSizes.includes(s.size) ? s : { ...s, size: '' })
+                  })));
+                }}
+                disabled={!!restockInfo}
+              >
                 <option value="">Select</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
-            <div><label className="f-lbl">Price (Rs.) *</label><input className="f-inp" type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} /></div>
+            <div>
+              <label className="f-lbl">Price (Rs.) {restockInfo && '(Read-only)'} *</label>
+              <input
+                className="f-inp"
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={e => setFormData({...formData, price: e.target.value})}
+                disabled={!!restockInfo}
+              />
+            </div>
             <div className="f-full"><label className="f-lbl">Description</label><textarea className="f-ta" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} /></div>
           </div>
 
@@ -565,7 +607,7 @@ export default function Products({ toast, initialData, clearInitialData }) {
                   <div key={idx} className="size-row">
                     <select className="size-select" value={sizeObj.size} onChange={e => updateSize(color.id, idx, 'size', e.target.value)} disabled={!!restockInfo}>
                       <option value="">Select size</option>
-                      {ALL_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+                      {getSizeOptions(formData.categoryId).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                     <input className="size-qty" type="number" min="0" placeholder={restockInfo ? "Add Qty" : "Qty"} value={sizeObj.quantity || ''} onChange={e => updateSize(color.id, idx, 'quantity', parseInt(e.target.value) || 0)} />
                     {!restockInfo && <button type="button" className="btn-icon" onClick={() => removeSize(color.id, idx)}>✕</button>}

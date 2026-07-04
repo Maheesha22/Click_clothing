@@ -377,6 +377,45 @@ const sendOrderConfirmationEmail = async (orderData) => {
   }
 };
 
+// Send password reset OTP
+const sendPasswordResetEmail = async (toEmail, otp) => {
+  const mailOptions = {
+    from: `"Click Clothing" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: 'Your Password Reset OTP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #333; text-align: center;">Click Clothing</h2>
+        <h3 style="color: #555;">Password Reset Request</h3>
+        <p style="color: #666; font-size: 16px;">
+          You requested to reset your password. Use the 6-digit OTP below to securely reset your password. This code is valid for 15 minutes.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <div style="background-color: #f8f6f2; border: 2px dashed #c8982a; color: #111; padding: 16px 32px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 4px; display: inline-block;">
+            ${otp}
+          </div>
+        </div>
+        <p style="color: #999; font-size: 14px;">
+          If you didn't request a password reset, you can safely ignore this email.
+        </p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="color: #aaa; font-size: 12px; text-align: center;">
+          &copy; ${new Date().getFullYear()} Click Clothing. All rights reserved.
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent: ' + info.response);
+    return true;
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    throw error;
+  }
+};
+
 // Send new-order alert to the store owner
 const sendStoreOrderNotification = async (orderData) => {
   const {
@@ -550,4 +589,11 @@ const sendStoreOrderNotification = async (orderData) => {
   }
 };
 
-module.exports = { sendStoreNotification, sendCustomerAutoReply, sendOrderConfirmationEmail, sendStoreOrderNotification };
+module.exports = { 
+  sendStoreNotification, 
+  sendCustomerAutoReply, 
+  sendOrderConfirmationEmail, 
+  sendPasswordResetEmail, 
+  sendStoreOrderNotification 
+};
+
