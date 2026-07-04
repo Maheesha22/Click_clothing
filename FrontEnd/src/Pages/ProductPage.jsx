@@ -4,7 +4,7 @@ import Header from "../Components/header";
 import Footer from "../Components/footer";
 import NavBar from "../Components/navsidebar";
 import WhatsAppButton from "../Components/whatsappbtn";
-import SizeChart from "../Components/sizechart";
+import SizeChart from "../Components/Sizechart";
 import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
 import CompareButton from "../Components/CompareButton";
 import cartService from "../services/cartservice";
