@@ -159,7 +159,9 @@ const getReportAnalytics = async (req, res) => {
         paymentSummary.paid += amt;
       } else if (key === 'PENDING') {
         paymentSummary.pending += amt;
-      } else if (key === 'FAILED') {
+      } else if (['FAILED', 'CANCELLED', 'DECLINED'].includes(key)) {
+        paymentSummary.failed += amt;
+      } else {
         paymentSummary.failed += amt;
       }
     });
