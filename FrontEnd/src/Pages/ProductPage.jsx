@@ -7,7 +7,7 @@ import WhatsAppButton from "../Components/whatsappbtn";
 import SizeChart from "../Components/sizechart";
 import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
 import CompareButton from "../Components/CompareButton";
-import cartService from "../services/cartService";
+import cartService from "../services/cartservice";
 import {
   getWishlistDB,
   addToWishlistDB,

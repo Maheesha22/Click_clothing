@@ -5,7 +5,7 @@ import { useComparison } from '../context/ComparisonContext';
 import Header from '../Components/header';
 import Footer from '../Components/footer';
 import NavBar from '../Components/navsidebar';
-import '../styles/ComparisonPage.css';
+import '../styles/ComparisonPage.css'; 
 
 // Each entry becomes: one full-width header bar with the attribute name,
 // followed by a grid row with one column per product.
