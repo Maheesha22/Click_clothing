@@ -1,38 +1,43 @@
+// Force-require mysql2 before anything else so Vercel's bundler includes it
+require('mysql2');
+require('mysql2/promise');
 require('dotenv').config();
 
+const app = require('../index');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+module.exports = app;
 const app = express();
 
-const userRoutes = require('./routes/UserRoutes');
-const productRoutes = require('./routes/productRoutes');
-const cartRoutes = require('./routes/CartRoutes');
-const contactRoutes = require('./routes/contactRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
-const categoryDataRoutes = require('./routes/categoryDataRoutes');
-const searchRoutes = require('./routes/searchRoutes');
-const searchHistoryRoutes = require('./routes/searchHistoryRoutes');
-const youMayAlsoLikeRoutes = require('./routes/youMayAlsoLikeRoutes');
-const wishlistRoutes = require('./routes/WishlistRoutes');
-const recentlyViewedRoutes = require('./routes/recentlyViewedRoutes');
-const bankDetailRoutes = require('./routes/bankDetailRoutes');
-const customerOrderRoutes = require('./routes/customerOrderRoutes');
-const returnRoutes = require('./routes/returnRoutes');
-const adminCustomerRoutes = require('./routes/adminCustomerRoutes');
-const selectedItemsRoutes = require('./routes/SelectedItemsRoutes');
-const userAddressRoutes = require('./routes/userAddressRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const reportRoutes = require('./routes/reportRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
-const feedbackRoutes = require('./routes/feedbackRoutes');
-const notificationRoutes = require("./routes/notificationRoutes");
-const db = require('./models');
-const sizeRecommendationRoutes = require('./routes/sizeRecommendationRoutes');
-const comparisonRoutes = require('./routes/comparisonRoutes');
-const chatbotRoutes = require('./routes/chatbotRoutes');
+const userRoutes = require('../routes/UserRoutes');
+const productRoutes = require('../routes/productRoutes');
+const cartRoutes = require('../routes/CartRoutes');
+const contactRoutes = require('../routes/contactRoutes');
+const orderRoutes = require('../routes/orderRoutes');
+const categoryRoutes = require('../routes/categoryRoutes');
+const categoryDataRoutes = require('../routes/categoryDataRoutes');
+const searchRoutes = require('../routes/searchRoutes');
+const searchHistoryRoutes = require('../routes/searchHistoryRoutes');
+const youMayAlsoLikeRoutes = require('../routes/youMayAlsoLikeRoutes');
+const wishlistRoutes = require('../routes/WishlistRoutes');
+const recentlyViewedRoutes = require('../routes/recentlyViewedRoutes');
+const bankDetailRoutes = require('../routes/bankDetailRoutes');
+const customerOrderRoutes = require('../routes/customerOrderRoutes');
+const returnRoutes = require('../routes/returnRoutes');
+const adminCustomerRoutes = require('../routes/adminCustomerRoutes');
+const selectedItemsRoutes = require('../routes/SelectedItemsRoutes');
+const userAddressRoutes = require('../routes/userAddressRoutes');
+const dashboardRoutes = require('../routes/dashboardRoutes');
+const reportRoutes = require('../routes/reportRoutes');
+const reviewRoutes = require('../routes/reviewRoutes');
+const feedbackRoutes = require('../routes/feedbackRoutes');
+const notificationRoutes = require("../routes/notificationRoutes");
+const db = require('../models');
+const sizeRecommendationRoutes = require('../routes/sizeRecommendationRoutes');
+const comparisonRoutes = require('../routes/comparisonRoutes');
+const chatbotRoutes = require('../routes/chatbotRoutes');
 
 const parseCorsOrigin = (originEnv) => {
   if (!originEnv) return '*'; // fallback to allow all if not configured
