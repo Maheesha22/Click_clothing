@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { IcoSearch, Avatar, MiniStats, IcoUsers, IcoCart, IcoCard } from './shared';
+import { IcoSearch, Avatar, Badge, MiniStats, IcoUsers, IcoCart, IcoCard } from './shared';
 import API from '../../../services/api';
 
 export default function Customers() {
@@ -33,14 +33,15 @@ export default function Customers() {
 
   const filteredCustomers = customers.filter(c => 
     `${c.first_name} ${c.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    String(c.userId || '').includes(searchQuery)
+    c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.userId.toString().includes(searchQuery)
   );
 
   // Calculate mini stats
   const totalCustomers = customers.length;
+  const totalOrders = customers.reduce((sum, c) => sum + (c.number_of_orders || 0), 0);
   const totalRevenue = customers.reduce((sum, c) => sum + parseFloat(c.total_spending || 0), 0);
-  const avgOrderValue = totalCustomers > 0 ? (totalRevenue / totalCustomers).toFixed(2) : 0;
+  const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0;
 
   if (loading) return (
     <div className="view">
@@ -71,6 +72,7 @@ export default function Customers() {
 
       <MiniStats items={[
         [<IcoUsers/>, totalCustomers, 'Total Customers'],
+        [<IcoCart/>, totalOrders, 'Total Orders'],
         [<IcoCard/>, `Rs ${totalRevenue.toLocaleString()}`, 'Total Revenue'],
         [<IcoCard/>, `Rs ${avgOrderValue.toLocaleString()}`, 'Avg. Order Value'],
       ]} />
@@ -90,19 +92,20 @@ export default function Customers() {
 
       <div className="admin-card" style={{overflow:'hidden'}}>
         <div className="tbl-wrap">
-          <table className="tbl" style={{minWidth:900}}>
+          <table className="tbl" style={{minWidth:1000}}>
             <thead>
               <tr>
                 <th>Customer Details</th>
                 <th>Email Address</th>
                 <th>Full Shipping Address</th>
+                <th style={{textAlign: 'center'}}>Orders</th>
                 <th style={{textAlign: 'right'}}>Total Spent</th>
               </tr>
             </thead>
             <tbody>
               {filteredCustomers.length > 0 ? (
                 filteredCustomers.map(c => (
-                  <tr key={c.id}>
+                  <tr key={c.userId}>
                     <td>
                       <div className="av-cell">
                         <Avatar ini={c.first_name?.[0] + (c.last_name?.[0] || '')} />
@@ -130,6 +133,12 @@ export default function Customers() {
                         <span style={{ color: 'var(--g4)', fontStyle: 'italic' }}>No address provided</span>
                       )}
                     </td>
+                    <td style={{textAlign: 'center'}}>
+                      <Badge 
+                        label={c.number_of_orders} 
+                        cls={c.number_of_orders > 10 ? 'b-delivered' : c.number_of_orders > 0 ? 'b-active' : 'b-pending'} 
+                      />
+                    </td>
                     <td className="cell-price" style={{textAlign: 'right'}}>
                       Rs {parseFloat(c.total_spending).toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </td>
@@ -137,7 +146,7 @@ export default function Customers() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="empty-cell">No customers found matching your search.</td>
+                  <td colSpan="5" className="empty-cell">No customers found matching your search.</td>
                 </tr>
               )}
             </tbody>
