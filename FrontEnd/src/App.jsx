@@ -109,6 +109,9 @@ function App() {
         { path: '/dashboard', element: <Dashboard /> },
         { path: '/smart-size/:productId?', element: <SmartSizePage /> },
         { path: '/product/:productId', element: <ProductPage /> },
+        { path: '/user/comparisons', element: <ProtectedRoute><MyComparisons /></ProtectedRoute> },
+        { path: '/user/recently-viewed', element: <ProtectedRoute><RecentlyViewed /></ProtectedRoute> },
+        { path: '/user/size-history', element: <SizeHistory /> },
         {
           path: '/user',
           element: <UserPage />,
@@ -116,11 +119,8 @@ function App() {
             { index: true, element: <Navigate to="/user/orders" replace /> },
             { path: 'wishlist', element: <Wishlist /> },
             { path: 'orders', element: <OrderHistory /> },
-            { path: 'comparisons', element: <ProtectedRoute><MyComparisons /></ProtectedRoute> },
             { path: 'settings', element: <Settings /> },
-            { path: 'reviews', element: <Reviews /> },
-            { path: 'recently-viewed', element: <ProtectedRoute><RecentlyViewed /></ProtectedRoute> },
-            { path: 'size-history', element: <SizeHistory /> }
+            { path: 'reviews', element: <Reviews /> }
           ]
         },
         { path: '/category/:category', element: <ProductPage /> },

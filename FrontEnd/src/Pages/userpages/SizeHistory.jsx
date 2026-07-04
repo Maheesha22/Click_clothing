@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import Header from '../../Components/header';
+import Footer from '../../Components/footer';
 import { getSizeRecommendations, deleteSizeRecommendation } from '../../services/sizeRecommendationService';
 
 const SizeHistory = () => {
-  const { storedUser, isLoggedIn } = useOutletContext();
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const isLoggedIn = !!(storedUser?.email);
+  const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -48,6 +52,21 @@ const SizeHistory = () => {
   };
 
   return (
+    <>
+      <Header />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', minHeight: '60vh' }}>
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: "'Jost', sans-serif", fontSize: '14px', 
+            fontWeight: '500', color: '#888', padding: '0',
+            marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px',
+            textTransform: 'uppercase', letterSpacing: '0.5px'
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>←</span> Back
+        </button>
     <div className="size-history-page">
       <div className="size-history-header">
         <h2 className="section-title">Size Recommendation History</h2>
@@ -121,6 +140,9 @@ const SizeHistory = () => {
         .toast { position: fixed; bottom: 24px; right: 24px; background: #111; color: #fff; padding: 0.95rem 1.2rem; border-radius: 14px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); }
       `}</style>
     </div>
+    </div>
+    <Footer />
+    </>
   );
 };
 

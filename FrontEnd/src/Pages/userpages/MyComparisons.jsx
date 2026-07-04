@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Header from '../../Components/header';
+import Footer from '../../Components/footer';
 import './MyComparisons.css';
 
 const ROWS = [
@@ -153,6 +155,9 @@ const MyComparisons = () => {
   // Show loading state
   if (isLoading && savedComparisons.length === 0) {
     return (
+      <>
+        <Header />
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', minHeight: '60vh' }}>
       <div className="pc-page">
         <div className="pc-header">
           <h1>📊 My Comparisons</h1>
@@ -161,29 +166,53 @@ const MyComparisons = () => {
           <p>⏳ Loading your comparisons...</p>
         </div>
       </div>
+      </div>
+      <Footer />
+      </>
     );
   }
 
   // Show error state
   if (error && savedComparisons.length === 0) {
     return (
+      <>
+        <Header />
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', minHeight: '60vh' }}>
       <div className="pc-page">
         <div className="pc-header">
           <h1>📊 My Comparisons</h1>
         </div>
         <div className="pc-empty">
           <p>❌ {error}</p>
-          <button className="pc-back-btn" onClick={() => navigate('/user')}>
-            ← Back to Dashboard
+          <button className="pc-back-btn" onClick={() => navigate('/login')}>
+            ← Login
           </button>
         </div>
       </div>
+      </div>
+      <Footer />
+      </>
     );
   }
 
   // Show no comparisons state
   if (savedComparisons.length === 0) {
     return (
+      <>
+        <Header />
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', minHeight: '60vh' }}>
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: "'Jost', sans-serif", fontSize: '14px', 
+            fontWeight: '500', color: '#888', padding: '0',
+            marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px',
+            textTransform: 'uppercase', letterSpacing: '0.5px'
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>←</span> Back
+        </button>
       <div className="pc-page">
         <div className="pc-header">
           <h1>📊 My Comparisons</h1>
@@ -196,10 +225,28 @@ const MyComparisons = () => {
           </button>
         </div>
       </div>
+      </div>
+      <Footer />
+      </>
     );
   }
 
   return (
+    <>
+      <Header />
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px', minHeight: '60vh' }}>
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: "'Jost', sans-serif", fontSize: '14px', 
+            fontWeight: '500', color: '#888', padding: '0',
+            marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '6px',
+            textTransform: 'uppercase', letterSpacing: '0.5px'
+          }}
+        >
+          <span style={{ fontSize: '18px' }}>←</span> Back
+        </button>
     <div className="pc-page">
       <div className="pc-header">
         <h1>📊 My Comparisons</h1>
@@ -283,6 +330,9 @@ const MyComparisons = () => {
         </div>
       </div>
     </div>
+    </div>
+    <Footer />
+    </>
   );
 };
 

@@ -198,20 +198,16 @@ exports.forgotPassword = async (req, res) => {
 // RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
-    const user = await User.findOne({ 
-      where: { 
-        email: email,
-        reset_token: otp,
-        reset_expires: { [Op.gt]: new Date() }
-      } 
-    });
+    if (!email || !newPassword) {
+      return res.status(400).json({ message: 'Email and new password are required.' });
+    }
+
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(400).json({ 
-        message: "Invalid or expired OTP" 
-      });
+      return res.status(404).json({ message: 'No account found with this email address.' });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
