@@ -559,29 +559,36 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                   ) : reviews.length === 0 ? (
                     <p className="sh-reviews-msg">No reviews yet for this product.</p>
                   ) : (
-                    reviews.map(rv => (
-                      <div key={rv.id} className="sh-inline-review-item">
-                        <div className="sh-inline-review-top">
-                          <div className="sh-inline-review-left">
-                            <span className="sh-inline-name">{rv.userName || 'Customer'}</span>
+                    <>
+                      {reviews.slice(0, 15).map(rv => (
+                        <div key={rv.id} className="sh-inline-review-item">
+                          <div className="sh-inline-review-top">
+                            <div className="sh-inline-review-left">
+                              <span className="sh-inline-name">{rv.userName || 'Customer'}</span>
+                            </div>
+                            <div className="sh-inline-review-right">
+                              <StarRating rating={rv.rating} size={12} />
+                            </div>
                           </div>
-                          <div className="sh-inline-review-right">
-                            <StarRating rating={rv.rating} size={12} />
-                          </div>
+                          <p className="sh-inline-comment">{rv.comment}</p>
+                          {rv.imageUrls && rv.imageUrls.length > 0 && (
+                            <div className="sh-inline-review-imgs">
+                              {rv.imageUrls.map((url, i) => (
+                                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                  <img src={url} alt={`Review ${i + 1}`} className="sh-inline-review-img"
+                                    onError={e => { e.target.style.display = 'none'; }} />
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <p className="sh-inline-comment">{rv.comment}</p>
-                        {rv.imageUrls && rv.imageUrls.length > 0 && (
-                          <div className="sh-inline-review-imgs">
-                            {rv.imageUrls.map((url, i) => (
-                              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                                <img src={url} alt={`Review ${i + 1}`} className="sh-inline-review-img"
-                                  onError={e => { e.target.style.display = 'none'; }} />
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))
+                      ))}
+                      {reviews.length > 15 && (
+                        <p className="sh-reviews-msg" style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#666', textAlign: 'center' }}>
+                          Showing 15 of {reviews.length} reviews
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
