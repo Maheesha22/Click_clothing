@@ -1,37 +1,43 @@
+// Force-require mysql2 before anything else so Vercel's bundler includes it
+require('mysql2');
+require('mysql2/promise');
 require('dotenv').config();
 
+const app = require('../index');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+module.exports = app;
 const app = express();
 
-const userRoutes = require('./routes/UserRoutes');
-const productRoutes = require('./routes/productRoutes');
-const cartRoutes = require('./routes/CartRoutes');
-const contactRoutes = require('./routes/contactRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
-const categoryDataRoutes = require('./routes/categoryDataRoutes');
-const searchRoutes = require('./routes/searchRoutes');
-const searchHistoryRoutes = require('./routes/searchHistoryRoutes');
-const youMayAlsoLikeRoutes = require('./routes/youMayAlsoLikeRoutes');
-const wishlistRoutes = require('./routes/WishlistRoutes');
-const recentlyViewedRoutes = require('./routes/recentlyViewedRoutes');
-const bankDetailRoutes = require('./routes/bankDetailRoutes');
-const customerOrderRoutes = require('./routes/customerOrderRoutes');
-const returnRoutes = require('./routes/returnRoutes');
-const adminCustomerRoutes = require('./routes/adminCustomerRoutes');
-const selectedItemsRoutes = require('./routes/SelectedItemsRoutes');
-const userAddressRoutes = require('./routes/userAddressRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const reportRoutes = require('./routes/reportRoutes');
-const reviewRoutes = require('./routes/reviewRoutes');
-const feedbackRoutes = require('./routes/feedbackRoutes');
-const notificationRoutes = require("./routes/notificationRoutes");
-const db = require('./models');
-const sizeRecommendationRoutes = require('./routes/sizeRecommendationRoutes');
-const comparisonRoutes = require('./routes/comparisonRoutes');
+const userRoutes = require('../routes/UserRoutes');
+const productRoutes = require('../routes/productRoutes');
+const cartRoutes = require('../routes/CartRoutes');
+const contactRoutes = require('../routes/contactRoutes');
+const orderRoutes = require('../routes/orderRoutes');
+const categoryRoutes = require('../routes/categoryRoutes');
+const categoryDataRoutes = require('../routes/categoryDataRoutes');
+const searchRoutes = require('../routes/searchRoutes');
+const searchHistoryRoutes = require('../routes/searchHistoryRoutes');
+const youMayAlsoLikeRoutes = require('../routes/youMayAlsoLikeRoutes');
+const wishlistRoutes = require('../routes/WishlistRoutes');
+const recentlyViewedRoutes = require('../routes/recentlyViewedRoutes');
+const bankDetailRoutes = require('../routes/bankDetailRoutes');
+const customerOrderRoutes = require('../routes/customerOrderRoutes');
+const returnRoutes = require('../routes/returnRoutes');
+const adminCustomerRoutes = require('../routes/adminCustomerRoutes');
+const selectedItemsRoutes = require('../routes/SelectedItemsRoutes');
+const userAddressRoutes = require('../routes/userAddressRoutes');
+const dashboardRoutes = require('../routes/dashboardRoutes');
+const reportRoutes = require('../routes/reportRoutes');
+const reviewRoutes = require('../routes/reviewRoutes');
+const feedbackRoutes = require('../routes/feedbackRoutes');
+const notificationRoutes = require("../routes/notificationRoutes");
+const db = require('../models');
+const sizeRecommendationRoutes = require('../routes/sizeRecommendationRoutes');
+const comparisonRoutes = require('../routes/comparisonRoutes');
+const chatbotRoutes = require('../routes/chatbotRoutes');
 
 const parseCorsOrigin = (originEnv) => {
   if (!originEnv) return '*'; // fallback to allow all if not configured
@@ -133,6 +139,9 @@ app.use('/api/selected-items', selectedItemsRoutes);
 app.use('/api/user-addresses', userAddressRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/size-recommendations', sizeRecommendationRoutes);
+app.use('/api/comparisons', comparisonRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/feedbacks', feedbackRoutes);
 console.log('reviewRoutes paths:', reviewRoutes.stack.map(s => (s.route ? s.route.path : '<non-route>')));
@@ -182,31 +191,34 @@ const initializeDatabase = async () => {
     console.log('✅ Database connected successfully.');
     dbInitialized = true;
 
-    if (process.env.DB_SYNC === 'true') {
-      // sync() only creates missing tables — never drops or alters existing ones
-      await db.sequelize.sync();
-      console.log('✅ Database sync completed.');
+    const shouldSync = process.env.DB_SYNC === 'true' ||
+      (process.env.NODE_ENV !== 'production' && process.env.DB_SYNC !== 'false');
 
-      // Manually add new columns if they don't already exist
-      const qi = db.sequelize.getQueryInterface();
-      const { DataTypes } = require('sequelize');
+    if (shouldSync) {
+      if (process.env.DB_SYNC === 'true') {
+        // sync() only creates missing tables — never drops or alters existing ones
+        await db.sequelize.sync();
+        console.log('✅ Database sync completed.');
 
-      const addColumnIfMissing = async (table, column, definition) => {
-        try {
-          const tableDesc = await qi.describeTable(table);
-          if (!tableDesc[column]) {
-            await qi.addColumn(table, column, definition);
-            console.log(`✅ Added column '${column}' to '${table}'.`);
+        // Manually add new columns if they don't already exist
+        const qi = db.sequelize.getQueryInterface();
+        const { DataTypes } = require('sequelize');
+
+        const addColumnIfMissing = async (table, column, definition) => {
+          try {
+            const tableDesc = await qi.describeTable(table);
+            if (!tableDesc[column]) {
+              await qi.addColumn(table, column, definition);
+              console.log(`✅ Added column '${column}' to '${table}'.`);
+            }
+          } catch (e) {
+            console.warn(`⚠️  Could not add column '${column}' to '${table}':`, e.message);
           }
-        } catch (e) {
-          console.warn(`⚠️  Could not add column '${column}' to '${table}':`, e.message);
-        }
-      };
+        };
 
-      await addColumnIfMissing('reviews', 'isHidden', { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: true });
-      await addColumnIfMissing('notification_settings', 'new_reviews_feedbacks', { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: true });
-      await addColumnIfMissing('users', 'reset_token', { type: DataTypes.STRING, allowNull: true });
-      await addColumnIfMissing('users', 'reset_expires', { type: DataTypes.DATE, allowNull: true });
+        await addColumnIfMissing('reviews', 'isHidden', { type: DataTypes.BOOLEAN, defaultValue: false, allowNull: true });
+        await addColumnIfMissing('notification_settings', 'new_reviews_feedbacks', { type: DataTypes.BOOLEAN, defaultValue: true, allowNull: true });
+      }
     }
   } catch (err) {
     console.error('❌ Unable to connect to database:', err);
