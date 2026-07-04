@@ -4,7 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const reviewController = require('../controllers/reviewController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireAdmin } = require('../middleware/auth');
 const uploadReview = require('../config/multerReview');
 
 // GET all delivered orders with their products (for the "write review" view)
@@ -31,5 +31,11 @@ router.post(
   uploadReview.array('images', 5),
   reviewController.submitReview
 );
+
+// PUT hide/unhide a review (admin)
+router.put('/:id/hide', authenticate, requireAdmin, reviewController.hideReview);
+
+// DELETE a review (admin)
+router.delete('/:id', authenticate, requireAdmin, reviewController.deleteReview);
 
 module.exports = router;

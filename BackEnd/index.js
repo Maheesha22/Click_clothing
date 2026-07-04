@@ -27,6 +27,7 @@ const userAddressRoutes = require('./routes/userAddressRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 const notificationRoutes = require("./routes/notificationRoutes");
 const db = require('./models');
 const sizeRecommendationRoutes = require('./routes/sizeRecommendationRoutes');
@@ -133,6 +134,7 @@ app.use('/api/user-addresses', userAddressRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/feedbacks', feedbackRoutes);
 console.log('reviewRoutes paths:', reviewRoutes.stack.map(s => (s.route ? s.route.path : '<non-route>')));
 
 app.use("/api/notifications", notificationRoutes);

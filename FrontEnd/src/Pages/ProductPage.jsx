@@ -201,7 +201,8 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const [quantity, setQuantity]                 = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [sizeError, setSizeError]               = useState(false);
-  const [showSizeChart, setShowSizeChart]       = useState(false);
+  const [showSmartSize, setShowSmartSize]       = useState(false);
+  const [reviewSort, setReviewSort]             = useState('newest');
   const [reviews, setReviews]                   = useState([]);
   const [reviewsLoading, setReviewsLoading]     = useState(true);
 
@@ -223,14 +224,25 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   useEffect(() => {
     setReviewsLoading(true);
     API.get(`/reviews/product/${product.id}`)
-      .then(res => { if (res.data.success) setReviews(res.data.data || []); })
+      .then(res => { 
+        if (res.data.success) {
+          const allReviews = res.data.data || [];
+          setReviews(allReviews);
+        }
+      })
       .catch(() => {})
       .finally(() => setReviewsLoading(false));
   }, [product.id]);
 
   const avgRating = reviews.length > 0
-    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length)
     : 0;
+
+  const sortedReviews = [...reviews].sort((a, b) => {
+    if (reviewSort === 'highest') return b.rating - a.rating;
+    if (reviewSort === 'lowest') return a.rating - b.rating;
+    return new Date(b.createdAt) - new Date(a.createdAt); // newest
+  });
 
   // Derive this product's own size options from its variants, instead of a
   // hardcoded letter list — so numeric bottoms sizes (28, 30, 32...) render
@@ -544,12 +556,36 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
 
               {/* ── Inline Reviews ── */}
               <div className="sh-inline-reviews">
-                <div className="sh-inline-reviews-header">
-                  <h4 className="sh-inline-reviews-title">Customer Reviews</h4>
+                <div className="sh-inline-reviews-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <h4 className="sh-inline-reviews-title" style={{ margin: 0 }}>Customer Reviews</h4>
+                    {reviews.length > 0 && (
+                      <div className="sh-inline-reviews-avg">
+                        <StarRating rating={Math.round(avgRating)} size={13} />
+                        <span>{avgRating.toFixed(1)} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
+                      </div>
+                    )}
+                  </div>
+                  
                   {reviews.length > 0 && (
-                    <div className="sh-inline-reviews-avg">
-                      <StarRating rating={Math.round(avgRating)} size={13} />
-                      <span>{avgRating.toFixed(1)} · {reviews.length} review{reviews.length !== 1 ? 's' : ''}</span>
+                    <div className="sh-review-sort">
+                      <select 
+                        value={reviewSort} 
+                        onChange={(e) => setReviewSort(e.target.value)}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          border: '1px solid #e5e5e5',
+                          background: '#f9f9f9',
+                          fontSize: '13px',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="newest">Sort by: Newest</option>
+                        <option value="highest">Sort by: Highest Rating</option>
+                        <option value="lowest">Sort by: Lowest Rating</option>
+                      </select>
                     </div>
                   )}
                 </div>
@@ -560,7 +596,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
                     <p className="sh-reviews-msg">No reviews yet for this product.</p>
                   ) : (
                     <>
-                      {reviews.slice(0, 15).map(rv => (
+                      {sortedReviews.slice(0, 15).map(rv => (
                         <div key={rv.id} className="sh-inline-review-item">
                           <div className="sh-inline-review-top">
                             <div className="sh-inline-review-left">
