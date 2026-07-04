@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import NavBar from "../components/navsidebar"; 
-import WhatsAppButton from "../components/whatsappbtn";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
+import NavBar from "../Components/navsidebar"; 
+import WhatsAppButton from "../Components/whatsappbtn";
 import CompareButton from "../Components/CompareButton";
 import "./Shirts.css";
 

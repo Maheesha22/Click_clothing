@@ -1,4 +1,4 @@
-// components/WhatsAppButton.jsx
+// Components/WhatsAppButton.jsx
 import React from 'react';
 import './whatsappbtn.css';
 

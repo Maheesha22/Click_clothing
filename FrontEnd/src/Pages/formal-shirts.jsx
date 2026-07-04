@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
 import "./formal-shirts.css";
-import NavBar from "../components/navsidebar"; 
+import NavBar from "../Components/navsidebar"; 
 import WhatsAppButton from "../Components/whatsappbtn";
 
 // ── Product Data ────────────────────────────────────────────────────────────────
