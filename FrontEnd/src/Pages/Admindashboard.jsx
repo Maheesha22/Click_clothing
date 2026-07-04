@@ -9,6 +9,7 @@ import {
   IcoArchive, IcoCard, IcoChartBar, IcoGear,
 } from './adminpages/admin/shared';
 import NotificationBell from '../Components/NotificationBell';
+import logo from '../assets/Logo.jpg';
 
 /* Star icon for Reviews nav */
 const IcoStar = () => <svg className="ni" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
@@ -83,7 +84,7 @@ export default function AdminDashboard() {
       {/* ── SIDEBAR ── */}
       <aside className={`admin-sidebar${collapsed ? ' collapsed' : ' open'}`}>
         <div className="s-logo">
-          <div className="s-mark">CC</div>
+          <div className="s-mark"><img src={logo} className="s-mark-img" alt="Click Clothing"/></div>
           <div className="s-text">
             <span className="s-name">Click Clothing</span>
             <span className="s-sub">Store Admin</span>

@@ -7,8 +7,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { MiniStats } from './shared';
+import { API_BASE_URL } from '../../../services/api';
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = API_BASE_URL;
 
 /* ─── Currency formatter ─── */
 const fmt = (n) => {
@@ -188,41 +189,42 @@ function ChartCustomerGrowth({ data = [] }) {
 }
 
 /* ─────────────────────────────────────────────
-   CHART: Payment Summary (donut)
+   CHART: Payment Summary (donut) — FIXED
+   Uses a single -90deg rotation on the group so the
+   pattern's natural start point (3 o'clock) becomes
+   12 o'clock, then each segment's offset is simply the
+   negative cumulative sum of the arcs before it. This
+   removes the sign-ambiguity that caused segments to
+   render in the wrong order/position.
 ───────────────────────────────────────────── */
 function ChartPaymentDonut({ data = {} }) {
   const { paid = 0, pending = 0, failed = 0, total = 0 } = data;
 
-  const CIRC       = 2 * Math.PI * 70; // ≈ 439.8
-  const paidPct    = total > 0 ? paid    / total : 0;
-  const pendingPct = total > 0 ? pending / total : 0;
-  const failedPct  = total > 0 ? failed  / total : 0;
+  const CIRC = 2 * Math.PI * 70; // ≈ 439.8
 
-  const paidArc    = paidPct    * CIRC;
-  const pendingArc = pendingPct * CIRC;
-  const failedArc  = failedPct  * CIRC;
+  const paidArc    = total > 0 ? (paid    / total) * CIRC : 0;
+  const pendingArc = total > 0 ? (pending / total) * CIRC : 0;
+  const failedArc  = total > 0 ? (failed  / total) * CIRC : 0;
 
-  // SVG circles start at 3 o'clock; rotate to 12 o'clock via dashoffset
-  const paidOff    = CIRC * 0.25;
-  const pendingOff = -(paidArc    - CIRC * 0.25);
-  const failedOff  = -(paidArc + pendingArc - CIRC * 0.25);
+  // Cumulative offsets: each segment starts exactly where the previous one ended.
+  const paidOffset    = 0;
+  const pendingOffset = -paidArc;
+  const failedOffset  = -(paidArc + pendingArc);
 
   return (
     <div className="donut-row">
       <svg viewBox="0 0 180 180" width="150" height="150" style={{ flexShrink: 0 }}>
-        {/* track */}
-        <circle cx="90" cy="90" r="70" fill="none" stroke="#f0f0f0" strokeWidth="26" />
         {total === 0 ? (
           <circle cx="90" cy="90" r="70" fill="none" stroke="#e5e5e5" strokeWidth="26" />
         ) : (
-          <>
+          <g transform="rotate(-90 90 90)">
             <circle cx="90" cy="90" r="70" fill="none" stroke="#111" strokeWidth="26"
-              strokeDasharray={`${paidArc} ${CIRC}`} strokeDashoffset={paidOff} strokeLinecap="butt" />
+              strokeDasharray={`${paidArc} ${CIRC}`} strokeDashoffset={paidOffset} strokeLinecap="butt" />
             <circle cx="90" cy="90" r="70" fill="none" stroke="#f59e0b" strokeWidth="26"
-              strokeDasharray={`${pendingArc} ${CIRC}`} strokeDashoffset={pendingOff} strokeLinecap="butt" />
+              strokeDasharray={`${pendingArc} ${CIRC}`} strokeDashoffset={pendingOffset} strokeLinecap="butt" />
             <circle cx="90" cy="90" r="70" fill="none" stroke="#ef4444" strokeWidth="26"
-              strokeDasharray={`${failedArc} ${CIRC}`} strokeDashoffset={failedOff} strokeLinecap="butt" />
-          </>
+              strokeDasharray={`${failedArc} ${CIRC}`} strokeDashoffset={failedOffset} strokeLinecap="butt" />
+          </g>
         )}
         <text x="90" y="85" textAnchor="middle" fontSize="13" fontWeight="800" fill="#111">
           {fmt(total)}

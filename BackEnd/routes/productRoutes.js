@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 
@@ -69,14 +68,11 @@ router.delete(
   productController.deleteProduct
 );
 
-
-
 // Get variants of product
 router.get(
   '/:id/variants',
   productController.getProductVariants
 );
-
 
 router.patch(
   '/:id/availability',

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import NavBar from "../components/navsidebar";
-import WhatsAppButton from "../components/whatsappbtn";
-import SizeChart from "../components/SizeChart";
+import Header from "../Components/header";
+import Footer from "../Components/footer";
+import NavBar from "../Components/navsidebar";
+import WhatsAppButton from "../Components/whatsappbtn";
+import SizeChart from "../Components/Sizechart";
 import SmartSizeRecommendation from "../Components/SmartSizeRecommendation";
 import CompareButton from "../Components/CompareButton";
-import cartService from "../services/cartService";
+import cartService from "../services/cartservice";
 import {
   getWishlistDB,
   addToWishlistDB,
@@ -113,7 +113,7 @@ const ColorSwatches = ({ colors, selectedColor, onSelect }) => (
 );
 
 // ---------- Product Card Component ----------
-const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewMeta = {} }) => {
+const ProductCard = ({ product, onToggleWishlist, isWished, onOpenModal, reviewMeta = {}, isHighlighted, onOpenSmartSize }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || "#ffffff");
   const images = product.colorImages?.[selectedColor] || [product.img];
   const currentImage = images[0];
@@ -202,6 +202,7 @@ const ProductModal = ({ product, onClose, onToggleWishlist, isWished }) => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [sizeError, setSizeError]               = useState(false);
   const [showSmartSize, setShowSmartSize]       = useState(false);
+  const [showSizeChart, setShowSizeChart]       = useState(false);
   const [reviewSort, setReviewSort]             = useState('newest');
   const [reviews, setReviews]                   = useState([]);
   const [reviewsLoading, setReviewsLoading]     = useState(true);

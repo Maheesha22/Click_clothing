@@ -37,7 +37,7 @@ export default function NotificationBell() {
 
   useEffect(() => {
     loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, 30000);
+    const interval = setInterval(loadUnreadCount, 120000); // Poll every 2 minutes instead of every 30 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -139,7 +139,7 @@ export default function NotificationBell() {
       >
         <IcoBell />
         {unreadCount > 0 && (
-          <span className="badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+          <span className="notif-count-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
         )}
       </button>
 
