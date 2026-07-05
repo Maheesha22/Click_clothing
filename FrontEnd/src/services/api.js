@@ -8,7 +8,10 @@ const envBase = import.meta.env.VITE_API_BASE_URL;
 const defaultDevBase = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
     ? 'http://localhost:3000/api'
     : '/api';
-const rawBase = envBase || defaultDevBase;
+let rawBase = envBase || defaultDevBase;
+if (rawBase && !/^https?:\/\//i.test(rawBase) && !rawBase.startsWith('/')) {
+    rawBase = `https://${rawBase}`;
+}
 const baseWithoutSlash = rawBase.replace(/\/+$/, '');
 export const API_BASE_URL = (baseWithoutSlash.endsWith('/api') || baseWithoutSlash.endsWith('/api/'))
     ? baseWithoutSlash
